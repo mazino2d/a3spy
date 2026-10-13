@@ -9,9 +9,22 @@ Read `AGENTS.md` first; its hard rules apply to everything below.
 
 ## Before writing code
 
-1. Open the story issue (`gh issue view <n> --repo mazino2d/a3spy`) and `docs/rules.md`. If an acceptance criterion is ambiguous, pick the reading that best fits the PRD principles, note it in the PR, and move on; ask only when two readings change user-visible behaviour.
+1. Open the story issue (`gh issue view <n> --repo mazino2d/a3spy`) and `docs/rules.md`. If an acceptance criterion is ambiguous, pick the reading that best fits the [design principles](../../../docs/product/principles.md), note it in the PR, and move on; ask only when two readings change user-visible behaviour.
 2. Branch from `main`: `feat/<story-id>-<slug>` or `fix/<slug>`.
 3. List which layers the story touches: `game` (rules), `room`/`player` (state), `bot` (Telegram I/O).
+4. If the story belongs to a milestone with an implementation plan (`docs/implementations/M<n>-<slug>.md`), follow its phases and decisions, and update its phase table in the same PR.
+
+## Implementation plans
+
+A milestone that spans several PRs or adds architecture gets a plan in `docs/implementations/M<n>-<slug>.md` (same slug as its spec in `docs/product/specs/`), written before the first code PR. The spec says *what*; the plan says *how*:
+
+- Header: `Status · Spec: <link> · Written <date>`.
+- **Decisions** table: topic, decision, why.
+- **Architecture**: a diagram of what changes, and any protocol or data format.
+- **Phases** table: one PR each, with scope, the stories and ACs it covers, effort in days and status. Every phase leaves production working.
+- **Risks** with mitigations, and **Infra** changes needed in `everything-as-code`.
+
+Never change acceptance criteria in a plan; if a decision forces one to change, raise it with the product-owner skill.
 
 ## Build inside-out
 

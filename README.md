@@ -2,7 +2,7 @@
 
 A Telegram bot that runs *Who is Spy* (Undercover rules) for friends playing in person. Everyone talks out loud; the bot deals secret words over DM, calls the speaking order, runs the vote, eliminates, reveals and keeps score.
 
-Play it: [t.me/a3spy_bot](https://t.me/a3spy_bot)
+Play it: [t.me/a3spy_bot](https://t.me/a3spy_bot). A web app (PWA) that joins the same rooms is next on the [roadmap](docs/product/roadmap.md).
 
 ## How a game goes
 
@@ -20,11 +20,12 @@ Commands: `/newgame`, `/join <code>`, `/leave`, `/score`, `/end` (host), `/help`
 
 | Doc | What's in it |
 | --- | --- |
-| [PRD](.claude/skills/product-owner/PRD.md) | Problem, goals, rules, user stories, release plan |
+| [Product docs](docs/product/index.md) | Strategy, principles, use cases, roadmap, milestone specs |
+| [Implementation plans](docs/implementations/) | How large milestones get built, phase by phase |
 | [docs/rules.md](docs/rules.md) | Exact rules the code and tests implement |
 | [AGENTS.md](AGENTS.md) | Architecture, conventions and workflow for humans and AI agents |
 | [Skills](.claude/skills/) | Role playbooks: `product-owner`, `software-engineer`, `software-tester`, `designer` |
-| [Issues](https://github.com/mazino2d/a3spy/issues) | Backlog, one issue per user story |
+| [Issues](https://github.com/mazino2d/a3spy/issues) | Backlog, one issue per user story, grouped by milestone |
 
 ## Architecture
 

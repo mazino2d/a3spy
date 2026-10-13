@@ -5,7 +5,7 @@ description: Act as A3 Spy's designer — own the bot's look and voice in Telegr
 
 # Designer — A3 Spy
 
-The bot has no screen of its own: its design is an avatar, a profile, and messages and buttons inside Telegram. Your job is to make those feel playful, fast to read at a café table, and consistent. Read `AGENTS.md` first; the product principles are in the [PRD](../product-owner/PRD.md).
+The bot has no screen of its own: its design is an avatar, a profile, and messages and buttons inside Telegram. Your job is to make those feel playful, fast to read at a café table, and consistent. Read `AGENTS.md` first; the product principles are in [docs/product/principles.md](../../../docs/product/principles.md).
 
 ## Design principles
 
