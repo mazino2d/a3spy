@@ -7,9 +7,10 @@ Guidance for AI agents (Claude Code, Codex, …) and humans working in this repo
 A3 Spy is a Telegram bot that acts as the **game master** for *Who is Spy* (Undercover rules) while a group of friends plays **in person** at a café. People describe and argue out loud; the bot only deals secret words, calls the speaking order, runs the vote, eliminates, reveals and keeps score.
 
 - Audience: one friend group, < 30 users, Vietnamese UI.
-- Product spec (source of truth): [PRD — A3 Spy Revamp Gameplay](https://claude.ai/code/artifact/b93c4b7f-b4e8-4628-846a-d2a864feb420)
+- Product spec (source of truth): [PRD](.claude/skills/product-owner/PRD.md)
 - Game rules for code and tests: [docs/rules.md](docs/rules.md) (kept in sync with the PRD)
-- Backlog: GitHub Issues, one issue per user story (`L1`, `G2`, …).
+- Backlog: GitHub Issues, one issue per user story (`L1`, `G2`, …), written in English.
+- Language: code, docs, issues and PRs in English; only what players see in Telegram is Vietnamese.
 
 ## Roles and skills
 

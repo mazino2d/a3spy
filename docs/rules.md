@@ -1,6 +1,6 @@
 # Game rules
 
-Canonical rules for code and tests. Product context and rationale live in the [PRD](https://claude.ai/code/artifact/b93c4b7f-b4e8-4628-846a-d2a864feb420); when the two disagree, the PRD wins and this file is fixed in the same PR.
+Canonical rules for code and tests. Product context and rationale live in the [PRD](../.claude/skills/product-owner/PRD.md); when the two disagree, the PRD wins and this file is fixed in the same PR.
 
 ## Rooms
 
