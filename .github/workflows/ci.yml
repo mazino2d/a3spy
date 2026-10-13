@@ -28,6 +28,8 @@ jobs:
               - "src/**"
               - "test/**"
               - "words/**"
+              - "telegram/**"
+              - "scripts/**"
               - "package.json"
               - "package-lock.json"
               - ".nvmrc"

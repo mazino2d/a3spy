@@ -21,6 +21,7 @@ Pick the skill that matches the task before starting:
 | [`product-owner`](.claude/skills/product-owner/SKILL.md) | Writing or changing stories, acceptance criteria, rules, priorities, release scope |
 | [`software-engineer`](.claude/skills/software-engineer/SKILL.md) | Implementing a story, refactoring, fixing a bug, touching CI/CD |
 | [`software-tester`](.claude/skills/software-tester/SKILL.md) | Writing tests from acceptance criteria, reviewing coverage, playtesting, filing bugs |
+| [`designer`](.claude/skills/designer/SKILL.md) | Avatar and visual identity, bot profile and command menu, message layout, button labels, UX copy |
 
 ## Stack
 
@@ -53,6 +54,8 @@ src/
   room/           RoomDO: persists a room, applies game commands, broadcasts
   player/         PlayerDO: player → current room
 words/            Word-pair packs (JSON), one file per theme
+telegram/         Bot profile as code: profile.json (name, descriptions, commands), avatar.svg → avatar.jpg
+scripts/          Node scripts: render the avatar, sync the profile to Telegram
 docs/rules.md     Canonical rules for code and tests
 test/unit/        Pure tests for src/game
 test/integration/ Worker + DO tests in the workers runtime
@@ -68,6 +71,8 @@ npm run lint           # biome check
 npm run typecheck      # tsc --noEmit
 npm run check          # lint + typecheck + test — run before every PR
 npx wrangler deploy --dry-run   # validates bundle + bindings
+npm run avatar         # render telegram/avatar.svg → avatar.jpg
+TELEGRAM_BOT_TOKEN=… npm run telegram:profile -- --dry-run   # diff the bot profile
 ```
 
 Node 24 (see `.nvmrc`); npm 11 respects `allowScripts` in `package.json`.
