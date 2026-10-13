@@ -106,8 +106,19 @@ export const playerName = (room: Room, id: number): string =>
   [...room.players, ...room.waiting].find((p) => p.id === id)?.name ?? room.game?.names[id] ?? String(id);
 export const handOf = (game: Game, id: number): Hand | undefined => game.hands.find((h) => h.playerId === id);
 
-export function join(room: Room, player: Player): Result {
-  if (inRoom(room, player.id)) return fail("already_in_room");
+/** Tells apart players with the same display name: "Minh", "Minh (2)", "Minh (3)"… */
+export function uniqueName(room: Room, name: string): string {
+  const taken = new Set([...room.players, ...room.waiting].map((p) => p.name.toLocaleLowerCase("vi")));
+  if (!taken.has(name.toLocaleLowerCase("vi"))) return name;
+  for (let n = 2; ; n++) {
+    const candidate = `${name} (${n})`;
+    if (!taken.has(candidate.toLocaleLowerCase("vi"))) return candidate;
+  }
+}
+
+export function join(room: Room, newcomer: Player): Result {
+  if (inRoom(room, newcomer.id)) return fail("already_in_room");
+  const player: Player = { ...newcomer, name: uniqueName(room, newcomer.name) };
   if (isRunning(room)) {
     return ok({ ...room, waiting: [...room.waiting, player] }, [{ type: "queued", player }]);
   }

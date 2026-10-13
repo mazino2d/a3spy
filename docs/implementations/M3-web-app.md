@@ -1,6 +1,6 @@
 # M3 Web app (PWA) — implementation plan
 
-Status: planned (P0 in review)   ·   Spec: [M3 Web app (PWA)](../product/specs/M3-web-app.md)   ·   Written 2026-10-13
+Status: in progress (P0 done, P1 in review)   ·   Spec: [M3 Web app (PWA)](../product/specs/M3-web-app.md)   ·   Written 2026-10-13
 
 How M3 gets built: the architecture, the phases (one PR each) and the decisions behind
 them. The spec defines *what* must be true; this plan defines *how* and in what order.
@@ -64,8 +64,8 @@ Each phase is one PR, ends green on `npm run check`, and leaves production worki
 
 | Phase | Scope | Stories / ACs | Effort | Status |
 | --- | --- | --- | --- | --- |
-| P0 | Product docs, spec and this plan | — | 0.5 d | In review |
-| P1 | Client-neutral room: `apply()` shared by both clients, Telegram ops filtered to `id > 0`, duplicate-name suffix, `src/game/view.ts` with secrecy unit tests. No visible change on Telegram. | AC9, AC19 | 1.5 d | Planned |
+| P0 | Product docs, spec and this plan | — | 0.5 d | Done (#23) |
+| P1 | Client-neutral room: `apply()` shared by both clients, Telegram ops filtered to `id > 0`, duplicate-name suffix, `src/game/view.ts` with secrecy unit tests. No visible change on Telegram except the name suffix. | AC9, AC19 | 1.5 d | In review |
 | P2 | Web sessions and realtime API: `POST /api/session`, `GET /api/me`, `POST /api/rooms`, `POST /api/rooms/<code>/join` and `/leave`, WebSocket upgrade with hibernation, integration tests for join, vote and reconnect | AC4–AC6, AC16, AC20–AC22 (server side) | 2 d | Planned |
 | P3 | Web shell and PWA: `web/` (Vite + Preact), static assets in `wrangler.jsonc`, manifest, service worker, icons, CI and CD build steps; screens: name, home (create / join by code), lobby with QR and share | W1, W2, W9 · AC1–AC6, AC23, AC24 | 2.5 d | Planned |
 | P4 | Game screens: word card (tap to reveal, auto-hide), speaking order, vote, results, Mr. White guess, end and reveal, play again, end game, scoreboard, connection banner | W3–W6, W8, W10 · AC7–AC16, AC20, AC21, AC25 | 2.5 d | Planned |
