@@ -27,7 +27,8 @@ Read `AGENTS.md` first; its hard rules apply to everything below.
 - Timers and idle cleanup use `ctx.storage.setAlarm()`; one alarm per DO, so store the reason and next deadline in state.
 - New DO classes need a `migrations` entry in `wrangler.jsonc` (`new_sqlite_classes`). Never rename or delete a class without a migration.
 - No module-level mutable state. Env and bindings come from `env`; secrets: `TELEGRAM_BOT_TOKEN`, `TELEGRAM_WEBHOOK_SECRET`.
-- Free plan limits worth remembering: 100k requests/day, 10 ms CPU per request; keep handlers lean and avoid heavy libraries.
+- Free plan limits worth remembering: 100k requests/day, 10 ms CPU per request, **50 subrequests per invocation** (each Telegram call counts). A 12-player broadcast is ~12–25 calls; never add a per-player loop on top of one.
+- Rendering is planned, not performed: `plan()` in `src/bot/render.ts` turns engine events into `Op`s, and `RoomDO.execute` runs them (per chat in order, chats in parallel) and records message ids for in-place edits.
 
 ## Telegram (grammY)
 

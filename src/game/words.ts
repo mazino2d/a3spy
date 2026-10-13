@@ -23,22 +23,16 @@ function load(raw: RawPack): WordPack {
     pairs: raw.pairs.map((pair) => {
       const [a, b, ...rest] = pair;
       if (a === undefined || b === undefined || rest.length > 0) {
-        throw new Error(
-          `words/${raw.id}.json: each pair needs exactly 2 words, got ${JSON.stringify(pair)}`,
-        );
+        throw new Error(`words/${raw.id}.json: each pair needs exactly 2 words, got ${JSON.stringify(pair)}`);
       }
       return { a, b };
     }),
   };
 }
 
-export const PACKS: readonly WordPack[] = [food, places, body, showbiz].map(
-  load,
-);
+export const PACKS: readonly WordPack[] = [food, places, body, showbiz].map(load);
 
 export function pairsOf(packIds?: readonly string[]): WordPair[] {
-  const packs = packIds?.length
-    ? PACKS.filter((p) => packIds.includes(p.id))
-    : PACKS;
+  const packs = packIds?.length ? PACKS.filter((p) => packIds.includes(p.id)) : PACKS;
   return packs.flatMap((p) => p.pairs);
 }

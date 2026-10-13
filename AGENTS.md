@@ -84,7 +84,7 @@ Node 24 (see `.nvmrc`); npm 11 respects `allowScripts` in `package.json`.
 ## Workflow
 
 - Never push to `main`. Branch → PR → CI → squash merge. Merging deploys to production automatically.
-- One story (or one bug) per PR; the PR body says `Closes #<issue>` and lists the acceptance criteria covered.
+- One story (or one bug) per PR; a few tightly coupled stories of one release may share a PR. The PR body says `Closes #<issue>` for each and lists the acceptance criteria covered.
 - Commit messages: Conventional Commits (`feat(game): …`, `fix(bot): …`, `test: …`, `ci: …`, `docs: …`).
 - The only required check is **`ci-ok`**; it aggregates the path-filtered jobs, so a docs-only PR still gets a green check.
 

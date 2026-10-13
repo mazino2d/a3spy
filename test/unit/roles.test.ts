@@ -37,9 +37,7 @@ describe("checkRoleCounts", () => {
   });
 
   it("requires civilians to outnumber spies + Mr. White", () => {
-    expect(checkRoleCounts(6, { spies: 2, white: 1 })).toBe(
-      "civilians_not_majority",
-    );
+    expect(checkRoleCounts(6, { spies: 2, white: 1 })).toBe("civilians_not_majority");
   });
 });
 
@@ -55,18 +53,12 @@ describe("deal", () => {
 
   it("gives civilians one word, spies the other, Mr. White none", () => {
     const hands = deal(ids(7), pair, { spies: 2, white: 1 }, seededRng(2));
-    const civilianWords = new Set(
-      hands.filter((h) => h.role === "civilian").map((h) => h.word),
-    );
-    const spyWords = new Set(
-      hands.filter((h) => h.role === "spy").map((h) => h.word),
-    );
+    const civilianWords = new Set(hands.filter((h) => h.role === "civilian").map((h) => h.word));
+    const spyWords = new Set(hands.filter((h) => h.role === "spy").map((h) => h.word));
 
     expect(civilianWords.size).toBe(1);
     expect(spyWords.size).toBe(1);
-    expect([...civilianWords, ...spyWords].sort()).toEqual(
-      [pair.a, pair.b].sort(),
-    );
+    expect([...civilianWords, ...spyWords].sort()).toEqual([pair.a, pair.b].sort());
     expect(hands.find((h) => h.role === "white")?.word).toBeNull();
   });
 
@@ -75,9 +67,7 @@ describe("deal", () => {
       Array.from(
         { length: 20 },
         (_, seed) =>
-          deal(ids(4), pair, { spies: 1, white: 0 }, seededRng(seed)).find(
-            (h) => h.role === "civilian",
-          )?.word,
+          deal(ids(4), pair, { spies: 1, white: 0 }, seededRng(seed)).find((h) => h.role === "civilian")?.word,
       ),
     );
     expect(civilianWords).toEqual(new Set([pair.a, pair.b]));
@@ -90,8 +80,6 @@ describe("deal", () => {
   });
 
   it("refuses unplayable counts", () => {
-    expect(() =>
-      deal(ids(4), pair, { spies: 2, white: 0 }, seededRng(1)),
-    ).toThrow("civilians_not_majority");
+    expect(() => deal(ids(4), pair, { spies: 2, white: 0 }, seededRng(1))).toThrow("civilians_not_majority");
   });
 });
