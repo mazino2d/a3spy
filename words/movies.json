@@ -1,0 +1,22 @@
+{
+  "id": "movies",
+  "emoji": "🎬",
+  "name": "Phim & hoạt hình",
+  "pairs": [
+    ["Doraemon", "Conan"],
+    ["Naruto", "One Piece"],
+    ["Frozen", "Moana"],
+    ["Harry Potter", "Chúa tể những chiếc nhẫn"],
+    ["Iron Man", "Captain America"],
+    ["Batman", "Superman"],
+    ["Titanic", "Avatar"],
+    ["Squid Game", "Alice in Borderland"],
+    ["Bố già", "Nhà bà Nữ"],
+    ["Mai", "Lật mặt"],
+    ["Hậu duệ mặt trời", "Hạ cánh nơi anh"],
+    ["Pokémon", "Digimon"],
+    ["Minions", "Xì trum"],
+    ["Tom và Jerry", "Shin cậu bé bút chì"],
+    ["Mr. Bean", "Sác lô"]
+  ]
+}

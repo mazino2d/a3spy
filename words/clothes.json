@@ -1,0 +1,23 @@
+{
+  "id": "clothes",
+  "emoji": "👕",
+  "name": "Quần áo & phụ kiện",
+  "pairs": [
+    ["Áo thun", "Áo sơ mi"],
+    ["Quần jean", "Quần tây"],
+    ["Chân váy", "Quần short"],
+    ["Áo khoác", "Áo len"],
+    ["Giày cao gót", "Giày búp bê"],
+    ["Dép tổ ong", "Dép xỏ ngón"],
+    ["Kính râm", "Kính cận"],
+    ["Nón lá", "Mũ lưỡi trai"],
+    ["Nhẫn", "Dây chuyền"],
+    ["Khẩu trang", "Khăn quàng cổ"],
+    ["Áo dài", "Áo bà ba"],
+    ["Túi xách", "Ví"],
+    ["Cà vạt", "Nơ"],
+    ["Đồ ngủ", "Đồ bơi"],
+    ["Tất", "Găng tay"],
+    ["Son môi", "Phấn mắt"]
+  ]
+}

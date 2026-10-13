@@ -1,0 +1,20 @@
+{
+  "id": "love",
+  "emoji": "💘",
+  "name": "Hẹn hò",
+  "pairs": [
+    ["Crush", "Người yêu cũ"],
+    ["Tỏ tình", "Cầu hôn"],
+    ["Hẹn hò", "Đi xem mắt"],
+    ["Ghen", "Giận"],
+    ["Nắm tay", "Ôm"],
+    ["Nhẫn đôi", "Áo đôi"],
+    ["Tinder", "Bumble"],
+    ["Hôn", "Thơm má"],
+    ["Kỷ niệm ngày yêu", "Kỷ niệm ngày cưới"],
+    ["Friendzone", "Bị cắm sừng"],
+    ["Chia tay", "Ly hôn"],
+    ["Red flag", "Green flag"],
+    ["Thả thính", "Đá lông nheo"]
+  ]
+}

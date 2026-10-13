@@ -68,7 +68,14 @@ export const msg = {
   settingsCounts: (spies: number, white: number, auto: boolean) =>
     `⚙️ ${spies} spy · Mr. White: ${white ? "có" : "không"}${auto ? " <i>(tự động theo số người)</i>" : ""}`,
   settingsAutoPending: "⚙️ Số spy và Mr. White tự động theo số người.",
-  settingsThemes: (names: string[] | null) => `📚 Chủ đề: ${names ? names.join(", ") : "tất cả"}`,
+  settingsThemes: (summary: string) => `📚 Chủ đề: ${summary}`,
+  allThemes: (n: number) => `tất cả ${n}`,
+  someThemes: (on: number, n: number, emojis: string) => `${on}/${n} ${emojis}`,
+  themesPanel: (on: number, n: number) =>
+    [`📚 <b>Chọn chủ đề</b> · đang bật ${on}/${n}`, "Bấm để bật/tắt. Mỗi ván rút một cặp từ các chủ đề đang bật."].join(
+      "\n",
+    ),
+  themesClosed: (summary: string) => `📚 Chủ đề: ${summary}`,
   settingsTimers: (discussion: number, vote: number) =>
     `⏱ Thảo luận: ${discussion ? `${discussion} phút` : "tắt"} · Vote: ${vote ? `${vote} phút` : "tắt"}`,
   discussionTimer: (minutes: number) => `⏱ Có ${minutes} phút thảo luận.`,
@@ -89,6 +96,9 @@ export const msg = {
   btnSpyMore: "➕ Spy",
   btnWhite: (on: boolean) => `${on ? "✅" : "⬜"} Mr. White`,
   btnAuto: "🔄 Tự động",
+  btnThemes: (on: number, n: number) => `📚 Chủ đề (${on}/${n})`,
+  btnAllThemes: "✅ Bật tất cả",
+  btnThemesDone: "👌 Xong",
   btnTimer: (kind: "discussion" | "vote", minutes: number) =>
     `⏱ ${kind === "discussion" ? "Thảo luận" : "Vote"}: ${minutes ? `${minutes} phút` : "tắt"}`,
 

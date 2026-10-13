@@ -1,0 +1,22 @@
+{
+  "id": "games",
+  "emoji": "🎮",
+  "name": "Trò chơi",
+  "pairs": [
+    ["Cờ vua", "Cờ tướng"],
+    ["Liên Quân", "PUBG"],
+    ["Free Fire", "Liên Minh Huyền Thoại"],
+    ["Tiến lên", "Phỏm"],
+    ["Bầu cua", "Lô tô"],
+    ["Ô ăn quan", "Nhảy dây"],
+    ["Trốn tìm", "Bịt mắt bắt dê"],
+    ["Rubik", "Lego"],
+    ["Cờ cá ngựa", "Cờ tỷ phú"],
+    ["Minecraft", "Roblox"],
+    ["Tetris", "Rắn săn mồi"],
+    ["Ma sói", "Who is Spy"],
+    ["Đá cầu", "Bắn bi"],
+    ["Gắp thú", "Máy bắn cá"],
+    ["Mario", "Sonic"]
+  ]
+}

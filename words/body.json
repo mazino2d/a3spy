@@ -1,5 +1,23 @@
 {
   "id": "body",
+  "emoji": "💪",
   "name": "Cơ thể",
-  "pairs": [["Nách", "Háng"], ["Lỗ mũi", "Lỗ tai"], ["Lông mày", "Lông mi"], ["Tim", "Gan"], ["Môi", "Lưỡi"]]
+  "pairs": [
+    ["Nách", "Háng"],
+    ["Lỗ mũi", "Lỗ tai"],
+    ["Lông mày", "Lông mi"],
+    ["Tim", "Gan"],
+    ["Môi", "Lưỡi"],
+    ["Tay", "Chân"],
+    ["Đầu gối", "Khuỷu tay"],
+    ["Răng", "Nướu"],
+    ["Tóc", "Râu"],
+    ["Bụng", "Lưng"],
+    ["Ngón tay", "Ngón chân"],
+    ["Cằm", "Má"],
+    ["Vai", "Cổ"],
+    ["Phổi", "Dạ dày"],
+    ["Mông", "Đùi"],
+    ["Lúm đồng tiền", "Nốt ruồi"]
+  ]
 }

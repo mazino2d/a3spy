@@ -1,0 +1,25 @@
+{
+  "id": "animals",
+  "emoji": "🐶",
+  "name": "Con vật",
+  "pairs": [
+    ["Chó", "Mèo"],
+    ["Gà", "Vịt"],
+    ["Hổ", "Sư tử"],
+    ["Voi", "Hà mã"],
+    ["Khỉ", "Vượn"],
+    ["Rắn", "Lươn"],
+    ["Cá heo", "Cá mập"],
+    ["Bò", "Trâu"],
+    ["Ngựa", "Lừa"],
+    ["Chuột", "Sóc"],
+    ["Ếch", "Cóc"],
+    ["Thỏ", "Hamster"],
+    ["Cua", "Ghẹ"],
+    ["Tôm", "Mực"],
+    ["Ong", "Kiến"],
+    ["Muỗi", "Ruồi"],
+    ["Gấu", "Gấu trúc"],
+    ["Đại bàng", "Cú mèo"]
+  ]
+}

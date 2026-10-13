@@ -47,6 +47,12 @@ The mark is a card dealt face up with an incognito hat over round glasses; **one
 - The face-down word card is a sealed envelope with a rotated red "MẬT" stamp; face up it is a typed sheet. Same look for every role.
 - Tokens live at the top of `web/src/styles.css`; components use the tokens, never literals.
 
+### Themes (word packs)
+
+- Every theme has one emoji, shown before its name in every picker and summary (`🍜 Đồ ăn`). Pick an emoji that is not already used by another theme.
+- With many themes, pickers stay out of the way: on Telegram the lobby has one `📚 Chủ đề (k/N)` button that opens a separate panel (two themes per row, `✅ Bật tất cả`, `👌 Xong`), edited in place; on the web the picker is a folded section with a two-column grid.
+- Summaries: all on → "tất cả N"; up to four → their emoji and names; more → "k/N" and the emoji.
+
 ### Avatar
 
 - Source of truth: `telegram/avatar.svg` (hand-written SVG, commented). Render with `npm run avatar` → `telegram/avatar.jpg` and `web/public/icons/*.png`; commit all of them.

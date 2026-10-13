@@ -41,8 +41,11 @@ export function decode(data: string): Callback | null {
 
 /**
  * Settings taps travel in the numeric `arg`: 1 spy+, 2 spy−, 3 Mr. White on/off, 4 auto,
- * 5 discussion timer, 6 vote timer, 10+i theme i.
+ * 5 discussion timer, 6 vote timer, 8 all themes, 10+i theme i.
+ * 7 and 9 open and close the host's theme picker; they change nothing.
  */
+export const THEMES_OPEN = 7;
+export const THEMES_CLOSE = 9;
 const THEME_BASE = 10;
 
 export function encodeChange(change: SettingsChange): number {
@@ -57,6 +60,8 @@ export function encodeChange(change: SettingsChange): number {
       return THEME_BASE + PACKS.findIndex((p) => p.id === change.theme);
     case "timer":
       return change.timer === "discussion" ? 5 : 6;
+    case "allThemes":
+      return 8;
   }
 }
 
@@ -67,6 +72,7 @@ export function decodeChange(arg: number): SettingsChange | null {
   if (arg === 4) return { kind: "auto" };
   if (arg === 5) return { kind: "timer", timer: "discussion" };
   if (arg === 6) return { kind: "timer", timer: "vote" };
+  if (arg === 8) return { kind: "allThemes" };
   const pack = PACKS[arg - THEME_BASE];
   return arg >= THEME_BASE && pack ? { kind: "theme", theme: pack.id } : null;
 }

@@ -1,0 +1,22 @@
+{
+  "id": "school",
+  "emoji": "🎒",
+  "name": "Trường lớp",
+  "pairs": [
+    ["Toán", "Lý"],
+    ["Văn", "Sử"],
+    ["Hóa", "Sinh"],
+    ["Tiếng Anh", "Tiếng Nhật"],
+    ["Hiệu trưởng", "Giám thị"],
+    ["Lớp trưởng", "Lớp phó"],
+    ["Bút bi", "Bút chì"],
+    ["Thước kẻ", "Compa"],
+    ["Cặp sách", "Balo"],
+    ["Kiểm tra 15 phút", "Thi học kỳ"],
+    ["Đại học", "Cao đẳng"],
+    ["Học thêm", "Học online"],
+    ["Đồng phục", "Khăn quàng đỏ"],
+    ["Căn tin", "Sân trường"],
+    ["Trốn học", "Đi trễ"]
+  ]
+}

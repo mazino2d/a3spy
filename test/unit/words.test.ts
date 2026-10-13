@@ -15,6 +15,13 @@ describe("word packs", () => {
     }
   });
 
+  it.each(PACKS.map((p) => [p.id, p]))("%s: has an emoji, a name and at least 12 pairs", (_, pack) => {
+    expect(pack.emoji.trim()).not.toBe("");
+    expect([...pack.emoji].length).toBeLessThanOrEqual(3);
+    expect(pack.name.trim()).not.toBe("");
+    expect(pack.pairs.length).toBeGreaterThanOrEqual(12);
+  });
+
   it("has no duplicate pair across packs, in either order", () => {
     const keys = pairsOf().map(({ a, b }) =>
       [a, b]

@@ -1,6 +1,6 @@
 import { DurableObject } from "cloudflare:workers";
 import { Api } from "grammy";
-import { type Callback, decodeChange } from "../bot/callbacks";
+import { type Callback, decodeChange, THEMES_CLOSE, THEMES_OPEN } from "../bot/callbacks";
 import { msg } from "../bot/messages";
 import {
   inviteLink,
@@ -10,6 +10,8 @@ import {
   type RoomLinks,
   type Slot,
   scoreboard,
+  themesClosed,
+  themesPanel,
   timerReminder,
   webLink,
   wordAlert,
@@ -100,6 +102,8 @@ function toCommand(cb: Callback): Command | null {
 export class RoomDO extends DurableObject<Env> {
   private load(): Stored | null {
     const stored = this.ctx.storage.kv.get<Stored>("state") ?? null;
+    // Rooms stored before the theme picker existed.
+    if (stored && !stored.ui.themes) stored.ui = { ...stored.ui, themes: {} };
     // Rooms stored before host settings or timers existed.
     if (stored && !stored.room.settings?.timers)
       stored.room = { ...stored.room, settings: { ...engine.DEFAULT_SETTINGS, ...stored.room.settings } };
@@ -117,7 +121,7 @@ export class RoomDO extends DurableObject<Env> {
       room,
       botUsername: links.botUsername,
       ...(links.webOrigin ? { webOrigin: links.webOrigin } : {}),
-      ui: { lobby: {}, vote: {}, status: {} },
+      ui: { lobby: {}, vote: {}, status: {}, themes: {} },
       updatedAt: Date.now(),
     };
     await this.execute(stored, [
@@ -159,6 +163,18 @@ export class RoomDO extends DurableObject<Env> {
       const game = stored.room.game;
       if (!game || game.id !== cb.gameId) return { text: msg.stale };
       return { text: wordAlert(game, userId), alert: true };
+    }
+
+    if (cb.action === "configure" && (cb.arg === THEMES_OPEN || cb.arg === THEMES_CLOSE)) {
+      const { room } = stored;
+      if (userId !== room.hostId) return { text: msg.notHost };
+      if (engine.isRunning(room)) return { text: msg.gameRunning };
+      await this.execute(stored, [
+        cb.arg === THEMES_OPEN
+          ? { kind: "send", to: userId, slot: "themes", ...themesPanel(room) }
+          : { kind: "edit", to: userId, slot: "themes", ifShown: true, text: themesClosed(room) },
+      ]);
+      return { text: "👌" };
     }
 
     const cmd = toCommand(cb);
@@ -383,7 +399,9 @@ export class RoomDO extends DurableObject<Env> {
             const id = await send(api, chat, op.text, op.keyboard);
             if (op.slot && id !== null) stored.ui[op.slot][chat] = id;
           } else {
-            const id = await editOrSend(api, chat, stored.ui[op.slot][chat], op.text, op.keyboard);
+            const shown = stored.ui[op.slot][chat];
+            if (op.ifShown && shown === undefined) continue;
+            const id = await editOrSend(api, chat, shown, op.text, op.keyboard);
             if (id !== null) stored.ui[op.slot][chat] = id;
           }
         }

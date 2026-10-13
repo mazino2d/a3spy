@@ -1,11 +1,23 @@
 {
   "id": "places",
+  "emoji": "📍",
   "name": "Địa điểm",
   "pairs": [
     ["Đà Lạt", "Sa Pa"],
     ["Khách sạn", "Homestay"],
-    ["Bếp", "Phòng ăn"],
-    ["Phòng ngủ", "Phòng khách"],
-    ["Biển", "Hồ bơi"]
+    ["Biển", "Hồ bơi"],
+    ["Hà Nội", "Sài Gòn"],
+    ["Đà Nẵng", "Nha Trang"],
+    ["Phú Quốc", "Côn Đảo"],
+    ["Hội An", "Huế"],
+    ["Vũng Tàu", "Phan Thiết"],
+    ["Chợ", "Siêu thị"],
+    ["Rạp phim", "Nhà hát"],
+    ["Bệnh viện", "Phòng khám"],
+    ["Quán bar", "Karaoke"],
+    ["Công viên", "Sở thú"],
+    ["Sân bay", "Ga tàu"],
+    ["Nhà thờ", "Chùa"],
+    ["Thư viện", "Nhà sách"]
   ]
 }

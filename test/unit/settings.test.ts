@@ -93,6 +93,7 @@ describe("L4 host settings", () => {
     expect(room.settings.themes).toEqual([a]);
     expect(configure(room, 1, { kind: "theme", theme: a }, THEMES)).toEqual({ ok: false, error: "bad_setting" });
     expect(configure(room, 1, { kind: "theme", theme: "nope" }, THEMES)).toEqual({ ok: false, error: "bad_setting" });
+    expect(set(room, { kind: "allThemes" }).settings.themes).toEqual([]);
   });
 
   it("L4 settings cannot change while a game is running", () => {
@@ -145,10 +146,14 @@ describe("L4 host settings", () => {
       { kind: "spies", delta: -1 },
       { kind: "white" },
       { kind: "auto" },
+      { kind: "allThemes" },
       ...THEMES.map((theme) => ({ kind: "theme", theme }) as const),
     ];
     for (const c of changes) expect(decodeChange(encodeChange(c))).toEqual(c);
     expect(decodeChange(0)).toBeNull();
+    // 7 and 9 open and close the picker; they are not settings changes.
+    expect(decodeChange(7)).toBeNull();
+    expect(decodeChange(9)).toBeNull();
     expect(decodeChange(99)).toBeNull();
   });
 });

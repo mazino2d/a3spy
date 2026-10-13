@@ -64,7 +64,7 @@ export interface SettingsView {
   /** Counts the next game will use; null below 3 players while auto. */
   spies: number | null;
   white: number | null;
-  themes: { id: string; name: string; on: boolean }[];
+  themes: { id: string; emoji: string; name: string; on: boolean }[];
   /** Why Start would be refused right now, or null. */
   problem: CountsProblem | null;
   /** Reminder timers in minutes; 0 is off. */
@@ -104,7 +104,12 @@ export function settingsView(room: Room): SettingsView {
     auto: room.settings.counts === null,
     spies: counts?.spies ?? null,
     white: counts?.white ?? null,
-    themes: PACKS.map((p) => ({ id: p.id, name: p.name, on: themes.length === 0 || themes.includes(p.id) })),
+    themes: PACKS.map((p) => ({
+      id: p.id,
+      emoji: p.emoji,
+      name: p.name,
+      on: themes.length === 0 || themes.includes(p.id),
+    })),
     problem: settingsProblem(room),
     timers: { ...room.settings.timers },
   };

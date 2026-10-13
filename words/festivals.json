@@ -1,0 +1,21 @@
+{
+  "id": "festivals",
+  "emoji": "🧧",
+  "name": "Lễ Tết",
+  "pairs": [
+    ["Tết Nguyên Đán", "Trung Thu"],
+    ["Lì xì", "Quà Tết"],
+    ["Bánh chưng", "Bánh tét"],
+    ["Pháo hoa", "Đèn lồng"],
+    ["Giáng sinh", "Halloween"],
+    ["Valentine", "Ngày 8/3"],
+    ["Sinh nhật", "Tân gia"],
+    ["Đám cưới", "Đám hỏi"],
+    ["Hoa mai", "Hoa đào"],
+    ["Ông Công Ông Táo", "Thần Tài"],
+    ["Black Friday", "Ngày 11/11"],
+    ["Tất niên", "Tân niên"],
+    ["Múa lân", "Đốt pháo"],
+    ["Chúc Tết", "Xông đất"]
+  ]
+}

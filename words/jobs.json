@@ -1,0 +1,23 @@
+{
+  "id": "jobs",
+  "emoji": "👷",
+  "name": "Nghề nghiệp",
+  "pairs": [
+    ["Bác sĩ", "Y tá"],
+    ["Giáo viên", "Gia sư"],
+    ["Công an", "Bảo vệ"],
+    ["Đầu bếp", "Phục vụ"],
+    ["Phi công", "Tiếp viên"],
+    ["Kỹ sư", "Kiến trúc sư"],
+    ["Ca sĩ", "Diễn viên"],
+    ["Shipper", "Tài xế công nghệ"],
+    ["Luật sư", "Thẩm phán"],
+    ["Kế toán", "Giao dịch viên"],
+    ["Thợ cắt tóc", "Thợ làm móng"],
+    ["Lập trình viên", "Tester"],
+    ["Streamer", "YouTuber"],
+    ["Nhà báo", "MC"],
+    ["Nông dân", "Ngư dân"],
+    ["Lính cứu hỏa", "Cảnh sát giao thông"]
+  ]
+}
