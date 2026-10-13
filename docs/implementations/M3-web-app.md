@@ -1,6 +1,6 @@
 # M3 Web app (PWA) — implementation plan
 
-Status: in progress (P0 done, P1 in review)   ·   Spec: [M3 Web app (PWA)](../product/specs/M3-web-app.md)   ·   Written 2026-10-13
+Status: in progress (P0 done, P1–P2 in review)   ·   Spec: [M3 Web app (PWA)](../product/specs/M3-web-app.md)   ·   Written 2026-10-13
 
 How M3 gets built: the architecture, the phases (one PR each) and the decisions behind
 them. The spec defines *what* must be true; this plan defines *how* and in what order.
@@ -66,7 +66,7 @@ Each phase is one PR, ends green on `npm run check`, and leaves production worki
 | --- | --- | --- | --- | --- |
 | P0 | Product docs, spec and this plan | — | 0.5 d | Done (#23) |
 | P1 | Client-neutral room: `apply()` shared by both clients, Telegram ops filtered to `id > 0`, duplicate-name suffix, `src/game/view.ts` with secrecy unit tests. No visible change on Telegram except the name suffix. | AC9, AC19 | 1.5 d | In review |
-| P2 | Web sessions and realtime API: `POST /api/session`, `GET /api/me`, `POST /api/rooms`, `POST /api/rooms/<code>/join` and `/leave`, WebSocket upgrade with hibernation, integration tests for join, vote and reconnect | AC4–AC6, AC16, AC20–AC22 (server side) | 2 d | Planned |
+| P2 | Web sessions and realtime API: `POST /api/session`, `GET /api/me`, `POST /api/rooms`, `POST /api/rooms/<code>/join` and `/leave`, WebSocket upgrade with hibernation, integration tests for join, vote and reconnect | AC4–AC6, AC16, AC20–AC22 (server side) | 2 d | In review |
 | P3 | Web shell and PWA: `web/` (Vite + Preact), static assets in `wrangler.jsonc`, manifest, service worker, icons, CI and CD build steps; screens: name, home (create / join by code), lobby with QR and share | W1, W2, W9 · AC1–AC6, AC23, AC24 | 2.5 d | Planned |
 | P4 | Game screens: word card (tap to reveal, auto-hide), speaking order, vote, results, Mr. White guess, end and reveal, play again, end game, scoreboard, connection banner | W3–W6, W8, W10 · AC7–AC16, AC20, AC21, AC25 | 2.5 d | Planned |
 | P5 | Mixed tables: the web link in the Telegram lobby and the Telegram link in the web lobby, copy review with the designer skill | W7 · AC17, AC18 | 0.5 d | Planned |
@@ -98,6 +98,9 @@ Total ≈ 10.5 days, matching the roadmap's Effort of 10.
 - Socket auth: the Worker verifies the cookie with PlayerDO, then forwards the upgrade to
   the RoomDO with the player ID in an internal header the RoomDO trusts only from the
   Worker (the RoomDO is not publicly addressable).
+- Rooms opened on the web need the bot's username for the Telegram invite link: it is the
+  public `TELEGRAM_BOT_USERNAME` var in `wrangler.jsonc`.
+- Close codes: 4000 left, 4001 room closed, 4002 seat taken over by a newer socket.
 - Rate limits are out of scope (friends only); input lengths are capped (name 24, guess 64).
 - Integration tests: create → join → start (Telegram host) → web vote → close → web
   receives `events` and `state`; reconnect returns the same `state`; two sockets for one

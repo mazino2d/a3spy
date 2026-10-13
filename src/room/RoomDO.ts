@@ -2,12 +2,15 @@ import { DurableObject } from "cloudflare:workers";
 import { Api } from "grammy";
 import type { Callback } from "../bot/callbacks";
 import { msg } from "../bot/messages";
-import { lobbyPanel, type Op, plan, type Slot, scoreboard, wordAlert } from "../bot/render";
+import { inviteLink, lobbyPanel, type Op, plan, type Slot, scoreboard, wordAlert } from "../bot/render";
 import { editOrSend, send } from "../bot/telegram";
 import type { Env } from "../env";
 import * as engine from "../game/engine";
 import { cryptoRng } from "../game/rng";
+import { publicEvents, viewFor } from "../game/view";
 import { pairsOf } from "../game/words";
+import { PLAYER_HEADER } from "../web/api";
+import { CLOSE_CODE, type CloseReason, parseClientMessage, type ServerMessage } from "../web/protocol";
 import { isWeb } from "./clients";
 import { type Command, decide } from "./commands";
 
@@ -19,6 +22,12 @@ interface Stored {
   /** Message ids we edit in place, per slot and player. */
   ui: Record<Slot, Record<number, number>>;
   updatedAt: number;
+}
+
+/** Kept on each web socket; survives hibernation. */
+interface SocketInfo {
+  playerId: number;
+  origin: string;
 }
 
 export type JoinOutcome = "ok" | "not_found" | "already_in_room";
@@ -141,6 +150,93 @@ export class RoomDO extends DurableObject<Env> {
     return null;
   }
 
+  /** A web player's WebSocket, forwarded by the Worker after it checked their session. */
+  async fetch(request: Request): Promise<Response> {
+    const playerId = Number(request.headers.get(PLAYER_HEADER));
+    if (!Number.isSafeInteger(playerId) || playerId >= 0) return new Response("Forbidden", { status: 403 });
+    const stored = this.load();
+    if (!stored) return new Response("Not found", { status: 404 });
+    if (!engine.inRoom(stored.room, playerId)) return new Response("Forbidden", { status: 403 });
+
+    // One socket per player: a new tab or a reconnect takes the seat over.
+    for (const old of this.ctx.getWebSockets(String(playerId))) this.closeSocket(old, "replaced");
+
+    const pair = new WebSocketPair();
+    const [client, server] = [pair[0], pair[1]];
+    this.ctx.acceptWebSocket(server, [String(playerId)]);
+    const info: SocketInfo = { playerId, origin: new URL(request.url).origin };
+    server.serializeAttachment(info);
+    this.sendState(server, stored, info);
+    return new Response(null, { status: 101, webSocket: client });
+  }
+
+  async webSocketMessage(ws: WebSocket, message: string | ArrayBuffer): Promise<void> {
+    const info = ws.deserializeAttachment() as SocketInfo;
+    const stored = this.load();
+    if (!stored) return this.closeSocket(ws, "closed");
+    const cmd = typeof message === "string" ? parseClientMessage(message) : null;
+    if (!cmd) return this.sendTo(ws, { type: "error", code: "bad_request" });
+    const error = await this.apply(stored, info.playerId, cmd);
+    if (error) {
+      this.sendTo(ws, { type: "error", code: error });
+      // Whatever the client showed was out of date; bring it back in line.
+      const current = this.load();
+      if (current) this.sendState(ws, current, info);
+    }
+  }
+
+  async webSocketClose(ws: WebSocket, code: number, reason: string): Promise<void> {
+    try {
+      ws.close(code, reason);
+    } catch {
+      // Already closed.
+    }
+  }
+
+  private sendTo(ws: WebSocket, message: ServerMessage): void {
+    try {
+      ws.send(JSON.stringify(message));
+    } catch {
+      // The socket is closing; the client gets the state on reconnect.
+    }
+  }
+
+  private sendState(ws: WebSocket, stored: Stored, info: SocketInfo): void {
+    const { room } = stored;
+    this.sendTo(ws, {
+      type: "state",
+      view: viewFor(room, info.playerId),
+      links: { web: `${info.origin}/r/${room.code}`, telegram: inviteLink(stored.botUsername, room.code) },
+    });
+  }
+
+  private closeSocket(ws: WebSocket, reason: CloseReason): void {
+    this.sendTo(ws, { type: "closed", reason });
+    try {
+      ws.close(CLOSE_CODE[reason], reason);
+    } catch {
+      // Already closed.
+    }
+  }
+
+  /** Sends every connected web player the events (secrets removed) and their new view. */
+  private pushWeb(stored: Stored | null, events: engine.GameEvent[]): void {
+    const pub = publicEvents(events);
+    for (const ws of this.ctx.getWebSockets()) {
+      const info = ws.deserializeAttachment() as SocketInfo;
+      if (!stored) {
+        this.closeSocket(ws, "closed");
+        continue;
+      }
+      if (!engine.inRoom(stored.room, info.playerId)) {
+        this.closeSocket(ws, "left");
+        continue;
+      }
+      if (pub.length) this.sendTo(ws, { type: "events", events: pub });
+      this.sendState(ws, stored, info);
+    }
+  }
+
   score(): string {
     const stored = this.load();
     return stored ? scoreboard(stored.room) : msg.notInRoom;
@@ -163,6 +259,7 @@ export class RoomDO extends DurableObject<Env> {
       ]),
     );
     this.ctx.storage.kv.delete("state");
+    this.pushWeb(null, []);
   }
 
   private async commit(stored: Stored, result: Extract<engine.Result, { ok: true }>): Promise<void> {
@@ -178,6 +275,9 @@ export class RoomDO extends DurableObject<Env> {
       this.ctx.storage.kv.put("state", next);
       await this.ctx.storage.setAlarm(next.updatedAt + IDLE_MS);
     }
+
+    // Web players first: their sockets are local and fast; Telegram calls can take a while.
+    this.pushWeb(closed ? null : next, result.events);
 
     await this.execute(next, plan(before, result.room, result.events, stored.botUsername));
   }
