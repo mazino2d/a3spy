@@ -33,7 +33,16 @@ Civilians and spies get the **same message format** ("Từ của bạn: X") so a
 
 - Fewer than 3 players: the game cannot start.
 - More than 12: the bot warns and suggests splitting, but allows it (keep the 10–12 counts).
-- The host may change the counts in the lobby as long as civilians > spies + Mr. White.
+
+### Host settings
+
+Before a game, in the lobby, the host can change (Telegram buttons or the web lobby):
+
+- **Spies**: 1–5. **Mr. White**: on or off (at most one).
+- **Themes**: any non-empty set of word packs; all of them by default.
+- Counts follow the table above as players join or leave, until the host changes spies or Mr. White; from then on they stay as set, until the host taps **Tự động** to follow the table again.
+- Start is refused unless civilians > spies + Mr. White; the host sees why.
+- Settings belong to the room: they survive play again and a change of host, and cannot change while a game is running.
 
 ## A round
 
@@ -64,4 +73,5 @@ Eliminated players stop describing and voting but stay in the room.
 - Packs live in `words/*.json`, one theme per file, as pairs of similar words.
 - A pair is two words of the same kind that share 2–3 easy-to-describe traits and differ in 1–2 details (`Trà sữa` / `Cà phê sữa`).
 - The host picks one or more themes; default is all themes.
+- A pair is drawn from the chosen themes, avoiding pairs played in the room in the last 24 hours; if all of them were, the pairs played longest ago come back first.
 - What makes a good pair, and the themes: [word packs](product/word-packs.md).

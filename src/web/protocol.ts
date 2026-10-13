@@ -39,6 +39,17 @@ export function cleanName(raw: unknown): string | null {
 
 const int = (x: unknown): x is number => typeof x === "number" && Number.isSafeInteger(x);
 
+function parseChange(raw: unknown): Command | null {
+  if (typeof raw !== "object" || raw === null) return null;
+  const c = raw as Record<string, unknown>;
+  if (c.kind === "spies" && (c.delta === 1 || c.delta === -1))
+    return { action: "configure", change: { kind: "spies", delta: c.delta } };
+  if (c.kind === "white" || c.kind === "auto") return { action: "configure", change: { kind: c.kind } };
+  if (c.kind === "theme" && typeof c.theme === "string" && c.theme.length <= 32)
+    return { action: "configure", change: { kind: "theme", theme: c.theme } };
+  return null;
+}
+
 /** Validates a message from a web client; null when it is malformed. */
 export function parseClientMessage(raw: string): Command | null {
   let m: Record<string, unknown>;
@@ -62,6 +73,8 @@ export function parseClientMessage(raw: string): Command | null {
       return int(m.gameId) && int(m.round) && int(m.target)
         ? { action: "vote", gameId: m.gameId, round: m.round, target: m.target }
         : null;
+    case "configure":
+      return parseChange(m.change);
     case "guess":
       return typeof m.text === "string" && m.text.trim() !== "" && [...m.text].length <= GUESS_MAX
         ? { action: "guess", text: m.text }

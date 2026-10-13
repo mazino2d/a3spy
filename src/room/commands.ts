@@ -13,24 +13,31 @@ export type Command =
   /** gameId is absent for `/end`, which always targets the current game. */
   | { action: "end"; gameId?: number }
   | { action: "vote"; gameId: number; round: number; target: number }
-  | { action: "guess"; text: string };
+  | { action: "guess"; text: string }
+  | { action: "configure"; change: engine.SettingsChange };
 
 export interface Deps {
   rng: Rng;
-  pairs: readonly WordPair[];
+  /** Pairs of the given themes; every theme when empty. */
+  pairs(themes: readonly string[]): readonly WordPair[];
+  /** Every theme id, in display order. */
+  themes: readonly string[];
   now: number;
 }
 
 const fail = (error: engine.GameError): engine.Result => ({ ok: false, error });
 
 export function decide(room: engine.Room, playerId: number, cmd: Command, deps: Deps): engine.Result {
+  const startOptions = () => ({ rng: deps.rng, pairs: deps.pairs(room.settings.themes), now: deps.now });
   switch (cmd.action) {
     case "start":
       if (engine.isRunning(room)) return fail("game_running");
-      return engine.start(room, playerId, deps);
+      return engine.start(room, playerId, startOptions());
     case "again":
       if (room.game?.id !== cmd.gameId) return fail("stale");
-      return engine.start(room, playerId, deps);
+      return engine.start(room, playerId, startOptions());
+    case "configure":
+      return engine.configure(room, playerId, cmd.change, deps.themes);
     case "leave":
       return engine.leave(room, playerId);
     case "openVote":

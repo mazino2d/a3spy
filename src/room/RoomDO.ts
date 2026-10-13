@@ -1,6 +1,6 @@
 import { DurableObject } from "cloudflare:workers";
 import { Api } from "grammy";
-import type { Callback } from "../bot/callbacks";
+import { type Callback, decodeChange } from "../bot/callbacks";
 import { msg } from "../bot/messages";
 import {
   inviteLink,
@@ -18,13 +18,14 @@ import type { Env } from "../env";
 import * as engine from "../game/engine";
 import { cryptoRng } from "../game/rng";
 import { publicEvents, viewFor } from "../game/view";
-import { pairsOf } from "../game/words";
+import { PACKS, pairsOf } from "../game/words";
 import { PLAYER_HEADER } from "../web/api";
 import { CLOSE_CODE, type CloseReason, parseClientMessage, type ServerMessage } from "../web/protocol";
 import { isWeb } from "./clients";
 import { type Command, decide } from "./commands";
 
 export const IDLE_MS = 6 * 60 * 60 * 1000;
+const THEMES = PACKS.map((p) => p.id);
 
 interface Stored {
   room: engine.Room;
@@ -56,6 +57,8 @@ const errorText: Record<engine.GameError, string> = {
   not_alive: msg.notAlive,
   invalid_target: msg.invalidTarget,
   not_white: msg.stale,
+  bad_counts: msg.badCounts,
+  bad_setting: msg.badSetting,
 };
 
 const linksOf = (stored: Stored): RoomLinks => ({
@@ -78,6 +81,10 @@ function toCommand(cb: Callback): Command | null {
       return { action: "end", gameId: cb.gameId };
     case "vote":
       return { action: "vote", ...turn, target: cb.arg };
+    case "configure": {
+      const change = decodeChange(cb.arg);
+      return change ? { action: "configure", change } : null;
+    }
     case "word":
       return null;
   }
@@ -86,7 +93,10 @@ function toCommand(cb: Callback): Command | null {
 /** One per room code. Owns the room state and every message the room sends. */
 export class RoomDO extends DurableObject<Env> {
   private load(): Stored | null {
-    return this.ctx.storage.kv.get<Stored>("state") ?? null;
+    const stored = this.ctx.storage.kv.get<Stored>("state") ?? null;
+    // Rooms stored before host settings existed.
+    if (stored && !stored.room.settings) stored.room = { ...stored.room, settings: engine.DEFAULT_SETTINGS };
+    return stored;
   }
 
   private api(): Api {
@@ -167,7 +177,12 @@ export class RoomDO extends DurableObject<Env> {
 
   /** Runs one command from any client; null on success. */
   private async apply(stored: Stored, playerId: number, cmd: Command): Promise<engine.GameError | null> {
-    const result = decide(stored.room, playerId, cmd, { rng: cryptoRng, pairs: pairsOf(), now: Date.now() });
+    const result = decide(stored.room, playerId, cmd, {
+      rng: cryptoRng,
+      pairs: pairsOf,
+      themes: THEMES,
+      now: Date.now(),
+    });
     if (!result.ok) return result.error;
     await this.commit(stored, result);
     return null;

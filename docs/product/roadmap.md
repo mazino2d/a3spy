@@ -29,7 +29,7 @@ Each milestone has a spec in [specs/](specs/), and large ones an implementation 
 
 | ID | Item | Serves | I | C | E | Score | Notes |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| M2 | Host settings (L4 [#5](https://github.com/mazino2d/a3spy/issues/5): themes, spy count, Mr. White) and playtest fixes, on Telegram and the web | UC-7 | 1 | 0.8 | 2 | 0.4 | L4 is the last open Should of the original plan. Fixes come from the first café session. Spec: [M2](specs/M2-host-settings.md). |
+| M2 | Host settings (L4 [#5](https://github.com/mazino2d/a3spy/issues/5): themes, spy count, Mr. White) and playtest fixes, on Telegram and the web | UC-7 | 1 | 0.8 | 2 | 0.4 | L4 is the last open Should of the original plan; built for Telegram and the web (in review). Fixes come from the first café session. Spec: [M2](specs/M2-host-settings.md). |
 
 ## Next
 

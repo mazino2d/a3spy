@@ -1,6 +1,9 @@
 /** Inline button payloads: `<action>|<room>|<game>|<round>|<arg>`, well under Telegram's 64-byte limit. */
 
-export type Action = "start" | "leave" | "openVote" | "closeVote" | "vote" | "word" | "again" | "end";
+import type { SettingsChange } from "../game/engine";
+import { PACKS } from "../game/words";
+
+export type Action = "start" | "leave" | "openVote" | "closeVote" | "vote" | "word" | "again" | "end" | "configure";
 
 const CODES: Record<Action, string> = {
   start: "s",
@@ -11,6 +14,7 @@ const CODES: Record<Action, string> = {
   word: "w",
   again: "a",
   end: "e",
+  configure: "c",
 };
 const ACTIONS = Object.fromEntries(Object.entries(CODES).map(([a, c]) => [c, a as Action]));
 
@@ -33,4 +37,29 @@ export function decode(data: string): Callback | null {
   const nums = [gameId, round, arg].map(Number);
   if (nums.some((n) => !Number.isInteger(n))) return null;
   return { action, code, gameId: nums[0] as number, round: nums[1] as number, arg: nums[2] as number };
+}
+
+/** Settings taps travel in the numeric `arg`: 1 spy+, 2 spy−, 3 Mr. White on/off, 4 auto, 10+i theme i. */
+const THEME_BASE = 10;
+
+export function encodeChange(change: SettingsChange): number {
+  switch (change.kind) {
+    case "spies":
+      return change.delta > 0 ? 1 : 2;
+    case "white":
+      return 3;
+    case "auto":
+      return 4;
+    case "theme":
+      return THEME_BASE + PACKS.findIndex((p) => p.id === change.theme);
+  }
+}
+
+export function decodeChange(arg: number): SettingsChange | null {
+  if (arg === 1) return { kind: "spies", delta: 1 };
+  if (arg === 2) return { kind: "spies", delta: -1 };
+  if (arg === 3) return { kind: "white" };
+  if (arg === 4) return { kind: "auto" };
+  const pack = PACKS[arg - THEME_BASE];
+  return arg >= THEME_BASE && pack ? { kind: "theme", theme: pack.id } : null;
 }

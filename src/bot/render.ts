@@ -1,6 +1,7 @@
 import { type Game, type GameEvent, handOf, isRunning, playerName, type Room } from "../game/engine";
 import type { Hand } from "../game/roles";
-import { type Action, encode } from "./callbacks";
+import { settingsView } from "../game/view";
+import { type Action, encode, encodeChange } from "./callbacks";
 import { msg } from "./messages";
 
 /**
@@ -46,9 +47,19 @@ export interface RoomLinks {
 export function lobbyPanel(room: Room, viewer: number, links: RoomLinks): { text: string; keyboard: Keyboard } {
   const isHost = viewer === room.hostId;
   const players = room.players.map((p) => esc(p.name) + (p.id === room.hostId ? " 👑" : ""));
+  const settings = settingsView(room);
   const keyboard: Keyboard = isHost
-    ? [[button(room, msg.btnStart, "start")], [button(room, msg.btnLeave, "leave")]]
+    ? [[button(room, msg.btnStart, "start")], ...settingsKeyboard(room), [button(room, msg.btnLeave, "leave")]]
     : [[button(room, msg.btnLeave, "leave")]];
+  const settingsLines = [
+    settings.spies === null || settings.white === null
+      ? msg.settingsAutoPending
+      : msg.settingsCounts(settings.spies, settings.white, settings.auto),
+    msg.settingsThemes(
+      settings.themes.every((t) => t.on) ? null : settings.themes.filter((t) => t.on).map((t) => t.name),
+    ),
+    ...(isHost && settings.problem === "civilians_not_majority" ? [msg.settingsWarning] : []),
+  ];
   return {
     text: msg.lobby(
       room.code,
@@ -56,10 +67,29 @@ export function lobbyPanel(room: Room, viewer: number, links: RoomLinks): { text
       players,
       inviteLink(links.botUsername, room.code),
       links.webOrigin ? webLink(links.webOrigin, room.code) : null,
+      settingsLines,
       isHost,
     ),
     keyboard,
   };
+}
+
+/** Host-only settings buttons (docs/rules.md#host-settings). */
+function settingsKeyboard(room: Room): Keyboard {
+  const s = settingsView(room);
+  const cfg = (text: string, change: Parameters<typeof encodeChange>[0]) =>
+    button(room, text, "configure", encodeChange(change));
+  const themes = s.themes.map((t) => cfg(`${t.on ? "✅" : "⬜"} ${t.name}`, { kind: "theme", theme: t.id }));
+  const rows: Keyboard = [
+    [
+      cfg(msg.btnSpyLess, { kind: "spies", delta: -1 }),
+      cfg(msg.btnSpyMore, { kind: "spies", delta: 1 }),
+      cfg(msg.btnWhite(s.white !== null && s.white > 0), { kind: "white" }),
+    ],
+  ];
+  for (let i = 0; i < themes.length; i += 2) rows.push(themes.slice(i, i + 2));
+  if (!s.auto) rows.push([cfg(msg.btnAuto, { kind: "auto" })]);
+  return rows;
 }
 
 export function dealMessage(room: Room, hand: Hand): { text: string; keyboard: Keyboard } {
@@ -138,6 +168,9 @@ export function plan(before: Room, after: Room, events: GameEvent[], links: Room
         refreshLobby = true;
         break;
       case "closed":
+        break;
+      case "settings_changed":
+        refreshLobby = true;
         break;
       case "game_started": {
         const spies = e.game.hands.filter((h) => h.role === "spy").length;

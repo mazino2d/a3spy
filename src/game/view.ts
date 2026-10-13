@@ -1,5 +1,15 @@
-import { type GameEvent, handOf, type Phase, playerName, type Room, type Side } from "./engine";
-import type { Role } from "./roles";
+import {
+  effectiveCounts,
+  type GameEvent,
+  handOf,
+  type Phase,
+  playerName,
+  type Room,
+  type Side,
+  settingsProblem,
+} from "./engine";
+import type { CountsProblem, Role } from "./roles";
+import { PACKS } from "./words";
 
 /**
  * What one player may see of a room. Pure. Every client that is not Telegram
@@ -45,6 +55,17 @@ export interface GameView {
   winner: Side | null;
 }
 
+export interface SettingsView {
+  /** True while role counts follow the role table. */
+  auto: boolean;
+  /** Counts the next game will use; null below 3 players while auto. */
+  spies: number | null;
+  white: number | null;
+  themes: { id: string; name: string; on: boolean }[];
+  /** Why Start would be refused right now, or null. */
+  problem: CountsProblem | null;
+}
+
 export interface RoomView {
   code: string;
   me: number;
@@ -53,6 +74,7 @@ export interface RoomView {
   waiting: ViewPlayer[];
   game: GameView | null;
   scores: { id: number; name: string; wins: number }[];
+  settings: SettingsView;
 }
 
 export function viewFor(room: Room, viewer: number): RoomView {
@@ -66,6 +88,19 @@ export function viewFor(room: Room, viewer: number): RoomView {
     scores: Object.entries(room.scores)
       .map(([id, wins]) => ({ id: Number(id), name: playerName(room, Number(id)), wins }))
       .sort((a, b) => b.wins - a.wins),
+    settings: settingsView(room),
+  };
+}
+
+export function settingsView(room: Room): SettingsView {
+  const counts = effectiveCounts(room);
+  const { themes } = room.settings;
+  return {
+    auto: room.settings.counts === null,
+    spies: counts?.spies ?? null,
+    white: counts?.white ?? null,
+    themes: PACKS.map((p) => ({ id: p.id, name: p.name, on: themes.length === 0 || themes.includes(p.id) })),
+    problem: settingsProblem(room),
   };
 }
 

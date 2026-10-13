@@ -183,3 +183,43 @@ describe("web players in a Telegram room", () => {
     expect(await env.PLAYER.getByName("-5").room()).toBe(code);
   });
 });
+
+describe("host settings over Telegram", () => {
+  it("L4 AC1 AC2 only the host gets settings buttons; a change updates every lobby", async () => {
+    await openRoom([1101, 1102, 1103, 1104, 1105]);
+    expect(tg.last(1101)?.text).toContain("1 spy · Mr. White: có");
+    expect(tg.last(1101)?.text).toContain("Chủ đề: tất cả");
+    expect(
+      tg
+        .to(1102)
+        .flatMap((m) => m.buttons)
+        .some((b) => b.text.includes("Spy")),
+    ).toBe(false);
+
+    await press(1101, button(1101, "➕ Spy"));
+    const other = tg.last(1102)?.text ?? "";
+    expect(other).toContain("2 spy · Mr. White: có");
+    expect(other).not.toContain("tự động");
+    // 2 spies + Mr. White with 5 players: the host is warned before starting.
+    expect(tg.last(1101)?.text).toContain("Dân phải đông hơn");
+  });
+
+  it("L4 AC3 starting with bad counts is refused with a reason", async () => {
+    await openRoom([1201, 1202, 1203, 1204, 1205]);
+    await press(1201, button(1201, "➕ Spy"));
+    const startButton = button(1201, "Bắt đầu");
+    tg.reset();
+    await press(1201, startButton);
+    expect(tg.answers().at(-1)?.text).toContain("Dân phải đông hơn");
+    expect(tg.messages().some((m) => m.text.includes("Từ của bạn"))).toBe(false);
+  });
+
+  it("L4 a theme can be turned off and back on", async () => {
+    await openRoom([1301, 1302, 1303]);
+    await press(1301, button(1301, "✅ Đồ ăn"));
+    expect(tg.last(1302)?.text).not.toContain("Chủ đề: tất cả");
+    expect(tg.last(1302)?.text).not.toContain("Đồ ăn");
+    await press(1301, button(1301, "⬜ Đồ ăn"));
+    expect(tg.last(1302)?.text).toContain("Chủ đề: tất cả");
+  });
+});

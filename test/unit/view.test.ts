@@ -116,7 +116,7 @@ describe("publicEvents", () => {
 });
 
 describe("decide", () => {
-  const deps = { rng: seededRng(1), pairs: PAIRS, now: 0 };
+  const deps = { rng: seededRng(1), pairs: () => PAIRS, themes: ["food"], now: 0 };
 
   it("W5 AC16 a command from an earlier game or round is stale", () => {
     const room = started(5);
