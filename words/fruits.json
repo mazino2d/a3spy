@@ -1,0 +1,22 @@
+{
+  "id": "fruits",
+  "emoji": "🥭",
+  "name": "Trái cây",
+  "pairs": [
+    ["Xoài", "Đu đủ"],
+    ["Sầu riêng", "Mít"],
+    ["Chôm chôm", "Vải"],
+    ["Nhãn", "Măng cụt"],
+    ["Dưa hấu", "Dưa lưới"],
+    ["Cam", "Quýt"],
+    ["Thanh long", "Thơm"],
+    ["Bưởi", "Chanh dây"],
+    ["Dâu tây", "Cherry"],
+    ["Táo", "Lê"],
+    ["Nho", "Việt quất"],
+    ["Ổi", "Mận"],
+    ["Bơ", "Chuối"],
+    ["Me", "Sấu"],
+    ["Mãng cầu", "Vú sữa"]
+  ]
+}

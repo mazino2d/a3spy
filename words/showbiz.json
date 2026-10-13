@@ -1,11 +1,20 @@
 {
   "id": "showbiz",
-  "name": "Showbiz & thành ngữ",
+  "emoji": "🎤",
+  "name": "Showbiz Việt",
   "pairs": [
     ["Sơn Tùng", "Mono"],
     ["Chipu", "Khởi My"],
-    ["Bó tay", "Chán như con gián"],
-    ["Bác sĩ", "Y tá"],
-    ["Máy tính", "Điện thoại"]
+    ["Đen Vâu", "Binz"],
+    ["Mỹ Tâm", "Hồ Ngọc Hà"],
+    ["Trấn Thành", "Trường Giang"],
+    ["Hari Won", "Ninh Dương Lan Ngọc"],
+    ["Đức Phúc", "Erik"],
+    ["HIEUTHUHAI", "MCK"],
+    ["Tóc Tiên", "Đông Nhi"],
+    ["Noo Phước Thịnh", "Isaac"],
+    ["Bích Phương", "Min"],
+    ["Hoài Linh", "Việt Hương"],
+    ["Rap Việt", "Anh Trai Say Hi"]
   ]
 }

@@ -1,0 +1,22 @@
+{
+  "id": "vehicles",
+  "emoji": "🛵",
+  "name": "Xe cộ",
+  "pairs": [
+    ["Xe máy", "Xe đạp điện"],
+    ["Xe buýt", "Tàu điện"],
+    ["Máy bay", "Trực thăng"],
+    ["Thuyền", "Ca nô"],
+    ["Vision", "Air Blade"],
+    ["Vespa", "SH"],
+    ["Xe ba gác", "Xích lô"],
+    ["Mũ bảo hiểm", "Áo mưa"],
+    ["Đèn đỏ", "Đèn vàng"],
+    ["Trạm xăng", "Tiệm sửa xe"],
+    ["Bằng lái", "Đăng ký xe"],
+    ["Kẹt xe", "Ngập nước"],
+    ["Xe cứu thương", "Xe cứu hỏa"],
+    ["Limousine", "Xe giường nằm"],
+    ["Taxi", "Xe ôm"]
+  ]
+}

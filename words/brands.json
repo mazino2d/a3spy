@@ -1,0 +1,22 @@
+{
+  "id": "brands",
+  "emoji": "🛍️",
+  "name": "Thương hiệu",
+  "pairs": [
+    ["Grab", "Be"],
+    ["Shopee", "Lazada"],
+    ["Highlands", "Phúc Long"],
+    ["Starbucks", "The Coffee House"],
+    ["KFC", "Lotteria"],
+    ["McDonald's", "Burger King"],
+    ["Circle K", "GS25"],
+    ["WinMart", "Bách Hóa Xanh"],
+    ["MoMo", "ZaloPay"],
+    ["Uniqlo", "Zara"],
+    ["Nike", "Adidas"],
+    ["Vinamilk", "TH True Milk"],
+    ["Gong Cha", "Koi Thé"],
+    ["Thế Giới Di Động", "FPT Shop"],
+    ["Honda", "Yamaha"]
+  ]
+}

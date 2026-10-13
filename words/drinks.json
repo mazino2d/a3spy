@@ -1,0 +1,22 @@
+{
+  "id": "drinks",
+  "emoji": "🧋",
+  "name": "Đồ uống",
+  "pairs": [
+    ["Trà sữa", "Cà phê sữa"],
+    ["Nước cam", "Nước chanh"],
+    ["Bạc xỉu", "Cà phê muối"],
+    ["Trà đá", "Trà chanh"],
+    ["Bia", "Rượu"],
+    ["Sinh tố", "Nước ép"],
+    ["Coca", "Pepsi"],
+    ["Sữa chua", "Sữa tươi"],
+    ["Trà đào", "Trà vải"],
+    ["Matcha latte", "Cacao"],
+    ["Nước dừa", "Nước mía"],
+    ["Soju", "Sake"],
+    ["Sting", "Redbull"],
+    ["Trà gừng", "Trà atiso"],
+    ["Yakult", "Sữa chua uống"]
+  ]
+}

@@ -1,11 +1,24 @@
 {
   "id": "food",
-  "name": "Đồ ăn & đồ uống",
+  "emoji": "🍜",
+  "name": "Đồ ăn",
   "pairs": [
     ["Phở", "Bún bò"],
-    ["Trà sữa", "Cà phê sữa"],
-    ["Nước cam", "Nước chanh"],
+    ["Bánh mì", "Bánh bao"],
     ["Cà rốt", "Khoai lang"],
-    ["Bánh mì", "Bánh bao"]
+    ["Cơm tấm", "Cơm chiên"],
+    ["Bún chả", "Bún thịt nướng"],
+    ["Bánh xèo", "Bánh khọt"],
+    ["Gỏi cuốn", "Chả giò"],
+    ["Hủ tiếu", "Mì Quảng"],
+    ["Lẩu Thái", "Lẩu mắm"],
+    ["Bánh cuốn", "Bánh ướt"],
+    ["Pizza", "Hamburger"],
+    ["Sushi", "Sashimi"],
+    ["Gà rán", "Gà nướng"],
+    ["Mì cay", "Tokbokki"],
+    ["Ốc", "Nghêu"],
+    ["Bánh tráng trộn", "Bánh tráng nướng"],
+    ["Xôi", "Cháo"]
   ]
 }

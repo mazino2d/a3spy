@@ -68,6 +68,8 @@ export type SettingsChange =
   | { kind: "white" }
   | { kind: "auto" }
   | { kind: "theme"; theme: string }
+  /** Turns every theme on. */
+  | { kind: "allThemes" }
   /** Cycles the timer to its next duration. */
   | { kind: "timer"; timer: "discussion" | "vote" };
 
@@ -259,6 +261,9 @@ export function configure(room: Room, by: number, change: SettingsChange, allThe
     }
     case "auto":
       next = { ...current, counts: null };
+      break;
+    case "allThemes":
+      next = { ...current, themes: [] };
       break;
     case "timer": {
       const options: readonly number[] = TIMER_OPTIONS[change.timer];

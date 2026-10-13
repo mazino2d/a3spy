@@ -1,0 +1,19 @@
+{
+  "id": "idioms",
+  "emoji": "💬",
+  "name": "Thành ngữ & trend",
+  "pairs": [
+    ["Bó tay", "Chán như con gián"],
+    ["Ăn cháo đá bát", "Qua cầu rút ván"],
+    ["Nước đổ lá khoai", "Đàn gảy tai trâu"],
+    ["Mất bò mới lo làm chuồng", "Nước đến chân mới nhảy"],
+    ["Đứng núi này trông núi nọ", "Được voi đòi tiên"],
+    ["Ném đá giấu tay", "Gắp lửa bỏ tay người"],
+    ["Một nắng hai sương", "Thức khuya dậy sớm"],
+    ["Chó cắn áo rách", "Họa vô đơn chí"],
+    ["Flex", "Sống ảo"],
+    ["Ối dồi ôi", "Ôi bạn ơi"],
+    ["Xu cà na", "Đen thôi đỏ quên đi"],
+    ["Overthinking", "Mất ngủ"]
+  ]
+}

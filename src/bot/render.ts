@@ -2,7 +2,7 @@ import { type Game, type GameEvent, handOf, isRunning, playerName, type Room } f
 import type { Hand } from "../game/roles";
 import { type PlayerStats, winRate } from "../game/stats";
 import { settingsView } from "../game/view";
-import { type Action, encode, encodeChange } from "./callbacks";
+import { type Action, encode, encodeChange, THEMES_CLOSE, THEMES_OPEN } from "./callbacks";
 import { msg } from "./messages";
 
 /**
@@ -16,11 +16,12 @@ export interface Button {
 }
 export type Keyboard = Button[][];
 
-export type Slot = "lobby" | "vote" | "status";
+export type Slot = "lobby" | "vote" | "status" | "themes";
 
 export type Op =
   | { kind: "send"; to: number; text: string; keyboard?: Keyboard; slot?: Slot }
-  | { kind: "edit"; to: number; slot: Slot; text: string; keyboard?: Keyboard }
+  /** ifShown: only edit a message that exists; never send a new one. */
+  | { kind: "edit"; to: number; slot: Slot; text: string; keyboard?: Keyboard; ifShown?: boolean }
   | { kind: "pointer"; to: number; code: string | null };
 
 export function esc(s: string): string {
@@ -56,9 +57,7 @@ export function lobbyPanel(room: Room, viewer: number, links: RoomLinks): { text
     settings.spies === null || settings.white === null
       ? msg.settingsAutoPending
       : msg.settingsCounts(settings.spies, settings.white, settings.auto),
-    msg.settingsThemes(
-      settings.themes.every((t) => t.on) ? null : settings.themes.filter((t) => t.on).map((t) => t.name),
-    ),
+    msg.settingsThemes(themesSummary(room)),
     ...(settings.timers.discussion || settings.timers.vote
       ? [msg.settingsTimers(settings.timers.discussion, settings.timers.vote)]
       : []),
@@ -83,7 +82,6 @@ function settingsKeyboard(room: Room): Keyboard {
   const s = settingsView(room);
   const cfg = (text: string, change: Parameters<typeof encodeChange>[0]) =>
     button(room, text, "configure", encodeChange(change));
-  const themes = s.themes.map((t) => cfg(`${t.on ? "✅" : "⬜"} ${t.name}`, { kind: "theme", theme: t.id }));
   const rows: Keyboard = [
     [
       cfg(msg.btnSpyLess, { kind: "spies", delta: -1 }),
@@ -95,9 +93,35 @@ function settingsKeyboard(room: Room): Keyboard {
     cfg(msg.btnTimer("discussion", s.timers.discussion), { kind: "timer", timer: "discussion" }),
     cfg(msg.btnTimer("vote", s.timers.vote), { kind: "timer", timer: "vote" }),
   ]);
-  for (let i = 0; i < themes.length; i += 2) rows.push(themes.slice(i, i + 2));
+  const on = s.themes.filter((t) => t.on).length;
+  rows.push([button(room, msg.btnThemes(on, s.themes.length), "configure", THEMES_OPEN)]);
   if (!s.auto) rows.push([cfg(msg.btnAuto, { kind: "auto" })]);
   return rows;
+}
+
+/** The host's theme picker: its own message, edited in place as themes are toggled. */
+export function themesPanel(room: Room): { text: string; keyboard: Keyboard } {
+  const s = settingsView(room);
+  const cfg = (text: string, change: Parameters<typeof encodeChange>[0]) =>
+    button(room, text, "configure", encodeChange(change));
+  const themes = s.themes.map((t) => cfg(`${t.on ? "✅" : "⬜"} ${t.emoji} ${t.name}`, { kind: "theme", theme: t.id }));
+  const rows: Keyboard = [];
+  for (let i = 0; i < themes.length; i += 2) rows.push(themes.slice(i, i + 2));
+  rows.push([cfg(msg.btnAllThemes, { kind: "allThemes" }), button(room, msg.btnThemesDone, "configure", THEMES_CLOSE)]);
+  return { text: msg.themesPanel(s.themes.filter((t) => t.on).length, s.themes.length), keyboard: rows };
+}
+
+/** The theme picker once closed: a summary, no buttons. */
+export function themesClosed(room: Room): string {
+  return msg.themesClosed(themesSummary(room));
+}
+
+function themesSummary(room: Room): string {
+  const { themes } = settingsView(room);
+  const on = themes.filter((t) => t.on);
+  if (on.length === themes.length) return msg.allThemes(themes.length);
+  if (on.length <= 4) return on.map((t) => `${t.emoji} ${t.name}`).join(", ");
+  return msg.someThemes(on.length, themes.length, on.map((t) => t.emoji).join(" "));
 }
 
 export function dealMessage(room: Room, hand: Hand): { text: string; keyboard: Keyboard } {
@@ -180,8 +204,10 @@ export function plan(before: Room, after: Room, events: GameEvent[], links: Room
         break;
       case "settings_changed":
         refreshLobby = true;
+        ops.push({ kind: "edit", to: after.hostId, slot: "themes", ifShown: true, ...themesPanel(after) });
         break;
       case "game_started": {
+        ops.push({ kind: "edit", to: after.hostId, slot: "themes", ifShown: true, text: themesClosed(after) });
         const spies = e.game.hands.filter((h) => h.role === "spy").length;
         const white = e.game.hands.filter((h) => h.role === "white").length;
         for (const hand of e.game.hands) ops.push({ kind: "send", to: hand.playerId, ...dealMessage(after, hand) });

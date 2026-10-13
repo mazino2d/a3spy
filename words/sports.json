@@ -1,0 +1,22 @@
+{
+  "id": "sports",
+  "emoji": "⚽",
+  "name": "Thể thao",
+  "pairs": [
+    ["Bóng đá", "Bóng rổ"],
+    ["Cầu lông", "Tennis"],
+    ["Bơi", "Lặn"],
+    ["Chạy bộ", "Đạp xe"],
+    ["Yoga", "Gym"],
+    ["Pickleball", "Bóng bàn"],
+    ["Boxing", "Vovinam"],
+    ["Bida", "Bowling"],
+    ["Bóng chuyền", "Cầu mây"],
+    ["Lướt sóng", "Chèo SUP"],
+    ["Trượt patin", "Trượt ván"],
+    ["Messi", "Ronaldo"],
+    ["Quang Hải", "Công Phượng"],
+    ["World Cup", "SEA Games"],
+    ["Thủ môn", "Hậu vệ"]
+  ]
+}

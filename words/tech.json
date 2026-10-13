@@ -1,0 +1,23 @@
+{
+  "id": "tech",
+  "emoji": "📱",
+  "name": "Công nghệ",
+  "pairs": [
+    ["Máy tính", "Điện thoại"],
+    ["iPhone", "Samsung"],
+    ["Facebook", "Instagram"],
+    ["TikTok", "YouTube"],
+    ["Zalo", "Messenger"],
+    ["Laptop", "iPad"],
+    ["Tai nghe", "Loa"],
+    ["Wifi", "4G"],
+    ["Bàn phím", "Màn hình"],
+    ["Sạc dự phòng", "Củ sạc"],
+    ["ChatGPT", "Google"],
+    ["Netflix", "FPT Play"],
+    ["Spotify", "Apple Music"],
+    ["Đồng hồ thông minh", "Vòng đeo tay"],
+    ["Ổ cứng", "USB"],
+    ["Email", "Tin nhắn"]
+  ]
+}

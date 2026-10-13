@@ -214,13 +214,41 @@ describe("host settings over Telegram", () => {
     expect(tg.messages().some((m) => m.text.includes("Từ của bạn"))).toBe(false);
   });
 
-  it("L4 a theme can be turned off and back on", async () => {
+  it("L4 the host picks themes in a separate panel edited in place", async () => {
     await openRoom([1301, 1302, 1303]);
-    await press(1301, button(1301, "✅ Đồ ăn"));
-    expect(tg.last(1302)?.text).not.toContain("Chủ đề: tất cả");
-    expect(tg.last(1302)?.text).not.toContain("Đồ ăn");
-    await press(1301, button(1301, "⬜ Đồ ăn"));
-    expect(tg.last(1302)?.text).toContain("Chủ đề: tất cả");
+    expect(tg.last(1302)?.text).toContain("Chủ đề: tất cả 20");
+    expect(
+      tg
+        .to(1302)
+        .flatMap((m) => m.buttons)
+        .some((b) => b.text.includes("Chủ đề (")),
+    ).toBe(false);
+
+    await press(1301, button(1301, "📚 Chủ đề (20/20)"));
+    const panel = tg.last(1301);
+    expect(panel?.text).toContain("Chọn chủ đề");
+    expect(panel?.buttons.filter((b) => b.text.startsWith("✅ ")).length).toBeGreaterThanOrEqual(20);
+
+    const food = button(1301, "✅ 🍜 Đồ ăn");
+    tg.reset();
+    await press(1301, food);
+    // The panel is edited in place, not sent again; every lobby shows the change.
+    expect(tg.calls.filter((c) => c.method === "sendMessage")).toHaveLength(0);
+    expect(tg.calls.some((c) => c.method === "editMessageText" && String(c.body.text).includes("đang bật 19/20"))).toBe(
+      true,
+    );
+    expect(tg.last(1302)?.text).toContain("Chủ đề: 19/20");
+
+    await press(1301, button(1301, "Bật tất cả"));
+    expect(tg.last(1302)?.text).toContain("Chủ đề: tất cả 20");
+    await press(1301, button(1301, "Xong"));
+    expect(tg.calls.at(-2)?.method === "editMessageText" || tg.calls.at(-1)?.method === "answerCallbackQuery").toBe(
+      true,
+    );
+
+    // Only the host can open the panel.
+    await press(1302, button(1301, "📚 Chủ đề"));
+    expect(tg.answers().at(-1)?.text).toContain("Chỉ host");
   });
 });
 

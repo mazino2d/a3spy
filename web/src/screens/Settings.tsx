@@ -13,7 +13,12 @@ interface Props {
 export function Settings({ view, online, change }: Props) {
   const s = view.settings;
   const themesOn = s.themes.filter((th) => th.on);
-  const themesText = themesOn.length === s.themes.length ? t.allThemes : themesOn.map((th) => th.name).join(", ");
+  const allOn = themesOn.length === s.themes.length;
+  const themesText = allOn
+    ? t.allThemesCount(s.themes.length)
+    : themesOn.length <= 4
+      ? themesOn.map((th) => `${th.emoji} ${th.name}`).join(", ")
+      : t.someThemes(themesOn.length, s.themes.length, themesOn.map((th) => th.emoji).join(" "));
 
   if (!change)
     return (
@@ -102,23 +107,39 @@ export function Settings({ view, online, change }: Props) {
           ))}
         </div>
       </div>
-      <div>
-        <p class="muted small">{t.themes}</p>
-        <div class="chips">
+      <details class="themes">
+        <summary>
+          <span>
+            📚 {t.themes} ({themesOn.length}/{s.themes.length})
+          </span>
+          <span class="muted small">{themesText}</span>
+        </summary>
+        <div class="row between">
+          <span class="muted small">{t.themesHint}</span>
+          {!allOn && (
+            <button type="button" class="link small" disabled={disabled} onClick={() => change({ kind: "allThemes" })}>
+              {t.allThemesOn}
+            </button>
+          )}
+        </div>
+        <div class="theme-grid">
           {s.themes.map((th) => (
             <button
               key={th.id}
               type="button"
-              class={th.on ? "chip on" : "chip"}
+              class={th.on ? "theme-chip on" : "theme-chip"}
               aria-pressed={th.on}
               disabled={disabled}
               onClick={() => change({ kind: "theme", theme: th.id })}
             >
-              {th.on ? "✅" : "⬜"} {th.name}
+              <span class="emoji" aria-hidden="true">
+                {th.emoji}
+              </span>
+              <span>{th.name}</span>
             </button>
           ))}
         </div>
-      </div>
+      </details>
     </section>
   );
 }

@@ -1,0 +1,22 @@
+{
+  "id": "home",
+  "emoji": "🏠",
+  "name": "Trong nhà",
+  "pairs": [
+    ["Bếp", "Phòng ăn"],
+    ["Phòng ngủ", "Phòng khách"],
+    ["Tủ lạnh", "Máy giặt"],
+    ["Quạt", "Máy lạnh"],
+    ["Gối", "Chăn"],
+    ["Sofa", "Giường"],
+    ["Bàn chải", "Kem đánh răng"],
+    ["Nồi cơm điện", "Lò vi sóng"],
+    ["Chổi", "Cây lau nhà"],
+    ["Rèm cửa", "Cửa sổ"],
+    ["Đèn ngủ", "Đèn bàn"],
+    ["Dầu gội", "Sữa tắm"],
+    ["Tủ quần áo", "Tủ giày"],
+    ["Máy sấy tóc", "Máy duỗi tóc"],
+    ["Ổ điện", "Công tắc"]
+  ]
+}
