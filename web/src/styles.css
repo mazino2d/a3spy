@@ -1,18 +1,21 @@
-/* A3 Spy web app. Tokens follow the designer skill's visual identity. */
+/*
+ * A3 Spy web app — "Hồ sơ mật" (classified dossier).
+ * Kraft paper and typewritten text; the red stamp ink is the one accent and marks the
+ * odd one out (the spy). Tokens follow the designer skill's visual identity.
+ * Single light theme on purpose: it is paper.
+ */
 :root {
-  --night: #1e1b4b;
-  --deep: #4c1d95;
-  --violet: #7c3aed;
-  --pink: #ec4899;
-  --cyan: #22d3ee;
-  --lime: #a3e635;
-  --text: #ffffff;
-  --muted: #c4b5fd;
-  --surface: rgb(255 255 255 / 0.08);
-  --border: rgb(255 255 255 / 0.16);
-  --danger: #fda4af;
-  --radius: 16px;
-  color-scheme: dark;
+  --kraft: #e9dcc0; /* page: the folder */
+  --paper: #f6eedb; /* cards, inputs: the sheets inside */
+  --paper-deep: #efe3c8; /* pressed / chosen paper */
+  --rule: #8a7552; /* borders, dashed lines */
+  --ink: #2b241a; /* text, primary buttons */
+  --ink-soft: #6d5d40; /* secondary text */
+  --stamp: #b3261e; /* the odd one out: spy, alerts, timer, chosen */
+  --radius: 6px;
+  --type: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --display: "Oswald", "Arial Narrow", "Roboto Condensed", sans-serif;
+  color-scheme: light;
 }
 
 * {
@@ -26,14 +29,16 @@ body {
 }
 
 body {
-  background: radial-gradient(circle at 20% 0%, var(--deep), var(--night) 60%) fixed var(--night);
-  color: var(--text);
-  font:
-    17px / 1.45 system-ui,
-    -apple-system,
-    "Segoe UI",
-    Roboto,
-    sans-serif;
+  background-color: var(--kraft);
+  /* faint paper grain */
+  background-image:
+    radial-gradient(rgb(43 36 26 / 0.05) 1px, transparent 1px),
+    radial-gradient(rgb(255 255 255 / 0.25) 1px, transparent 1px);
+  background-size:
+    7px 7px,
+    11px 11px;
+  color: var(--ink);
+  font: 16px / 1.5 var(--type);
   -webkit-tap-highlight-color: transparent;
 }
 
@@ -74,16 +79,26 @@ body {
   justify-content: space-between;
 }
 
-h1 {
-  font-size: 1.6rem;
+h1,
+h2 {
+  font-family: var(--display);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  text-wrap: balance;
   margin: 0;
 }
 
+h1 {
+  font-size: 1.75rem;
+  line-height: 1.15;
+}
+
 h2 {
-  font-size: 1rem;
-  color: var(--muted);
-  margin: 0 0 8px;
-  font-weight: 600;
+  font-size: 0.95rem;
+  letter-spacing: 0.1em;
+  color: var(--ink-soft);
+  margin-bottom: 8px;
 }
 
 p {
@@ -91,11 +106,11 @@ p {
 }
 
 .muted {
-  color: var(--muted);
+  color: var(--ink-soft);
 }
 
 .small {
-  font-size: 0.875rem;
+  font-size: 0.85rem;
 }
 
 .center-text {
@@ -103,7 +118,13 @@ p {
 }
 
 .error {
-  color: var(--danger);
+  color: var(--stamp);
+  font-weight: 600;
+}
+
+.odd {
+  color: var(--stamp);
+  font-weight: 600;
 }
 
 .logo {
@@ -111,23 +132,31 @@ p {
 }
 
 label {
+  font-family: var(--display);
   font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
   text-align: left;
 }
 
 input {
   width: 100%;
   min-height: 52px;
-  padding: 0 16px;
-  border-radius: 12px;
-  border: 1px solid var(--border);
-  background: var(--surface);
-  color: var(--text);
+  padding: 0 14px;
+  border-radius: var(--radius);
+  border: 1px solid var(--rule);
+  background: var(--paper);
+  color: var(--ink);
   font: inherit;
 }
 
+input::placeholder {
+  color: var(--ink-soft);
+  opacity: 0.8;
+}
+
 input:focus {
-  outline: 2px solid var(--cyan);
+  outline: 2px solid var(--ink);
   outline-offset: 1px;
 }
 
@@ -135,17 +164,17 @@ input.code {
   text-transform: uppercase;
   letter-spacing: 0.3em;
   text-align: center;
-  font-weight: 700;
+  font-weight: 600;
 }
 
 button {
   min-height: 52px;
-  padding: 0 20px;
+  padding: 0 18px;
   border: 0;
-  border-radius: 12px;
+  border-radius: var(--radius);
   font: inherit;
-  font-weight: 700;
-  color: var(--text);
+  font-weight: 600;
+  color: var(--ink);
   cursor: pointer;
 }
 
@@ -155,18 +184,23 @@ button:disabled {
 }
 
 button:focus-visible {
-  outline: 2px solid var(--cyan);
+  outline: 2px solid var(--stamp);
   outline-offset: 2px;
 }
 
 .primary {
-  background: linear-gradient(135deg, var(--violet), var(--pink));
   width: 100%;
+  background: var(--ink);
+  color: var(--paper);
+  font-family: var(--display);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
 }
 
 .secondary {
-  background: var(--surface);
-  border: 1px solid var(--border);
+  background: var(--paper);
+  border: 1px solid var(--rule);
 }
 
 .big {
@@ -178,14 +212,14 @@ button:focus-visible {
   min-height: 44px;
   padding: 0 4px;
   background: none;
-  color: var(--muted);
-  font-weight: 600;
+  color: var(--ink-soft);
   text-decoration: underline;
+  text-underline-offset: 3px;
 }
 
 .card {
-  background: var(--surface);
-  border: 1px solid var(--border);
+  background: var(--paper);
+  border: 1px dashed var(--rule);
   border-radius: var(--radius);
   padding: 16px;
   display: flex;
@@ -195,9 +229,11 @@ button:focus-visible {
 
 .qr {
   width: min(60vw, 220px);
+  max-width: 100%;
   aspect-ratio: 1;
-  border-radius: 12px;
-  overflow: hidden;
+  padding: 8px;
+  background: #fff;
+  border: 1px solid var(--rule);
 }
 
 .qr svg {
@@ -215,7 +251,11 @@ button:focus-visible {
 }
 
 .players .me {
-  font-weight: 700;
+  font-weight: 600;
+}
+
+.players .row {
+  width: 100%;
 }
 
 .actions {
@@ -231,7 +271,8 @@ button:focus-visible {
   z-index: 2;
   padding: 10px 16px;
   text-align: center;
-  background: var(--pink);
+  background: var(--stamp);
+  color: var(--paper);
   font-weight: 600;
 }
 
@@ -243,26 +284,23 @@ button:focus-visible {
   max-width: 448px;
   margin: 0 auto;
   padding: 12px 16px;
-  border-radius: 12px;
-  background: var(--night);
-  border: 1px solid var(--pink);
+  border-radius: var(--radius);
+  background: var(--ink);
+  color: var(--paper);
   text-align: center;
 }
 
 .hint {
   margin-top: auto;
   padding: 12px 16px;
-  border-radius: 12px;
-  background: var(--surface);
-  font-size: 0.875rem;
+  border-radius: var(--radius);
+  border: 1px dashed var(--rule);
+  background: var(--paper);
+  font-size: 0.85rem;
 }
 
 .small-title {
-  font-size: 1.15rem;
-}
-
-.lime {
-  color: var(--lime);
+  font-size: 1.2rem;
 }
 
 .plain {
@@ -275,63 +313,87 @@ button:focus-visible {
 }
 
 .plain .me {
-  font-weight: 700;
+  font-weight: 600;
 }
 
 .dead {
   margin-top: 12px;
-  color: var(--muted);
+  color: var(--ink-soft);
 }
 
-/* The secret word: big, face down by default, same look for every role. */
+/*
+ * The secret word. Face down it is a sealed envelope with a red "MẬT" stamp; face up it is
+ * a typed sheet. Same look for every role.
+ */
 .word-card {
+  position: relative;
   width: 100%;
-  min-height: 160px;
-  padding: 20px;
+  min-height: 170px;
+  padding: 24px 20px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: 8px;
   border-radius: var(--radius);
-  background: repeating-linear-gradient(135deg, var(--deep) 0 14px, var(--night) 14px 28px);
-  border: 2px dashed var(--violet);
-  font-weight: 600;
+  background:
+    linear-gradient(160deg, transparent 49.5%, rgb(138 117 82 / 0.35) 50%, transparent 50.5%),
+    linear-gradient(20deg, transparent 49.5%, rgb(138 117 82 / 0.35) 50%, transparent 50.5%), #d9c49a;
+  border: 1px solid var(--rule);
+  box-shadow: 0 2px 0 rgb(43 36 26 / 0.15);
+}
+
+.word-card::after {
+  content: "MẬT";
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  transform: rotate(9deg);
+  font: 700 0.85rem / 1 var(--display);
+  letter-spacing: 0.14em;
+  color: var(--stamp);
+  border: 2px solid var(--stamp);
+  border-radius: 4px;
+  padding: 3px 6px;
+  opacity: 0.9;
 }
 
 .word-card.shown {
-  background: var(--surface);
-  border: 2px solid var(--lime);
+  background: var(--paper);
+  border: 1px dashed var(--rule);
 }
 
 .word-card .label {
-  font-size: 0.95rem;
-  color: var(--muted);
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--ink-soft);
 }
 
 .word-card strong {
   font-size: 2rem;
   line-height: 1.2;
+  font-weight: 600;
   overflow-wrap: anywhere;
 }
 
 .vote-list .vote {
   width: 100%;
-  background: var(--surface);
-  border: 1px solid var(--border);
+  background: var(--paper);
+  border: 1px solid var(--rule);
   text-align: left;
 }
 
 .vote-list .vote.chosen {
-  border: 2px solid var(--lime);
-  background: rgb(163 230 53 / 0.12);
+  border: 2px solid var(--stamp);
+  background: var(--paper-deep);
 }
 
 .words {
   display: flex;
   flex-direction: column;
   gap: 4px;
-  font-size: 1.1rem;
+  font-size: 1.05rem;
 }
 
 .sheet {
@@ -341,7 +403,7 @@ button:focus-visible {
   display: flex;
   align-items: flex-end;
   justify-content: center;
-  background: rgb(0 0 0 / 0.5);
+  background: rgb(43 36 26 / 0.45);
 }
 
 .sheet-body {
@@ -349,12 +411,8 @@ button:focus-visible {
   max-width: 480px;
   padding: 20px 16px max(24px, env(safe-area-inset-bottom));
   border-radius: var(--radius) var(--radius) 0 0;
-  background: var(--night);
-  border-top: 1px solid var(--border);
-}
-
-.players .row {
-  width: 100%;
+  background: var(--paper);
+  border-top: 1px solid var(--rule);
 }
 
 .stepper {
@@ -383,24 +441,26 @@ button:focus-visible {
 
 .chip {
   min-height: 44px;
-  padding: 0 14px;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  font-weight: 600;
+  padding: 0 12px;
+  background: var(--paper);
+  border: 1px solid var(--rule);
+  font-size: 0.9rem;
 }
 
 .chip.on {
-  border-color: var(--lime);
-  background: rgb(163 230 53 / 0.12);
+  border: 2px solid var(--ink);
+  background: var(--paper-deep);
 }
 
 .timer {
   text-align: center;
-  font-weight: 700;
+  font-weight: 600;
   font-variant-numeric: tabular-nums;
-  color: var(--cyan);
+  color: var(--stamp);
 }
 
 .timer.up {
-  color: var(--pink);
+  font-family: var(--display);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
 }

@@ -1,6 +1,6 @@
 // A3 Spy service worker: makes the app installable and its shell load instantly.
 // It never caches the API or sockets, so no word or role is ever stored for offline use.
-const CACHE = "a3spy-shell-v1";
+const CACHE = "a3spy-shell-v2";
 const PRIVATE = ["/api/", "/webhook", "/healthz"];
 
 self.addEventListener("install", (event) => {

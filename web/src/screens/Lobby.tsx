@@ -6,7 +6,7 @@ import { Settings } from "./Settings";
 
 export function Lobby({ view, links, online, send }: RoomProps) {
   const [copied, setCopied] = useState(false);
-  const qr = useMemo(() => renderSVG(links.web, { border: 2, whiteColor: "#fff", blackColor: "#1E1B4B" }), [links.web]);
+  const qr = useMemo(() => renderSVG(links.web, { border: 2, whiteColor: "#fff", blackColor: "#2B241A" }), [links.web]);
   const isHost = view.me === view.hostId;
   const enough = view.players.length + view.waiting.length >= 3;
 

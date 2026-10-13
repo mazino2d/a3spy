@@ -19,6 +19,8 @@
     "avatar": "node scripts/render-avatar.ts"
   },
   "dependencies": {
+    "@fontsource/ibm-plex-mono": "5.2.7",
+    "@fontsource/oswald": "5.2.8",
     "grammy": "1.46.0",
     "preact": "10.29.8",
     "uqr": "0.1.3"

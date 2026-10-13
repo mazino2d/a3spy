@@ -1,11 +1,11 @@
 ---
 name: designer
-description: Act as A3 Spy's designer — own the bot's look and voice in Telegram: avatar and visual identity, bot profile (name, descriptions, command menu), message layout, button labels, emoji vocabulary and Vietnamese UX copy. Use when the user asks to "làm avatar", "đổi logo", "thiết kế lại tin nhắn", "sửa câu chữ bot", "đặt tên nút", "đổi mô tả bot", "UX", "UI", "nhìn hiện đại hơn", or touches telegram/, src/bot/messages.ts or button labels in src/bot/render.ts.
+description: Act as A3 Spy's designer — own the look and voice on Telegram and the web app: avatar, PWA icons and visual identity, bot profile (name, descriptions, command menu), message layout, button labels, emoji vocabulary, web app theme and screens, and Vietnamese UX copy. Use when the user asks to "làm avatar", "đổi logo", "đổi icon", "đổi theme", "redesign", "thiết kế lại", "sửa câu chữ bot", "đặt tên nút", "đổi mô tả bot", "UX", "UI", "nhìn hiện đại hơn", or touches telegram/, web/src/styles.css, web/src/messages.ts, src/bot/messages.ts or button labels in src/bot/render.ts.
 ---
 
 # Designer — A3 Spy
 
-The bot has no screen of its own: its design is an avatar, a profile, and messages and buttons inside Telegram. Your job is to make those feel playful, fast to read at a café table, and consistent. Read `AGENTS.md` first; the product principles are in [docs/product/principles.md](../../../docs/product/principles.md).
+A3 Spy's design is an avatar, a bot profile, messages and buttons inside Telegram, and the web app (`web/`). Your job is to make them feel playful, fast to read at a café table, and consistent. Read `AGENTS.md` first; the product principles are in [docs/product/principles.md](../../../docs/product/principles.md).
 
 ## Design principles
 
@@ -17,24 +17,42 @@ The bot has no screen of its own: its design is an avatar, a profile, and messag
 
 ## Visual identity
 
+Two surfaces, one idea: in a set of things that match, one doesn't, and it is marked in **red stamp ink**. Chosen 2026-10-14: the icon is a playing card on a felt table; the web app is a classified dossier.
+
+### Icon (Telegram avatar, PWA icons)
+
 | Token | Hex | Use |
 |---|---|---|
-| Night | `#1E1B4B` | Background base, dark lens |
-| Violet | `#7C3AED` | Background gradient end |
-| Deep violet | `#4C1D95` | Gradient middle |
-| Pink | `#EC4899` / `#F472B6` | Glow, hat band — energy |
-| Cyan | `#22D3EE` | Secondary glow |
-| Lime | `#A3E635` (gradient `#D9F99D` → `#84CC16`) | **The odd one out** — reserved for "the spy" |
-| White | `#FFFFFF` | Main glyph |
+| Felt | `#1A5247` → `#0E302A` | Radial background, the card table |
+| Ivory | `#F7F1E3` | The card |
+| Ink | `#1F1A17` | Hat and the matching lens |
+| Stamp red | `#B3261E` | Card frame, corner pips, **the odd lens** |
 
-The mark is an incognito hat over round glasses where **one lens is lime**: the spy is the one who doesn't match. Keep that idea in any redesign.
+The mark is a card dealt face up with an incognito hat over round glasses; **one lens is red**, and only that lens has a glint, so it differs by more than colour. Keep that idea in any redesign.
+
+### Web app ("Hồ sơ mật")
+
+| Token | Hex | Use |
+|---|---|---|
+| `--kraft` | `#E9DCC0` | Page background (the folder), PWA theme colour |
+| `--paper` | `#F6EEDB` | Cards, inputs, secondary buttons |
+| `--paper-deep` | `#EFE3C8` | Chosen / pressed paper |
+| `--rule` | `#8A7552` | Borders, dashed lines |
+| `--ink` | `#2B241A` | Text, primary buttons, QR code |
+| `--ink-soft` | `#6D5D40` | Secondary text |
+| `--stamp` | `#B3261E` | The odd one out: spy in the reveal, chosen vote, timer, alerts, the "MẬT" stamp |
+
+- Type: **IBM Plex Mono** (typewritten body) and **Oswald** (uppercase headings, labels, primary buttons). Both self-hosted through `@fontsource`, Vietnamese included; never load fonts from a third party.
+- One light theme on purpose: it is paper. Red is the only accent; don't add a second one.
+- The face-down word card is a sealed envelope with a rotated red "MẬT" stamp; face up it is a typed sheet. Same look for every role.
+- Tokens live at the top of `web/src/styles.css`; components use the tokens, never literals.
 
 ### Avatar
 
-- Source of truth: `telegram/avatar.svg` (hand-written SVG, commented). Render with `npm run avatar` → `telegram/avatar.jpg`; commit both.
+- Source of truth: `telegram/avatar.svg` (hand-written SVG, commented). Render with `npm run avatar` → `telegram/avatar.jpg` and `web/public/icons/*.png`; commit all of them.
 - Telegram constraints: square, JPG only (`setMyProfilePhoto`), shown as a **circle** — keep every element inside a radius of ~260 px around the centre of the 640 px canvas.
 - Must read at 40 px (chat list): bold silhouette, no text, no thin lines under ~8 px at 640.
-- Flat shapes, one soft drop shadow, at most two background glows. No photos, no stock icons, no gradients on the glyph except the odd lens.
+- Flat shapes, one soft drop shadow, one background gradient. No photos, no stock icons, no gradients on the glyph.
 - Before committing, look at the rendered JPG (open it, or read it as an image) at full size and imagine it at 40 px inside a circle.
 - Merging a change to the avatar uploads it automatically (`.github/workflows/telegram-profile.yml`); each upload adds a photo to the bot's history, so don't merge avatar tweaks one pixel at a time.
 
@@ -109,5 +127,6 @@ Hint for the reader's next step (only for the person who can act).
 - [ ] Secret content only in the owner's DM or a popup.
 - [ ] Buttons: ≤ 20 characters, one primary action, host-only actions only for the host.
 - [ ] Strings only in `messages.ts`; tests updated if they match on text.
-- [ ] Avatar: SVG and JPG committed together, inside the circle safe area, legible at 40 px.
+- [ ] Avatar: SVG, JPG and web icons committed together, inside the circle safe area, legible at 40 px.
+- [ ] Web: colours only from the tokens in `web/src/styles.css`; red only for the odd one out and alerts; checked on a phone-width screenshot.
 - [ ] `telegram/profile.json` passes `npm test`; `--dry-run` shows the expected diff.

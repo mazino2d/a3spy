@@ -318,7 +318,7 @@ export function GameOver(props: GameProps) {
               {t.civilianWord}: <strong>{game.words.civilian}</strong>
             </p>
             <p>
-              {t.spyWord}: <strong class="lime">{game.words.spy}</strong>
+              {t.spyWord}: <strong class="odd">{game.words.spy}</strong>
             </p>
           </div>
         )}
@@ -331,7 +331,7 @@ export function GameOver(props: GameProps) {
               <span>
                 {game.alive.includes(p.id) ? "•" : "✝"} {p.name}
               </span>
-              <span class={game.roles[p.id] === "civilian" ? "muted" : "lime"}>{t.roles[game.roles[p.id] ?? ""]}</span>
+              <span class={game.roles[p.id] === "civilian" ? "muted" : "odd"}>{t.roles[game.roles[p.id] ?? ""]}</span>
             </li>
           ))}
         </ul>
