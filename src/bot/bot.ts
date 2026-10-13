@@ -2,11 +2,10 @@ import { Bot, type BotConfig, type Context } from "grammy";
 import type { User } from "grammy/types";
 import type { Env } from "../env";
 import type { Player } from "../game/engine";
+import { currentRoom as currentRoomOf } from "../player/pointer";
+import { CODE, newRoomCode } from "../room/codes";
 import { decode } from "./callbacks";
 import { msg } from "./messages";
-
-const CODE_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-const CODE = /^[A-Z0-9]{4}$/;
 
 export function displayName(user: Pick<User, "first_name" | "last_name">): string {
   return [user.first_name, user.last_name]
@@ -17,24 +16,10 @@ export function displayName(user: Pick<User, "first_name" | "last_name">): strin
 
 const toPlayer = (user: User): Player => ({ id: user.id, name: displayName(user) || `#${user.id}` });
 
-export function newRoomCode(random: () => number = Math.random): string {
-  return Array.from({ length: 4 }, () => CODE_ALPHABET[Math.floor(random() * CODE_ALPHABET.length)]).join("");
-}
-
 export function createBot(env: Env, config?: BotConfig<Context>): Bot {
   const bot = new Bot(env.TELEGRAM_BOT_TOKEN, config);
-  const pointer = (userId: number) => env.PLAYER.getByName(String(userId));
   const roomOf = (code: string) => env.ROOM.getByName(code);
-
-  /** The player's room, after clearing a pointer to a room that closed or dropped them. */
-  async function currentRoom(userId: number): Promise<string | null> {
-    const code = await pointer(userId).room();
-    if (code && !(await roomOf(code).has(userId))) {
-      await pointer(userId).setRoom(null);
-      return null;
-    }
-    return code;
-  }
+  const currentRoom = (userId: number) => currentRoomOf(env, userId);
 
   // The bot only works in private chats; ignore groups and channels.
   const dm = bot.chatType("private");

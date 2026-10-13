@@ -104,8 +104,9 @@ src/
   bot/            grammY handlers, inline keyboards, callback routing, render plan
   bot/messages.ts Every user-facing string (Vietnamese)
   game/           Pure game logic. No grammY, no Cloudflare imports.
-  room/           RoomDO: persists a room, applies game commands, broadcasts
-  player/         PlayerDO: player → current room
+  room/           RoomDO: persists a room, applies commands from any client, broadcasts
+  player/         PlayerDO: player → current room; web guest name and token hash
+  web/            Web API (/api/*), guest sessions, socket protocol shared with the client
 words/            Word-pair packs (JSON), one file per theme
 telegram/         Bot profile as code: profile.json, avatar.svg → avatar.jpg
 scripts/          Node scripts: render the avatar, sync the profile to Telegram

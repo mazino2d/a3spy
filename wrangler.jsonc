@@ -6,6 +6,7 @@
   "workers_dev": true,
   "preview_urls": false,
   "observability": { "enabled": true },
+  "vars": { "TELEGRAM_BOT_USERNAME": "a3spy_bot" },
   // Secrets (set by CD, never committed): TELEGRAM_BOT_TOKEN, TELEGRAM_WEBHOOK_SECRET
   "durable_objects": {
     "bindings": [{ "name": "ROOM", "class_name": "RoomDO" }, { "name": "PLAYER", "class_name": "PlayerDO" }]
