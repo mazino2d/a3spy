@@ -1,8 +1,8 @@
 # A3 Spy
 
-A Telegram bot that runs *Who is Spy* (Undercover rules) for friends playing in person. Everyone talks out loud; the bot deals secret words over DM, calls the speaking order, runs the vote, eliminates, reveals and keeps score.
+A game master for *Who is Spy* (Undercover rules) for friends playing in person, on Telegram or in the browser. Everyone talks out loud; A3 Spy deals secret words to each phone, calls the speaking order, runs the vote, eliminates, reveals and keeps score.
 
-Play it: [t.me/a3spy_bot](https://t.me/a3spy_bot). A web app (PWA) that joins the same rooms is next on the [roadmap](docs/product/roadmap.md).
+Play it: [t.me/a3spy_bot](https://t.me/a3spy_bot), or in the browser at the Worker's URL — the web app (installable as a PWA) joins the same rooms, so friends without Telegram can sit in.
 
 ## How a game goes
 
@@ -29,11 +29,12 @@ Commands: `/newgame`, `/join <code>`, `/leave`, `/score`, `/end` (host), `/help`
 
 ## Architecture
 
-TypeScript on **Cloudflare Workers** (free plan) with **grammY**. Telegram calls the Worker by webhook; each room is a **Durable Object** that holds the game state and sends the room's messages; a small Durable Object per player remembers which room they're in. Game rules are a pure state machine in `src/game`, tested without Telegram or Cloudflare.
+TypeScript on **Cloudflare Workers** (free plan) with **grammY**. Telegram calls the Worker by webhook; the same Worker serves the web app (Preact, in `web/`) as static assets and its API. Each room is a **Durable Object** that holds the game state, sends Telegram messages and pushes live state to web players over WebSockets; a small Durable Object per player remembers which room they're in. Game rules are a pure state machine in `src/game`, tested without Telegram or Cloudflare.
 
 ```text
 Telegram ──webhook──▶ Worker ──▶ RoomDO (per room) ──▶ src/game (rules)
-                                   PlayerDO (per player)
+Browser ──/api, ws──▶   │          PlayerDO (per player)
+        ◀─web/dist──────┘
 ```
 
 ## Development

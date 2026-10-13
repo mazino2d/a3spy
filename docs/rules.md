@@ -4,9 +4,9 @@ Canonical rules for code and tests, the same on every client. Product context an
 
 ## Rooms
 
-- Everyone plays through a **private chat (DM) with the bot**. There is no group chat.
+- Everyone plays on **their own phone**: in a private chat (DM) with the bot, or in the web app. Both join the same rooms and play the same game. There is no group chat and no shared screen.
 - `/newgame` creates a room with a 4-character code and an invite link `t.me/<bot>?start=<code>`. The creator is the **host** and joins automatically.
-- Players join with the invite link or `/join <code>`. A player is in at most **one room** at a time.
+- Players join with the Telegram invite link, `/join <code>`, or the web room link `https://<host>/r/<code>` (also shown as a QR code). A player is in at most **one room** at a time. A web player picks a display name; there are no accounts.
 - Two players with the same display name are told apart by a suffix: `Minh`, `Minh (2)`.
 - Joining while a game is running puts the player in the **waiting list**; they are dealt in at the next game.
 - If the host leaves, the earliest remaining joiner becomes host. An empty room closes.

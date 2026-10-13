@@ -2,7 +2,17 @@ import { DurableObject } from "cloudflare:workers";
 import { Api } from "grammy";
 import type { Callback } from "../bot/callbacks";
 import { msg } from "../bot/messages";
-import { inviteLink, lobbyPanel, type Op, plan, type Slot, scoreboard, wordAlert } from "../bot/render";
+import {
+  inviteLink,
+  lobbyPanel,
+  type Op,
+  plan,
+  type RoomLinks,
+  type Slot,
+  scoreboard,
+  webLink,
+  wordAlert,
+} from "../bot/render";
 import { editOrSend, send } from "../bot/telegram";
 import type { Env } from "../env";
 import * as engine from "../game/engine";
@@ -19,6 +29,8 @@ export const IDLE_MS = 6 * 60 * 60 * 1000;
 interface Stored {
   room: engine.Room;
   botUsername: string;
+  /** Origin of the web app; absent in rooms stored before the web app existed. */
+  webOrigin?: string;
   /** Message ids we edit in place, per slot and player. */
   ui: Record<Slot, Record<number, number>>;
   updatedAt: number;
@@ -45,6 +57,11 @@ const errorText: Record<engine.GameError, string> = {
   invalid_target: msg.invalidTarget,
   not_white: msg.stale,
 };
+
+const linksOf = (stored: Stored): RoomLinks => ({
+  botUsername: stored.botUsername,
+  webOrigin: stored.webOrigin ?? null,
+});
 
 /** null for "word", which only reads state and is answered with a popup. */
 function toCommand(cb: Callback): Command | null {
@@ -76,13 +93,19 @@ export class RoomDO extends DurableObject<Env> {
     return new Api(this.env.TELEGRAM_BOT_TOKEN);
   }
 
-  async create(code: string, host: engine.Player, botUsername: string): Promise<boolean> {
+  async create(code: string, host: engine.Player, links: RoomLinks): Promise<boolean> {
     if (this.load()) return false;
     const room = engine.createRoom(code, host);
-    const stored: Stored = { room, botUsername, ui: { lobby: {}, vote: {}, status: {} }, updatedAt: Date.now() };
+    const stored: Stored = {
+      room,
+      botUsername: links.botUsername,
+      ...(links.webOrigin ? { webOrigin: links.webOrigin } : {}),
+      ui: { lobby: {}, vote: {}, status: {} },
+      updatedAt: Date.now(),
+    };
     await this.execute(stored, [
       { kind: "pointer", to: host.id, code: room.code },
-      { kind: "send", to: host.id, slot: "lobby", ...lobbyPanel(room, host.id, botUsername) },
+      { kind: "send", to: host.id, slot: "lobby", ...lobbyPanel(room, host.id, links) },
     ]);
     return true;
   }
@@ -206,7 +229,7 @@ export class RoomDO extends DurableObject<Env> {
     this.sendTo(ws, {
       type: "state",
       view: viewFor(room, info.playerId),
-      links: { web: `${info.origin}/r/${room.code}`, telegram: inviteLink(stored.botUsername, room.code) },
+      links: { web: webLink(info.origin, room.code), telegram: inviteLink(stored.botUsername, room.code) },
     });
   }
 
@@ -279,7 +302,7 @@ export class RoomDO extends DurableObject<Env> {
     // Web players first: their sockets are local and fast; Telegram calls can take a while.
     this.pushWeb(closed ? null : next, result.events);
 
-    await this.execute(next, plan(before, result.room, result.events, stored.botUsername));
+    await this.execute(next, plan(before, result.room, result.events, linksOf(stored)));
   }
 
   /** Runs ops in order per chat, chats in parallel. Records message ids into stored.ui. */

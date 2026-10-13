@@ -35,15 +35,29 @@ function button(room: Room, text: string, action: Action, arg = 0): Button {
 }
 
 export const inviteLink = (botUsername: string, code: string) => `https://t.me/${botUsername}?start=${code}`;
+export const webLink = (origin: string, code: string) => `${origin}/r/${code}`;
 
-export function lobbyPanel(room: Room, viewer: number, botUsername: string): { text: string; keyboard: Keyboard } {
+/** Where a room can be joined from: Telegram, and the web app when its origin is known. */
+export interface RoomLinks {
+  botUsername: string;
+  webOrigin: string | null;
+}
+
+export function lobbyPanel(room: Room, viewer: number, links: RoomLinks): { text: string; keyboard: Keyboard } {
   const isHost = viewer === room.hostId;
   const players = room.players.map((p) => esc(p.name) + (p.id === room.hostId ? " 👑" : ""));
   const keyboard: Keyboard = isHost
     ? [[button(room, msg.btnStart, "start")], [button(room, msg.btnLeave, "leave")]]
     : [[button(room, msg.btnLeave, "leave")]];
   return {
-    text: msg.lobby(room.code, name(room, room.hostId), players, inviteLink(botUsername, room.code), isHost),
+    text: msg.lobby(
+      room.code,
+      name(room, room.hostId),
+      players,
+      inviteLink(links.botUsername, room.code),
+      links.webOrigin ? webLink(links.webOrigin, room.code) : null,
+      isHost,
+    ),
     keyboard,
   };
 }
@@ -91,7 +105,7 @@ export function wordAlert(game: Game, viewer: number): string {
  * @param before room before the command (to reach players who just left)
  * @param after room after the command
  */
-export function plan(before: Room, after: Room, events: GameEvent[], botUsername: string): Op[] {
+export function plan(before: Room, after: Room, events: GameEvent[], links: RoomLinks): Op[] {
   const ops: Op[] = [];
   const lines: string[] = [];
   let refreshLobby = false;
@@ -101,7 +115,7 @@ export function plan(before: Room, after: Room, events: GameEvent[], botUsername
   for (const e of events) {
     switch (e.type) {
       case "joined": {
-        const panel = lobbyPanel(after, e.player.id, botUsername);
+        const panel = lobbyPanel(after, e.player.id, links);
         ops.push({ kind: "pointer", to: e.player.id, code: after.code });
         ops.push({ kind: "send", to: e.player.id, slot: "lobby", ...panel });
         fresh.add(e.player.id);
@@ -199,7 +213,7 @@ export function plan(before: Room, after: Room, events: GameEvent[], botUsername
   if (refreshLobby && !isRunning(after)) {
     for (const p of after.players) {
       if (fresh.has(p.id)) continue;
-      ops.push({ kind: "edit", to: p.id, slot: "lobby", ...lobbyPanel(after, p.id, botUsername) });
+      ops.push({ kind: "edit", to: p.id, slot: "lobby", ...lobbyPanel(after, p.id, links) });
     }
   }
 

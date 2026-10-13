@@ -38,6 +38,11 @@ describe("rooms over the webhook", () => {
     expect(lobby?.buttons.map((b) => b.text)).toEqual(expect.arrayContaining([expect.stringContaining("Bắt đầu")]));
   });
 
+  it("W7 AC18 the Telegram lobby also links to the room on the web", async () => {
+    await text(103, "/newgame");
+    expect(tg.last(103)?.text).toMatch(/Không dùng Telegram\? Mở web: https:\/\/a3spy\.test\/r\/\w{4}/);
+  });
+
   it("L1 /newgame while already in a room is refused", async () => {
     await text(102, "/newgame");
     await text(102, "/newgame");

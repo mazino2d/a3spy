@@ -37,6 +37,12 @@ export function Lobby({ view, links, online, send }: RoomProps) {
         <button type="button" class="secondary" onClick={share}>
           {copied ? t.copied : t.share}
         </button>
+        <p class="muted small">
+          {t.telegramToo}{" "}
+          <a class="link" href={links.telegram} target="_blank" rel="noopener">
+            {links.telegram.replace("https://", "")}
+          </a>
+        </p>
       </section>
 
       <section>
