@@ -110,7 +110,8 @@ describe("a full game over the webhook", () => {
     expect(tg.answers().at(-1)).toMatchObject({ text: `Từ của bạn: ${spyWord}`, show_alert: true });
 
     // G2: only the host can open the vote.
-    const other = players.find((p) => p !== HOST) as number;
+    // A civilian other than the host: the spy votes for them, and they check /score later.
+    const other = players.find((p) => p !== HOST && p !== spy) as number;
     await press(HOST, button(HOST, "Mở vote"));
     for (const id of players) expect(tg.to(id).some((m) => m.text.includes("Vote vòng 1"))).toBe(true);
 
