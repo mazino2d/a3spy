@@ -1,0 +1,72 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  changes:
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: read
+    outputs:
+      app: ${{ steps.filter.outputs.app }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: dorny/paths-filter@v4
+        id: filter
+        with:
+          filters: |
+            app:
+              - "src/**"
+              - "test/**"
+              - "words/**"
+              - "package.json"
+              - "package-lock.json"
+              - ".nvmrc"
+              - "tsconfig.json"
+              - "vitest.config.ts"
+              - "biome.json"
+              - "wrangler.jsonc"
+              - ".github/workflows/**"
+
+  check:
+    needs: changes
+    if: needs.changes.outputs.app == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - name: Lint
+        run: npm run lint
+      - name: Typecheck
+        run: npm run typecheck
+      - name: Test
+        run: npm test
+      - name: Bundle (wrangler dry-run)
+        run: npx wrangler deploy --dry-run --outdir dist
+
+  # The only required status check. Path-filtered jobs report "skipped" when
+  # nothing relevant changed, so branch protection points here instead of at them.
+  ci-ok:
+    needs: [changes, check]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify required jobs
+        run: |
+          echo "changes: ${{ needs.changes.result }}, check: ${{ needs.check.result }}"
+          [[ "${{ needs.changes.result }}" == "success" ]] || exit 1
+          [[ "${{ needs.check.result }}" =~ ^(success|skipped)$ ]] || exit 1

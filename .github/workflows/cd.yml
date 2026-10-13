@@ -1,0 +1,74 @@
+name: CD
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "src/**"
+      - "words/**"
+      - "package.json"
+      - "package-lock.json"
+      - "wrangler.jsonc"
+      - ".github/workflows/cd.yml"
+  workflow_dispatch:
+
+# Never run two deploys at once, and never cancel one half-way.
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment:
+      name: production
+      url: ${{ steps.deploy.outputs.url }}
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+      TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+      TELEGRAM_WEBHOOK_SECRET: ${{ secrets.TELEGRAM_WEBHOOK_SECRET }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+
+      - name: Check configuration
+        run: |
+          missing=0
+          for v in CLOUDFLARE_API_TOKEN CLOUDFLARE_ACCOUNT_ID TELEGRAM_BOT_TOKEN TELEGRAM_WEBHOOK_SECRET; do
+            [[ -n "${!v}" ]] || { echo "::error::$v is not set (managed in everything-as-code terraform/github)"; missing=1; }
+          done
+          exit $missing
+
+      - name: Deploy Worker with secrets
+        id: deploy
+        run: |
+          umask 077
+          jq -n --arg t "$TELEGRAM_BOT_TOKEN" --arg s "$TELEGRAM_WEBHOOK_SECRET" \
+            '{TELEGRAM_BOT_TOKEN: $t, TELEGRAM_WEBHOOK_SECRET: $s}' > "$RUNNER_TEMP/secrets.json"
+          npx wrangler deploy --secrets-file "$RUNNER_TEMP/secrets.json" | tee "$RUNNER_TEMP/deploy.log"
+          rm -f "$RUNNER_TEMP/secrets.json"
+          url="$(grep -oE 'https://[a-z0-9.-]+\.workers\.dev' "$RUNNER_TEMP/deploy.log" | head -1)"
+          [[ -n "$url" ]] || { echo "::error::could not find the workers.dev URL in wrangler output"; exit 1; }
+          echo "url=$url" >> "$GITHUB_OUTPUT"
+
+      - name: Smoke test
+        run: curl -fsS --retry 5 --retry-all-errors "${{ steps.deploy.outputs.url }}/healthz"
+
+      - name: Point Telegram webhook at the Worker
+        run: |
+          curl -fsS "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/setWebhook" \
+            --data-urlencode "url=${{ steps.deploy.outputs.url }}/webhook" \
+            --data-urlencode "secret_token=${TELEGRAM_WEBHOOK_SECRET}" \
+            --data-urlencode 'allowed_updates=["message","callback_query"]' \
+            -o /dev/null
+          curl -fsS "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/getWebhookInfo" \
+            | jq '{url: .result.url, pending: .result.pending_update_count, last_error: .result.last_error_message}'

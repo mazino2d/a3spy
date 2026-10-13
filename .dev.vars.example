@@ -1,0 +1,3 @@
+# Copy to .dev.vars for `npm run dev`. Use a separate test bot, never the production one.
+TELEGRAM_BOT_TOKEN=
+TELEGRAM_WEBHOOK_SECRET=
