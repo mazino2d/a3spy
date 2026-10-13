@@ -1,6 +1,6 @@
 # M4 Optional timers
 
-Status: in progress   ·   Serves: UC-3   ·   Roadmap: Now
+Status: shipped 2026-10-14   ·   Serves: UC-3   ·   Roadmap: Shipped
 
 ## Problem
 
