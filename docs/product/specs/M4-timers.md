@@ -1,6 +1,6 @@
 # M4 Optional timers
 
-Status: shipped 2026-10-14   ·   Serves: UC-3   ·   Roadmap: Shipped
+Status: shipped 2026-10-14   ·   Serves: UC-3   ·   Roadmap: Shipped   ·   Implementation: [M4](../../implementations/M4-timers.md)
 
 ## Problem
 
