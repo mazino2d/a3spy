@@ -1,6 +1,7 @@
 import { useEffect, useState } from "preact/hooks";
 import type { GameView, PublicEvent, RoomView } from "../../../src/game/view";
 import { t } from "../messages";
+import { go } from "../route";
 import type { RoomProps } from "./Room";
 
 const nameOf = (view: RoomView, id: number) =>
@@ -375,6 +376,9 @@ export function Scoreboard({ view, onClose }: { view: RoomView; onClose(): void 
         ) : (
           <p class="muted">{t.noScore}</p>
         )}
+        <button type="button" class="link small" onClick={() => go({ name: "stats" })}>
+          {t.longTermStats}
+        </button>
         <button type="button" class="secondary" onClick={onClose}>
           {t.close}
         </button>

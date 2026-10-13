@@ -5,6 +5,7 @@ import { go, parseRoute, type Route } from "./route";
 import { Home } from "./screens/Home";
 import { NameScreen } from "./screens/NameScreen";
 import { RoomGate } from "./screens/RoomGate";
+import { StatsScreen } from "./screens/Stats";
 
 export function App() {
   const [route, setRoute] = useState<Route>(() => parseRoute(location.pathname));
@@ -51,5 +52,6 @@ export function App() {
       />
     );
   if (route.name === "room") return <RoomGate code={route.code} me={me} onMe={setMe} />;
+  if (route.name === "stats") return <StatsScreen me={me} />;
   return <Home me={me} />;
 }

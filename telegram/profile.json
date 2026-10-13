@@ -8,6 +8,7 @@
     { "command": "join", "description": "Vào phòng bằng mã, ví dụ /join AB12" },
     { "command": "leave", "description": "Rời phòng" },
     { "command": "score", "description": "Bảng điểm của phòng" },
+    { "command": "stats", "description": "Thống kê dài hạn và bảng xếp hạng cả nhóm" },
     { "command": "end", "description": "(Host) kết thúc ván đang chơi" },
     { "command": "help", "description": "Hướng dẫn và danh sách lệnh" }
   ]

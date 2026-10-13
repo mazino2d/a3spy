@@ -253,3 +253,48 @@ describe("timers over Telegram", () => {
     expect(tg.messages()).toHaveLength(0);
   });
 });
+
+describe("long-term stats over Telegram", () => {
+  it("S2 AC6 a player with no finished game sees a one-liner", async () => {
+    await text(1501, "/stats");
+    expect(tg.last(1501)?.text).toContain("Bạn chưa chơi xong ván nào.");
+    expect(tg.last(1501)?.text).toContain("Bảng xếp hạng cả nhóm");
+  });
+
+  it("S2 AC1 AC4 AC7 a finished game shows in /stats and the leaderboard, with no words", async () => {
+    const players = [1601, 1602, 1603];
+    await openRoom(players);
+    await press(1601, button(1601, "Bắt đầu"));
+    const words = new Map<number, string>();
+    for (const id of players)
+      words.set(
+        id,
+        /Từ của bạn: <b>(.+?)<\/b>/.exec(tg.to(id).find((m) => m.text.includes("Từ của bạn"))?.text ?? "")?.[1] ?? "",
+      );
+    const spy = players.find((id) => [...words.values()].filter((w) => w === words.get(id)).length === 1) as number;
+    const other = players.find((id) => id !== spy) as number;
+    await press(1601, button(1601, "Mở vote"));
+    const ballots = players.map((id) => [id, button(id, `User${id === spy ? other : spy}`)] as const);
+    for (const [id, data] of ballots) await press(id, data);
+    expect(tg.last(1601)?.text).toContain("Dân thắng");
+
+    await text(other, "/stats");
+    const mine = tg.last(other)?.text ?? "";
+    expect(mine).toContain("1 ván · thắng 1 (100%)");
+    expect(mine).toMatch(new RegExp(`User${other} — 1 thắng / 1 ván`));
+    await text(spy, "/stats");
+    expect(tg.last(spy)?.text).toContain("Spy: thắng 0/1");
+    for (const w of words.values()) {
+      expect(mine).not.toContain(w);
+      expect(tg.last(spy)?.text).not.toContain(w);
+    }
+  });
+
+  it("S2 AC3 /end leaves stats unchanged", async () => {
+    await openRoom([1701, 1702, 1703]);
+    await press(1701, button(1701, "Bắt đầu"));
+    await text(1701, "/end");
+    await text(1702, "/stats");
+    expect(tg.last(1702)?.text).toContain("Bạn chưa chơi xong ván nào.");
+  });
+});

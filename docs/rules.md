@@ -77,6 +77,8 @@ Timers only remind; the host still opens and closes the vote.
 
 `/score` shows **games won per player** in the room. A win counts for every player on the winning side, alive or not. No points by role.
 
+**Long-term stats** (`/stats`, web Stats) count every game that ended with a winner, across rooms: games, wins and win rate; as spy, games and wins; as Mr. White, games, wins and correct guesses. A game ended early counts for nobody. A Telegram player and a web guest are separate records. The leaderboard ranks the top 10 by wins, then win rate.
+
 ## Words
 
 - Packs live in `words/*.json`, one theme per file, as pairs of similar words.

@@ -69,6 +69,9 @@ export function Home({ me }: { me: Me }) {
             {error}
           </p>
         )}
+        <button type="button" class="secondary" onClick={() => go({ name: "stats" })}>
+          {t.stats}
+        </button>
       </div>
       {hint && (
         <aside class="hint row between">

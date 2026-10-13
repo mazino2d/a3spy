@@ -6,6 +6,7 @@ import { handleApi } from "./web/api";
 
 export { PlayerDO } from "./player/PlayerDO";
 export { RoomDO } from "./room/RoomDO";
+export { StatsDO } from "./stats/StatsDO";
 
 const SECRET_HEADER = "x-telegram-bot-api-secret-token";
 

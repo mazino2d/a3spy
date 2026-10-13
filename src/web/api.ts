@@ -1,6 +1,7 @@
 import type { Env } from "../env";
 import { currentRoom } from "../player/pointer";
 import { CODE, newRoomCode } from "../room/codes";
+import { statsOf } from "../stats/StatsDO";
 import { cleanName } from "./protocol";
 import { cookieHeader, createGuest, type Guest, guestOf } from "./session";
 
@@ -10,6 +11,7 @@ import { cookieHeader, createGuest, type Guest, guestOf } from "./session";
  *
  *   POST /api/session                 { name } → { id, name }  (sets the cookie, or renames)
  *   GET  /api/me                      → { id, name, room }
+ *   GET  /api/stats                   → { me, board }  (long-term stats, no words)
  *   POST /api/rooms                   → { code }
  *   POST /api/rooms/<code>/join       → { code }
  *   POST /api/rooms/<code>/leave      → {}
@@ -37,6 +39,7 @@ export async function handleApi(request: Request, env: Env): Promise<Response> {
   if (path === "/api/me" && method === "GET") {
     return json({ ...guest, room: await currentRoom(env, guest.id) });
   }
+  if (path === "/api/stats" && method === "GET") return json(await statsOf(env).read(guest.id));
   if (path === "/api/rooms" && method === "POST") return createRoom(env, guest, url.origin);
 
   const m = /^\/api\/rooms\/([A-Za-z0-9]{4})\/(join|leave|ws)$/.exec(path);

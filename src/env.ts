@@ -1,5 +1,6 @@
 import type { PlayerDO } from "./player/PlayerDO";
 import type { RoomDO } from "./room/RoomDO";
+import type { StatsDO } from "./stats/StatsDO";
 
 export interface Env {
   TELEGRAM_BOT_TOKEN: string;
@@ -8,4 +9,5 @@ export interface Env {
   TELEGRAM_BOT_USERNAME: string;
   ROOM: DurableObjectNamespace<RoomDO>;
   PLAYER: DurableObjectNamespace<PlayerDO>;
+  STATS: DurableObjectNamespace<StatsDO>;
 }

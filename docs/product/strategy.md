@@ -95,7 +95,11 @@ app ([M3](specs/M3-web-app.md)).
 - **Remote play.** No describing through the app, no voice or video; talk happens out loud.
 - **Public release.** No onboarding for strangers, no store listing, no monetisation.
 - **Native apps.** The web app is installable as a PWA; no App Store or Play Store build.
-- **Long-term stats and profiles** beyond the room scoreboard (see roadmap).
+- **Profiles and accounts.** Long-term stats exist ([M5](specs/M5-long-term-stats.md)), but there are
+  no profiles, no account linking between Telegram and the web, and no per-season boards.
+
+*Changed 2026-10-14:* "long-term stats" was removed from the non-goals: friends asked to
+show off across sessions. Profiles and account linking stay out ([M5](specs/M5-long-term-stats.md)).
 
 *Changed 2026-10-13:* "a separate app or website" was removed from the non-goals; a web app
 (PWA) is now planned as [M3](specs/M3-web-app.md).

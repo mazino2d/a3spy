@@ -31,6 +31,7 @@ Each milestone has a spec in [specs/](specs/), and large ones an implementation 
 | ID | Item | Serves | I | C | E | Score | Notes |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | M4 | Optional reminder timers for discussion and voting (G5, [#13](https://github.com/mazino2d/a3spy/issues/13)) | UC-3 | 0.5 | 0.5 | 2 | 0.13 | Decided 2026-10-14: reminders only — the bot never opens or closes a vote (principle 3). Off by default. Spec: [M4](specs/M4-timers.md). |
+| M5 | Long-term stats: personal numbers and a group leaderboard (S2, [#19](https://github.com/mazino2d/a3spy/issues/19)) | UC-6 | 0.5 | 0.5 | 3 | 0.08 | Decided 2026-10-14: personal stats plus one group leaderboard; no linking between web guests and Telegram players (separate records). Strategy change: long-term stats leave the non-goals. Spec: [M5](specs/M5-long-term-stats.md). |
 
 ## Next
 
@@ -41,7 +42,6 @@ Each milestone has a spec in [specs/](specs/), and large ones an implementation 
 
 | ID | Item | Serves | I | C | E | Score | Notes |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| M5 | Long-term stats: win rate as spy, correct Mr. White guesses (S2, [#19](https://github.com/mazino2d/a3spy/issues/19)); link web guests to Telegram players | UC-6 | 0.5 | 0.5 | 4 | 0.06 | Needs a stable identity across rooms and clients; depends on M3's identity model. |
 
 ## Rejected / parked
 

@@ -1,5 +1,6 @@
 import { type Game, type GameEvent, handOf, isRunning, playerName, type Room } from "../game/engine";
 import type { Hand } from "../game/roles";
+import { type PlayerStats, winRate } from "../game/stats";
 import { settingsView } from "../game/view";
 import { type Action, encode, encodeChange } from "./callbacks";
 import { msg } from "./messages";
@@ -286,4 +287,21 @@ export function timerReminder(room: Room, kind: "discussion" | "vote"): Op[] {
     (p): Op =>
       p.id === room.hostId ? { kind: "send", to: p.id, text, keyboard: host } : { kind: "send", to: p.id, text },
   );
+}
+
+const pct = (s: Pick<PlayerStats, "games" | "wins">) => Math.round(winRate(s) * 100);
+
+/** `/stats`: the player's own numbers, then the group leaderboard. Names only, never words. */
+export function statsMessage(me: PlayerStats | null, board: readonly PlayerStats[]): string {
+  const mine = me
+    ? [
+        msg.statsTotal(me.games, me.wins, pct(me)),
+        ...(me.spy.games ? [msg.statsSpy(me.spy.games, me.spy.wins)] : []),
+        ...(me.white.games ? [msg.statsWhite(me.white.games, me.white.wins, me.white.correct)] : []),
+      ]
+    : [msg.statsNone];
+  const lines = board.length
+    ? board.map((s, i) => msg.statsBoardLine(i + 1, esc(s.name), s.wins, s.games, pct(s)))
+    : [msg.statsBoardEmpty];
+  return [msg.statsMine, ...mine, "", msg.statsBoard, ...lines].join("\n");
 }
