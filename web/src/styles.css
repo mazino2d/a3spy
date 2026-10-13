@@ -256,3 +256,103 @@ button:focus-visible {
   background: var(--surface);
   font-size: 0.875rem;
 }
+
+.small-title {
+  font-size: 1.15rem;
+}
+
+.lime {
+  color: var(--lime);
+}
+
+.plain {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.plain .me {
+  font-weight: 700;
+}
+
+.dead {
+  margin-top: 12px;
+  color: var(--muted);
+}
+
+/* The secret word: big, face down by default, same look for every role. */
+.word-card {
+  width: 100%;
+  min-height: 160px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border-radius: var(--radius);
+  background: repeating-linear-gradient(135deg, var(--deep) 0 14px, var(--night) 14px 28px);
+  border: 2px dashed var(--violet);
+  font-weight: 600;
+}
+
+.word-card.shown {
+  background: var(--surface);
+  border: 2px solid var(--lime);
+}
+
+.word-card .label {
+  font-size: 0.95rem;
+  color: var(--muted);
+}
+
+.word-card strong {
+  font-size: 2rem;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+
+.vote-list .vote {
+  width: 100%;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  text-align: left;
+}
+
+.vote-list .vote.chosen {
+  border: 2px solid var(--lime);
+  background: rgb(163 230 53 / 0.12);
+}
+
+.words {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 1.1rem;
+}
+
+.sheet {
+  position: fixed;
+  inset: 0;
+  z-index: 3;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  background: rgb(0 0 0 / 0.5);
+}
+
+.sheet-body {
+  width: 100%;
+  max-width: 480px;
+  padding: 20px 16px max(24px, env(safe-area-inset-bottom));
+  border-radius: var(--radius) var(--radius) 0 0;
+  background: var(--night);
+  border-top: 1px solid var(--border);
+}
+
+.players .row {
+  width: 100%;
+}

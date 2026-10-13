@@ -45,8 +45,65 @@ export const t = {
   leave: "🚪 Rời phòng",
   telegramToo: "Bạn nào dùng Telegram thì vào bằng link này:",
 
-  // Game placeholder (screens come in the next phase)
-  gameRunning: "Ván đang chạy…",
+  // Game
+  gameRound: (game: number, round: number) => `Ván #${game} · Vòng ${round}`,
+  roles: { civilian: "Dân", spy: "Spy", white: "Mr. White" } as Record<string, string>,
+  yourWord: "Từ của bạn",
+  tapToReveal: "Chạm để xem từ",
+  tapToRevealHint: "Che màn hình rồi hẵng chạm nhé 🤫",
+  youAreWhite: "Bạn là Mr. White",
+  whiteHint: "Bạn không có từ. Nghe mọi người rồi chém cho khéo.",
+  wordHides: "Tự ẩn sau 5 giây",
+  waitingNext: "Ván đang chạy, bạn sẽ được chia bài ở ván sau.",
+  speakingOrder: "Lần lượt mô tả",
+  describeHint: "Mô tả từ của bạn khi tới lượt, đừng lộ quá nha.",
+  youAreOut: "Bạn đã bị loại — ngồi nghe tiếp nhé, không vote nữa.",
+  openVote: "🗳 Mở vote",
+  hostVoteHint: "Bấm Mở vote khi cả bàn nói xong.",
+  endGame: "⏹ Kết thúc ván",
+  confirmEnd: "Kết thúc ván này? Sẽ lật bài và không tính điểm.",
+  vote: (round: number, revote: boolean) => (revote ? `Vote lại (vòng ${round})` : `Vote vòng ${round}`),
+  votePrompt: (revote: boolean) => (revote ? "Chọn một trong những người hoà:" : "Bạn nghi ai?"),
+  votedFor: (name: string) => `Bạn đang vote ${name}. Đổi ý thì chọn người khác.`,
+  voteCount: (count: number, total: number) => `Đã vote ${count}/${total}`,
+  autoClose: "Tự chốt khi đủ phiếu.",
+  closeVote: "✅ Chốt vote",
+  watching: "Bạn đang xem, không vote.",
+  guessPrompt: "Bạn bị loại, nhưng còn một cơ hội: đoán từ của dân!",
+  guessPlaceholder: "Từ của dân là…",
+  guessSubmit: "🎯 Đoán",
+  guessing: (name: string) => `Chờ ${name} (Mr. White) đoán từ của dân…`,
+
+  // Outcome of the last vote
+  tally: "Kết quả vote",
+  votes: (n: number) => `${n} phiếu`,
+  noVotes: "Không ai vote.",
+  tie: (names: string) => `Hoà giữa ${names}! Vote lại giữa những người này.`,
+  noEliminationTie: "Lại hoà — không ai bị loại vòng này.",
+  noEliminationNoVotes: "Không ai bị loại vòng này.",
+  eliminated: (name: string, role: string) => `${name} bị loại — là ${role}.`,
+  left: (name: string) => `${name} đã rời phòng.`,
+  whiteGuessed: (name: string, guess: string, correct: boolean) =>
+    correct ? `${name} đoán "${guess}" — CHUẨN!` : `${name} đoán "${guess}" — sai rồi.`,
+
+  // End
+  winner: {
+    civilians: "🏆 Dân thắng!",
+    spies: "🏆 Phe Spy thắng!",
+    white: "🏆 Mr. White thắng một mình!",
+  } as Record<string, string>,
+  endedEarly: "⏹ Ván đã kết thúc sớm, không tính điểm.",
+  reveal: "Lật bài",
+  civilianWord: "Từ của dân",
+  spyWord: "Từ của spy",
+  playAgain: "🔁 Chơi lại",
+  waitAgain: "Chờ host bấm Chơi lại nhé.",
+
+  // Score
+  score: "🏅 Bảng điểm",
+  scoreTitle: "Bảng điểm (ván thắng)",
+  noScore: "Chưa có ván nào kết thúc.",
+  close: "Đóng",
 
   // Connection
   connecting: "Đang kết nối…",
