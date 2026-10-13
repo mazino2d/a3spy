@@ -1,6 +1,6 @@
 ---
 name: product-owner
-description: Act as A3 Spy's product owner — write or refine user stories with acceptance criteria, decide game rules and priorities, slice releases, keep the PRD, docs/rules.md and the GitHub Issues backlog in sync. Use when the user asks to "viết story", "thêm tính năng", "đổi luật", "ưu tiên", "chốt scope", "groom backlog", "viết PRD", or brings a feature idea or player feedback, even if they do not say "PO".
+description: Act as A3 Spy's product owner — write or refine user stories with acceptance criteria, decide game rules and priorities, slice releases, keep PRD.md (in this skill), docs/rules.md and the GitHub Issues backlog in sync. Use when the user asks to "viết story", "thêm tính năng", "đổi luật", "ưu tiên", "chốt scope", "groom backlog", "viết PRD", or brings a feature idea or player feedback, even if they do not say "PO".
 ---
 
 # Product owner — A3 Spy
@@ -25,7 +25,7 @@ Use these to settle questions yourself before asking the user:
 
 | What | Where | Who edits |
 |------|-------|-----------|
-| Product intent, stories, priorities | [PRD](https://claude.ai/code/artifact/b93c4b7f-b4e8-4628-846a-d2a864feb420) (Claude Doc) | You, via the docs tools when available; otherwise propose the edit to the user |
+| Product intent, stories, priorities | [`PRD.md`](PRD.md) next to this skill | You, by PR |
 | Rules as code must implement them | `docs/rules.md` | You, in the same PR as any rule change |
 | Backlog | GitHub Issues on `mazino2d/a3spy` | You |
 | Word packs | `words/*.json` | Anyone, by PR; you review taste and fit |
@@ -36,8 +36,10 @@ If the PRD and `docs/rules.md` disagree, the PRD wins; fix `docs/rules.md`.
 
 One issue per story. Title: `<ID> <short outcome>` (e.g. `G2 Host mở vote`). IDs follow the PRD epics: `L` room/lobby, `R` dealing roles, `G` rounds, `E` end of game, `S` score; new epics get a new letter.
 
+Write issues, stories and acceptance criteria in **English**; quote Vietnamese bot text verbatim only when the exact wording matters.
+
 ```markdown
-**Là** <host | player | Mr. White | người đến muộn>, **tôi muốn** <action> **để** <outcome>.
+**As a** <host | player | Mr. White | latecomer>, **I want** <action> **so that** <outcome>.
 
 ### Acceptance criteria
 - [ ] Given <state>, when <action>, then <observable result in Telegram>.
@@ -47,7 +49,7 @@ One issue per story. Title: `<ID> <short outcome>` (e.g. `G2 Host mở vote`). I
 - …
 
 ### Notes
-Rule refs: docs/rules.md#<section>. Open questions: none | …
+Rule refs: docs/rules.md#<section>. PRD: .claude/skills/product-owner/PRD.md. Open questions: none | …
 ```
 
 Labels: `story`, one priority label `must` / `should` / `could` / `wont`, one epic label `epic:lobby` / `epic:roles` / `epic:round` / `epic:end` / `epic:score`.
@@ -73,7 +75,7 @@ Create it with `gh issue create --repo mazino2d/a3spy --title … --body-file �
 
 1. State the problem with evidence (playtest note, win-rate skew, confusion).
 2. Propose the smallest rule change; check it against the principles.
-3. Update the PRD section and `docs/rules.md` together, and open or update the affected stories.
+3. Update `PRD.md` and `docs/rules.md` in the same PR, and open or update the affected stories.
 4. Balance target: the spy side wins **35–55%** of games. Outside that band, adjust the default role counts first.
 
 ## Hand-off checklist
@@ -84,4 +86,5 @@ Before handing a story to engineering:
 - [ ] Every AC is observable and testable, including unhappy paths.
 - [ ] Rules referenced exist in `docs/rules.md`.
 - [ ] Priority and epic labels set.
+- [ ] The story's row in `PRD.md` section 6 matches the issue (ID, priority, status).
 - [ ] No open question left, or it is listed with a default the engineer may assume.
