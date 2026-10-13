@@ -36,7 +36,7 @@ Civilians and spies get the **same message format** ("Từ của bạn: X") so a
 
 ## A round
 
-1. **Describe** — the bot sends a random speaking order of living players to everyone. Mr. White is never first. People speak out loud.
+1. **Describe** — the bot sends the speaking order of living players to everyone: random in round 1, then the previous order rotated by one (eliminated players removed), so a different person opens each round. Mr. White is never first. People speak out loud.
 2. **Discuss** — free talk; the bot does nothing.
 3. **Vote** — the host opens the vote. Each living player gets buttons with the other living players' names, votes once, may change their vote until it closes. Nobody sees who voted for whom; the host sees the count (`5/7`).
 4. **Close** — when every living player has voted, or the host presses close.
