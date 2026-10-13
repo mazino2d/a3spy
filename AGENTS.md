@@ -5,9 +5,9 @@ this repo.
 
 A3 Spy is the **game master** for *Who is Spy* (Undercover rules) while a group of friends
 plays **in person** at a café. People describe and argue out loud; A3 Spy deals secret
-words, calls the speaking order, runs the vote, eliminates, reveals and keeps score. Today
-it is a Telegram bot; a web app (PWA) for the same rooms is planned
-([M3](docs/product/specs/M3-web-app.md)). Audience: one friend group, < 30 users.
+words, calls the speaking order, runs the vote, eliminates, reveals and keeps score. Players use
+the Telegram bot or the web app (PWA) at https://a3spy.mazino2d.workers.dev/; both join the
+same rooms ([M3](docs/product/specs/M3-web-app.md)). Audience: one friend group, < 30 users.
 Product context: [docs/product/](docs/product/index.md).
 
 ## Language policy
@@ -97,7 +97,8 @@ Telegram ──webhook──▶ Worker (src/index.ts)
    src/game — pure rules: deal, turn order, vote tally, win check
 ```
 
-The planned web client connects to the same RoomDO over WebSockets; see the
+The web app (`web/`, served by the same Worker as static assets) talks to `/api/*` and
+connects to the same RoomDO over WebSockets; see the
 [M3 implementation plan](docs/implementations/M3-web-app.md).
 
 ## Layout

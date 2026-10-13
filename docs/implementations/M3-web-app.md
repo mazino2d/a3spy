@@ -1,6 +1,6 @@
 # M3 Web app (PWA) — implementation plan
 
-Status: in progress (P0–P5 shipped 2026-10-13; P6 waits for the café playtest)   ·   Spec: [M3 Web app (PWA)](../product/specs/M3-web-app.md)   ·   Written 2026-10-13
+Status: shipped 2026-10-13   ·   Spec: [M3 Web app (PWA)](../product/specs/M3-web-app.md)   ·   Written 2026-10-13
 
 How M3 gets built: the architecture, the phases (one PR each) and the decisions behind
 them. The spec defines *what* must be true; this plan defines *how* and in what order.
@@ -70,7 +70,7 @@ Each phase is one PR, ends green on `npm run check`, and leaves production worki
 | P3 | Web shell and PWA: `web/` (Vite + Preact), static assets in `wrangler.jsonc`, manifest, service worker, icons, CI and CD build steps; screens: name, home (create / join by code), lobby with QR and share | W1, W2, W9 · AC1–AC6, AC23, AC24 | 2.5 d | Done (#36) |
 | P4 | Game screens: word card (tap to reveal, auto-hide), speaking order, vote, results, Mr. White guess, end and reveal, play again, end game, scoreboard, connection banner | W3–W6, W8, W10 · AC7–AC16, AC20, AC21, AC25 | 2.5 d | Done (#37) |
 | P5 | Mixed tables: the web link in the Telegram lobby and the Telegram link in the web lobby, copy review with the designer skill | W7 · AC17, AC18 | 0.5 d | Done (#38) |
-| P6 | Release: mixed-table café playtest (≥ 2 web, ≥ 3 Telegram), install checks on iOS Safari and Android Chrome, README, `docs/rules.md` and AGENTS update, close milestone | Success check, AC21 (manual) | 1 d | Planned |
+| P6 | Release: mixed-table café playtest (≥ 2 web, ≥ 3 Telegram), install checks on iOS Safari and Android Chrome, README, `docs/rules.md` and AGENTS update, close milestone | Success check, AC21 (manual) | 1 d | Done (playtest passed 2026-10-13) |
 
 Total ≈ 10.5 days, matching the roadmap's Effort of 10.
 

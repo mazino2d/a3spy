@@ -2,7 +2,7 @@
 
 A game master for *Who is Spy* (Undercover rules) for friends playing in person, on Telegram or in the browser. Everyone talks out loud; A3 Spy deals secret words to each phone, calls the speaking order, runs the vote, eliminates, reveals and keeps score.
 
-Play it: [t.me/a3spy_bot](https://t.me/a3spy_bot), or in the browser at the Worker's URL — the web app (installable as a PWA) joins the same rooms, so friends without Telegram can sit in.
+Play it: [t.me/a3spy_bot](https://t.me/a3spy_bot), or in the browser at [a3spy.mazino2d.workers.dev](https://a3spy.mazino2d.workers.dev/) — the web app (installable as a PWA) joins the same rooms, so friends without Telegram can sit in.
 
 ## How a game goes
 
