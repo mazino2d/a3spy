@@ -40,6 +40,7 @@ Before a game, in the lobby, the host can change (Telegram buttons or the web lo
 
 - **Spies**: 1–5. **Mr. White**: on or off (at most one).
 - **Themes**: any non-empty set of word packs; all of them by default.
+- **Timers** (see below): discussion off/2/3/5 minutes, vote off/1/2 minutes; both off by default.
 - Counts follow the table above as players join or leave, until the host changes spies or Mr. White; from then on they stay as set, until the host taps **Tự động** to follow the table again.
 - Start is refused unless civilians > spies + Mr. White; the host sees why.
 - Settings belong to the room: they survive play again and a change of host, and cannot change while a game is running.
@@ -57,6 +58,14 @@ Before a game, in the lobby, the host can change (Telegram buttons or the web lo
 7. **Win check** — civilians win if no spy and no Mr. White is alive; the spy side wins if civilians alive ≤ spies + Mr. White alive. Otherwise the next round starts.
 
 Eliminated players stop describing and voting but stay in the room.
+
+## Timers
+
+Timers only remind; the host still opens and closes the vote.
+
+- A **discussion** timer starts when a round starts. If the vote is still not open when it ends, every player is told time is up and the host gets the Open vote button.
+- A **vote** timer starts when a vote or revote opens. If that vote is still open when it ends, every player is told time is up and the host gets the Close vote button.
+- If the phase moves on before the end, there is no reminder. A reminder never opens or closes a vote or eliminates anyone.
 
 ## End of game
 

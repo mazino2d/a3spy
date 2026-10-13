@@ -31,11 +31,31 @@ export function Game(props: GameProps) {
 
       {props.outcome.length > 0 && <Outcome view={view} events={props.outcome} />}
 
+      {game.timer && <Countdown kind={game.timer.kind} endsAt={game.timer.endsAt} />}
+
       {game.phase === "describing" && <Describing {...props} game={game} isHost={isHost} />}
       {game.phase === "voting" && <Voting {...props} game={game} isHost={isHost} />}
       {game.phase === "white_guess" && <WhiteGuess {...props} game={game} isHost={isHost} />}
     </main>
   );
+}
+
+/** Time left in a timed phase, from the server's deadline. Only a reminder: nothing happens at zero. */
+function Countdown({ kind, endsAt }: { kind: string; endsAt: number }) {
+  const [now, setNow] = useState(Date.now());
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(id);
+  }, []);
+  const left = Math.max(0, Math.ceil((endsAt - now) / 1000));
+  if (left === 0)
+    return (
+      <p class="timer up" role="status">
+        {t.timeUp[kind]}
+      </p>
+    );
+  const text = `${Math.floor(left / 60)}:${String(left % 60).padStart(2, "0")}`;
+  return <p class="timer">{t.timeLeft(text)}</p>;
 }
 
 /**

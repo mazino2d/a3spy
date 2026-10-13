@@ -58,6 +58,9 @@ export function lobbyPanel(room: Room, viewer: number, links: RoomLinks): { text
     msg.settingsThemes(
       settings.themes.every((t) => t.on) ? null : settings.themes.filter((t) => t.on).map((t) => t.name),
     ),
+    ...(settings.timers.discussion || settings.timers.vote
+      ? [msg.settingsTimers(settings.timers.discussion, settings.timers.vote)]
+      : []),
     ...(isHost && settings.problem === "civilians_not_majority" ? [msg.settingsWarning] : []),
   ];
   return {
@@ -87,6 +90,10 @@ function settingsKeyboard(room: Room): Keyboard {
       cfg(msg.btnWhite(s.white !== null && s.white > 0), { kind: "white" }),
     ],
   ];
+  rows.push([
+    cfg(msg.btnTimer("discussion", s.timers.discussion), { kind: "timer", timer: "discussion" }),
+    cfg(msg.btnTimer("vote", s.timers.vote), { kind: "timer", timer: "vote" }),
+  ]);
   for (let i = 0; i < themes.length; i += 2) rows.push(themes.slice(i, i + 2));
   if (!s.auto) rows.push([cfg(msg.btnAuto, { kind: "auto" })]);
   return rows;
@@ -102,7 +109,8 @@ export function dealMessage(room: Room, hand: Hand): { text: string; keyboard: K
 function votePanel(room: Room, game: Game, voter: number, chosen?: number): { text: string; keyboard: Keyboard } {
   const options = game.candidates.filter((id) => id !== voter);
   const rows = options.map((id) => [button(room, `${id === chosen ? "✅ " : ""}${playerName(room, id)}`, "vote", id)]);
-  const header = msg.votePrompt(game.round, game.revote);
+  const minutes = room.settings.timers.vote;
+  const header = msg.votePrompt(game.round, game.revote) + (minutes ? `\n${msg.voteTimer(minutes)}` : "");
   return { text: chosen === undefined ? header : `${header}\n\n${msg.voteChosen(name(room, chosen))}`, keyboard: rows };
 }
 
@@ -186,6 +194,7 @@ export function plan(before: Room, after: Room, events: GameEvent[], links: Room
             e.order.map((id) => name(after, id)),
           ),
         );
+        if (after.settings.timers.discussion) lines.push(msg.discussionTimer(after.settings.timers.discussion));
         break;
       case "vote_opened":
         if (game) {
@@ -264,4 +273,17 @@ export function plan(before: Room, after: Room, events: GameEvent[], links: Room
   }
 
   return ops;
+}
+
+/** "Time is up" to everyone in the room; the host also gets the button for the next step. */
+export function timerReminder(room: Room, kind: "discussion" | "vote"): Op[] {
+  const text = kind === "discussion" ? msg.discussionUp : msg.voteUp;
+  const host =
+    kind === "discussion"
+      ? [[button(room, msg.btnOpenVote, "openVote")]]
+      : [[button(room, msg.btnCloseVote, "closeVote")]];
+  return [...room.players, ...room.waiting].map(
+    (p): Op =>
+      p.id === room.hostId ? { kind: "send", to: p.id, text, keyboard: host } : { kind: "send", to: p.id, text },
+  );
 }

@@ -44,6 +44,7 @@ Criteria marked *(M2)* came with host settings ([spec](specs/M2-host-settings.md
 | 3.4 | Everyone sees who was eliminated and their role at the same time. |
 | 3.5 | An eliminated Mr. White can type one guess; the room waits for it. |
 | 3.6 | Every tap gets a response in < 1 s; stale actions from an earlier round are ignored. |
+| 3.7 | With a timer on, every player is reminded when discussion or voting time is up; nothing happens automatically. *(M4)* |
 
 ### UC-4 Finish and play again
 

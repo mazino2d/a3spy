@@ -39,7 +39,10 @@ export function decode(data: string): Callback | null {
   return { action, code, gameId: nums[0] as number, round: nums[1] as number, arg: nums[2] as number };
 }
 
-/** Settings taps travel in the numeric `arg`: 1 spy+, 2 spy−, 3 Mr. White on/off, 4 auto, 10+i theme i. */
+/**
+ * Settings taps travel in the numeric `arg`: 1 spy+, 2 spy−, 3 Mr. White on/off, 4 auto,
+ * 5 discussion timer, 6 vote timer, 10+i theme i.
+ */
 const THEME_BASE = 10;
 
 export function encodeChange(change: SettingsChange): number {
@@ -52,6 +55,8 @@ export function encodeChange(change: SettingsChange): number {
       return 4;
     case "theme":
       return THEME_BASE + PACKS.findIndex((p) => p.id === change.theme);
+    case "timer":
+      return change.timer === "discussion" ? 5 : 6;
   }
 }
 
@@ -60,6 +65,8 @@ export function decodeChange(arg: number): SettingsChange | null {
   if (arg === 2) return { kind: "spies", delta: -1 };
   if (arg === 3) return { kind: "white" };
   if (arg === 4) return { kind: "auto" };
+  if (arg === 5) return { kind: "timer", timer: "discussion" };
+  if (arg === 6) return { kind: "timer", timer: "vote" };
   const pack = PACKS[arg - THEME_BASE];
   return arg >= THEME_BASE && pack ? { kind: "theme", theme: pack.id } : null;
 }

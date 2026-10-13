@@ -27,6 +27,9 @@ export function Settings({ view, online, change }: Props) {
         <p class="muted small">
           {t.themes}: {themesText}
         </p>
+        {(s.timers.discussion > 0 || s.timers.vote > 0) && (
+          <p class="muted small">{t.timersSummary(s.timers.discussion, s.timers.vote)}</p>
+        )}
       </section>
     );
 
@@ -83,6 +86,22 @@ export function Settings({ view, online, change }: Props) {
           ⚠️ {t.badCounts}
         </p>
       )}
+      <div>
+        <p class="muted small">{t.timers}</p>
+        <div class="chips">
+          {(["discussion", "vote"] as const).map((timer) => (
+            <button
+              key={timer}
+              type="button"
+              class={s.timers[timer] ? "chip on" : "chip"}
+              disabled={disabled}
+              onClick={() => change({ kind: "timer", timer })}
+            >
+              ⏱ {timer === "discussion" ? t.discussionTimer : t.voteTimer}: {t.minutes(s.timers[timer])}
+            </button>
+          ))}
+        </div>
+      </div>
       <div>
         <p class="muted small">{t.themes}</p>
         <div class="chips">

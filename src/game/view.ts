@@ -9,6 +9,7 @@ import {
   settingsProblem,
 } from "./engine";
 import type { CountsProblem, Role } from "./roles";
+import { phaseKey, type Timer } from "./timers";
 import { PACKS } from "./words";
 
 /**
@@ -53,6 +54,8 @@ export interface GameView {
   /** Only once the game has ended. */
   words: { civilian: string; spy: string } | null;
   winner: Side | null;
+  /** The reminder timer of the current phase; endsAt in epoch ms, possibly in the past. */
+  timer: { kind: Timer["kind"]; endsAt: number } | null;
 }
 
 export interface SettingsView {
@@ -64,6 +67,8 @@ export interface SettingsView {
   themes: { id: string; name: string; on: boolean }[];
   /** Why Start would be refused right now, or null. */
   problem: CountsProblem | null;
+  /** Reminder timers in minutes; 0 is off. */
+  timers: { discussion: number; vote: number };
 }
 
 export interface RoomView {
@@ -77,14 +82,14 @@ export interface RoomView {
   settings: SettingsView;
 }
 
-export function viewFor(room: Room, viewer: number): RoomView {
+export function viewFor(room: Room, viewer: number, timer: Timer | null = null): RoomView {
   return {
     code: room.code,
     me: viewer,
     hostId: room.hostId,
     players: room.players.map(({ id, name }) => ({ id, name })),
     waiting: room.waiting.map(({ id, name }) => ({ id, name })),
-    game: gameView(room, viewer),
+    game: gameView(room, viewer, timer),
     scores: Object.entries(room.scores)
       .map(([id, wins]) => ({ id: Number(id), name: playerName(room, Number(id)), wins }))
       .sort((a, b) => b.wins - a.wins),
@@ -101,10 +106,11 @@ export function settingsView(room: Room): SettingsView {
     white: counts?.white ?? null,
     themes: PACKS.map((p) => ({ id: p.id, name: p.name, on: themes.length === 0 || themes.includes(p.id) })),
     problem: settingsProblem(room),
+    timers: { ...room.settings.timers },
   };
 }
 
-function gameView(room: Room, viewer: number): GameView | null {
+function gameView(room: Room, viewer: number, timer: Timer | null): GameView | null {
   const game = room.game;
   if (!game) return null;
   const ended = game.phase === "ended";
@@ -133,6 +139,7 @@ function gameView(room: Room, viewer: number): GameView | null {
     guesser,
     words: ended ? { civilian: game.civilianWord, spy: game.spyWord } : null,
     winner: game.winner,
+    timer: timer && phaseKey(room)?.key === timer.key ? { kind: timer.kind, endsAt: timer.endsAt } : null,
   };
 }
 

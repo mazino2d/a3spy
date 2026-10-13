@@ -10,6 +10,7 @@ import {
   type RoomLinks,
   type Slot,
   scoreboard,
+  timerReminder,
   webLink,
   wordAlert,
 } from "../bot/render";
@@ -17,6 +18,7 @@ import { editOrSend, send } from "../bot/telegram";
 import type { Env } from "../env";
 import * as engine from "../game/engine";
 import { cryptoRng } from "../game/rng";
+import { isDue, nextTimer, type Timer } from "../game/timers";
 import { publicEvents, viewFor } from "../game/view";
 import { PACKS, pairsOf } from "../game/words";
 import { PLAYER_HEADER } from "../web/api";
@@ -35,6 +37,8 @@ interface Stored {
   /** Message ids we edit in place, per slot and player. */
   ui: Record<Slot, Record<number, number>>;
   updatedAt: number;
+  /** The reminder timer of the current phase, if one is on (src/game/timers.ts). */
+  timer?: Timer | null;
 }
 
 /** Kept on each web socket; survives hibernation. */
@@ -94,8 +98,9 @@ function toCommand(cb: Callback): Command | null {
 export class RoomDO extends DurableObject<Env> {
   private load(): Stored | null {
     const stored = this.ctx.storage.kv.get<Stored>("state") ?? null;
-    // Rooms stored before host settings existed.
-    if (stored && !stored.room.settings) stored.room = { ...stored.room, settings: engine.DEFAULT_SETTINGS };
+    // Rooms stored before host settings or timers existed.
+    if (stored && !stored.room.settings?.timers)
+      stored.room = { ...stored.room, settings: { ...engine.DEFAULT_SETTINGS, ...stored.room.settings } };
     return stored;
   }
 
@@ -243,7 +248,7 @@ export class RoomDO extends DurableObject<Env> {
     const { room } = stored;
     this.sendTo(ws, {
       type: "state",
-      view: viewFor(room, info.playerId),
+      view: viewFor(room, info.playerId, stored.timer ?? null),
       links: { web: webLink(info.origin, room.code), telegram: inviteLink(stored.botUsername, room.code) },
     });
   }
@@ -280,12 +285,29 @@ export class RoomDO extends DurableObject<Env> {
     return stored ? scoreboard(stored.room) : msg.notInRoom;
   }
 
-  /** Closes the room after IDLE_MS without activity. */
+  /** One alarm per room: the reminder timer when one is due first, else the idle close. */
+  private async schedule(stored: Stored): Promise<void> {
+    const idle = stored.updatedAt + IDLE_MS;
+    const timer = stored.timer && !stored.timer.fired ? stored.timer.endsAt : Number.POSITIVE_INFINITY;
+    await this.ctx.storage.setAlarm(Math.min(idle, timer));
+  }
+
+  /** Sends a due reminder, or closes the room after IDLE_MS without activity. */
   async alarm(): Promise<void> {
     const stored = this.load();
     if (!stored) return;
-    if (Date.now() - stored.updatedAt < IDLE_MS) {
-      await this.ctx.storage.setAlarm(stored.updatedAt + IDLE_MS);
+    const now = Date.now();
+    if (isDue(stored.room, stored.timer ?? null, now)) {
+      const timer = stored.timer as Timer;
+      const next: Stored = { ...stored, timer: { ...timer, fired: true } };
+      this.ctx.storage.kv.put("state", next);
+      await this.schedule(next);
+      this.pushWeb(next, []);
+      await this.execute(next, timerReminder(next.room, timer.kind));
+      return;
+    }
+    if (now - stored.updatedAt < IDLE_MS) {
+      await this.schedule(stored);
       return;
     }
     const everyone = [...stored.room.players, ...stored.room.waiting].map((p) => p.id);
@@ -303,7 +325,13 @@ export class RoomDO extends DurableObject<Env> {
   private async commit(stored: Stored, result: Extract<engine.Result, { ok: true }>): Promise<void> {
     const before = stored.room;
     const closed = result.events.some((e) => e.type === "closed");
-    const next: Stored = { ...stored, room: result.room, updatedAt: Date.now() };
+    const now = Date.now();
+    const next: Stored = {
+      ...stored,
+      room: result.room,
+      updatedAt: now,
+      timer: nextTimer(result.room, stored.timer ?? null, now),
+    };
 
     // Persist before talking to Telegram, so a failure mid-broadcast cannot replay the command.
     if (closed) {
@@ -311,7 +339,7 @@ export class RoomDO extends DurableObject<Env> {
       await this.ctx.storage.deleteAlarm();
     } else {
       this.ctx.storage.kv.put("state", next);
-      await this.ctx.storage.setAlarm(next.updatedAt + IDLE_MS);
+      await this.schedule(next);
     }
 
     // Web players first: their sockets are local and fast; Telegram calls can take a while.

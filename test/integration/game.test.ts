@@ -223,3 +223,33 @@ describe("host settings over Telegram", () => {
     expect(tg.last(1302)?.text).toContain("Chủ đề: tất cả");
   });
 });
+
+describe("timers over Telegram", () => {
+  it("G5 AC3 AC6 a due discussion timer reminds everyone and changes nothing else", async () => {
+    const { env, runInDurableObject, runDurableObjectAlarm } = await import("cloudflare:test");
+    const code = await openRoom([1401, 1402, 1403]);
+    await press(1401, button(1401, "Thảo luận: tắt"));
+    expect(tg.last(1402)?.text).toContain("Thảo luận: 2 phút");
+    await press(1401, button(1401, "Bắt đầu"));
+    expect(tg.last(1402)?.text).toContain("Có 2 phút thảo luận");
+
+    const stub = env.ROOM.getByName(code);
+    // Move the deadline into the past instead of waiting two minutes.
+    await runInDurableObject(stub, (_, state) => {
+      const stored = state.storage.kv.get<{ timer: { endsAt: number } }>("state");
+      if (!stored?.timer) throw new Error("no timer stored");
+      stored.timer.endsAt = 0;
+      state.storage.kv.put("state", stored);
+    });
+    tg.reset();
+    expect(await runDurableObjectAlarm(stub)).toBe(true);
+    for (const id of [1401, 1402, 1403]) expect(tg.last(id)?.text).toContain("Hết giờ thảo luận");
+    expect(tg.last(1401)?.buttons.map((b) => b.text)).toEqual([expect.stringContaining("Mở vote")]);
+    expect(tg.messages().some((m) => m.text.includes("Vote vòng"))).toBe(false);
+
+    // Already fired: a second alarm does not remind again.
+    tg.reset();
+    await runDurableObjectAlarm(stub);
+    expect(tg.messages()).toHaveLength(0);
+  });
+});
