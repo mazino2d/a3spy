@@ -1,6 +1,6 @@
 # M2 Host settings and playtest fixes
 
-Status: in progress   ·   Serves: UC-7   ·   Roadmap: Next
+Status: shipped 2026-10-13   ·   Serves: UC-7   ·   Roadmap: Shipped
 
 ## Problem
 

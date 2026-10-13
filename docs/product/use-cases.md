@@ -4,8 +4,8 @@ Core use cases carry measurable success criteria; a change that regresses one is
 Supporting use cases must work correctly but are optimised only when it costs the core
 nothing.
 
-Criteria marked *(M3)* came with the web app ([spec](specs/M3-web-app.md)) and apply to
-web players. "Any client" means Telegram and the web app.
+Criteria marked *(M2)* came with host settings ([spec](specs/M2-host-settings.md)), and
+*(M3)* with the web app ([spec](specs/M3-web-app.md)), applying to web players. "Any client" means Telegram and the web app.
 
 ## Core
 
