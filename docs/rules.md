@@ -1,6 +1,6 @@
 # Game rules
 
-Canonical rules for code and tests. Product context and rationale live in the [PRD](../.claude/skills/product-owner/PRD.md); when the two disagree, the PRD wins and this file is fixed in the same PR.
+Canonical rules for code and tests, the same on every client. Product context and rationale live in [docs/product/](product/index.md); a rule changes together with the milestone spec that changes it, in the same PR.
 
 ## Rooms
 
@@ -63,3 +63,4 @@ Eliminated players stop describing and voting but stay in the room.
 - Packs live in `words/*.json`, one theme per file, as pairs of similar words.
 - A pair is two words of the same kind that share 2–3 easy-to-describe traits and differ in 1–2 details (`Trà sữa` / `Cà phê sữa`).
 - The host picks one or more themes; default is all themes.
+- What makes a good pair, and the themes: [word packs](product/word-packs.md).
