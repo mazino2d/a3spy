@@ -43,7 +43,8 @@ Requires Node 24 (npm 11).
 ```bash
 npm ci
 npm run check   # lint + typecheck + tests
-npm run dev     # local Worker; copy .dev.vars.example to .dev.vars and use a test bot
+npm run dev     # local Worker + web app; copy .dev.vars.example to .dev.vars and use a test bot
+npm run dev:web # web app with hot reload, talking to `npm run dev`
 ```
 
 Add word pairs in `words/*.json` (pairs of similar words, one theme per file); tests validate them.

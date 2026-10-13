@@ -26,6 +26,7 @@ jobs:
           filters: |
             app:
               - "src/**"
+              - "web/**"
               - "test/**"
               - "words/**"
               - "telegram/**"
@@ -55,6 +56,8 @@ jobs:
         run: npm run lint
       - name: Typecheck
         run: npm run typecheck
+      - name: Build web app
+        run: npm run build:web
       - name: Test
         run: npm test
       - name: Bundle (wrangler dry-run)

@@ -6,6 +6,12 @@
   "workers_dev": true,
   "preview_urls": false,
   "observability": { "enabled": true },
+  // The web app (web/, built to web/dist). The Worker runs first only for its own routes.
+  "assets": {
+    "directory": "./web/dist",
+    "not_found_handling": "single-page-application",
+    "run_worker_first": ["/api/*", "/webhook", "/healthz"]
+  },
   "vars": { "TELEGRAM_BOT_USERNAME": "a3spy_bot" },
   // Secrets (set by CD, never committed): TELEGRAM_BOT_TOKEN, TELEGRAM_WEBHOOK_SECRET
   "durable_objects": {

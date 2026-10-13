@@ -1,6 +1,6 @@
 # M3 Web app (PWA) — implementation plan
 
-Status: in progress (P0 done, P1–P2 in review)   ·   Spec: [M3 Web app (PWA)](../product/specs/M3-web-app.md)   ·   Written 2026-10-13
+Status: in progress (P0 done, P1–P3 in review)   ·   Spec: [M3 Web app (PWA)](../product/specs/M3-web-app.md)   ·   Written 2026-10-13
 
 How M3 gets built: the architecture, the phases (one PR each) and the decisions behind
 them. The spec defines *what* must be true; this plan defines *how* and in what order.
@@ -16,13 +16,13 @@ them. The spec defines *what* must be true; this plan defines *how* and in what 
 | Commands | The Telegram callback switch in `RoomDO.onCallback` becomes one `apply(playerId, command)` used by both clients; web commands carry the same `{ action, gameId, round, arg }` as `callback_data` | One code path for rules, phase checks and stale-action rejection (AGENTS hard rule 5) on both clients. |
 | What a web client receives | A pure projection in `src/game/view.ts`: `viewFor(room, playerId)` (the room as that player may see it) and `publicEvents(events, playerId)` | Secrecy is enforced in pure, unit-tested code instead of in each screen. The client never receives another player's hand until the rules reveal it. |
 | Telegram fan-out | `plan()` still produces Telegram ops for everyone; `RoomDO.execute` drops `send`/`edit` ops for web IDs and pushes views to sockets instead | Smallest change to working Telegram code; the Telegram renderer does not need to know about the web. |
-| Frontend | **Preact + Vite + TypeScript** in `web/`, built to `web/dist` | ~4 KB runtime for café 4G, JSX and hooks without React's weight; Vite gives a dev server proxying to `wrangler dev`. |
+| Frontend | **Preact + Vite + TypeScript** in `web/`, built to `web/dist`; JSX through Vite's built-in transform (no Babel preset) | ~4 KB runtime for café 4G, JSX and hooks without React's weight; Vite gives a dev server proxying to `wrangler dev`. The whole app is ~15 KB gzipped. |
 | PWA | Hand-written `manifest.webmanifest` and a small service worker that precaches the built app shell and never caches `/api/*` | The spec says online only; a 40-line worker is easier to audit for "never cache a word" than a generated one. |
 | Icons | Extend `scripts/render-avatar.ts` to render 192, 512 and maskable 512 PNGs from `telegram/avatar.svg` into `web/public/icons/` | One source of truth for the brand mark (designer skill). |
-| QR code | A small dependency-free QR encoder rendered to SVG in the client | No network call, works offline once loaded. |
+| QR code | `uqr` (zero dependencies) rendered to SVG in the client | No network call, works offline once loaded. |
 | Strings | Web copy in `web/src/messages.ts`, Vietnamese; Telegram copy stays in `src/bot/messages.ts` | Each client owns its layout; AGENTS hard rule 6 is widened to "one messages file per client". |
 | Duplicate names | `engine.join` appends a suffix (`Minh (2)`) when a display name is already in the room | Fixes AC19 for both clients in pure code; Telegram users with the same first name benefit too. |
-| Tests | Unit: `view.ts` secrecy and the name suffix. Integration: session, join and WebSocket flows in the workers runtime. Web: component tests with Vitest + happy-dom. Manual: install and mixed-table playtest | Keeps the existing pyramid; WebSockets are supported by `@cloudflare/vitest-plugin`. |
+| Tests | Unit: `view.ts` secrecy, the name suffix, protocol and route parsing. Integration: session, join and WebSocket flows in the workers runtime. Web screens: a headless-browser smoke run per PR, recorded in the PR. Manual: install and mixed-table playtest | Keeps the existing pyramid; WebSockets are supported by `@cloudflare/vitest-plugin`. Screens stay thin (all logic is in `view.ts` and the API), so DOM component tests would add a second test runner for little coverage. |
 
 ## Architecture
 
@@ -67,7 +67,7 @@ Each phase is one PR, ends green on `npm run check`, and leaves production worki
 | P0 | Product docs, spec and this plan | — | 0.5 d | Done (#23) |
 | P1 | Client-neutral room: `apply()` shared by both clients, Telegram ops filtered to `id > 0`, duplicate-name suffix, `src/game/view.ts` with secrecy unit tests. No visible change on Telegram except the name suffix. | AC9, AC19 | 1.5 d | In review |
 | P2 | Web sessions and realtime API: `POST /api/session`, `GET /api/me`, `POST /api/rooms`, `POST /api/rooms/<code>/join` and `/leave`, WebSocket upgrade with hibernation, integration tests for join, vote and reconnect | AC4–AC6, AC16, AC20–AC22 (server side) | 2 d | In review |
-| P3 | Web shell and PWA: `web/` (Vite + Preact), static assets in `wrangler.jsonc`, manifest, service worker, icons, CI and CD build steps; screens: name, home (create / join by code), lobby with QR and share | W1, W2, W9 · AC1–AC6, AC23, AC24 | 2.5 d | Planned |
+| P3 | Web shell and PWA: `web/` (Vite + Preact), static assets in `wrangler.jsonc`, manifest, service worker, icons, CI and CD build steps; screens: name, home (create / join by code), lobby with QR and share | W1, W2, W9 · AC1–AC6, AC23, AC24 | 2.5 d | In review |
 | P4 | Game screens: word card (tap to reveal, auto-hide), speaking order, vote, results, Mr. White guess, end and reveal, play again, end game, scoreboard, connection banner | W3–W6, W8, W10 · AC7–AC16, AC20, AC21, AC25 | 2.5 d | Planned |
 | P5 | Mixed tables: the web link in the Telegram lobby and the Telegram link in the web lobby, copy review with the designer skill | W7 · AC17, AC18 | 0.5 d | Planned |
 | P6 | Release: mixed-table café playtest (≥ 2 web, ≥ 3 Telegram), install checks on iOS Safari and Android Chrome, README, `docs/rules.md` and AGENTS update, close milestone | Success check | 1 d | Planned |
