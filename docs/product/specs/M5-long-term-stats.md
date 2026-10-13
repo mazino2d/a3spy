@@ -1,6 +1,6 @@
 # M5 Long-term stats
 
-Status: in progress   ·   Serves: UC-6   ·   Roadmap: Now
+Status: shipped 2026-10-14   ·   Serves: UC-6   ·   Roadmap: Shipped
 
 ## Problem
 
