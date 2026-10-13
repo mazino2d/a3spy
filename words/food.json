@@ -1,0 +1,11 @@
+{
+  "id": "food",
+  "name": "Đồ ăn & đồ uống",
+  "pairs": [
+    ["Phở", "Bún bò"],
+    ["Trà sữa", "Cà phê sữa"],
+    ["Nước cam", "Nước chanh"],
+    ["Cà rốt", "Khoai lang"],
+    ["Bánh mì", "Bánh bao"]
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "id": "body",
+  "name": "Cơ thể",
+  "pairs": [
+    ["Nách", "Háng"],
+    ["Lỗ mũi", "Lỗ tai"],
+    ["Lông mày", "Lông mi"],
+    ["Tim", "Gan"],
+    ["Môi", "Lưỡi"]
+  ]
+}

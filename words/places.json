@@ -1,0 +1,11 @@
+{
+  "id": "places",
+  "name": "Địa điểm",
+  "pairs": [
+    ["Đà Lạt", "Sa Pa"],
+    ["Khách sạn", "Homestay"],
+    ["Bếp", "Phòng ăn"],
+    ["Phòng ngủ", "Phòng khách"],
+    ["Biển", "Hồ bơi"]
+  ]
+}
