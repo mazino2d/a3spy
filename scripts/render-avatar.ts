@@ -10,7 +10,7 @@ import { readFile, writeFile } from "node:fs/promises";
 import { Resvg } from "@resvg/resvg-js";
 import jpeg from "jpeg-js";
 
-const BACKGROUND = "#1E1B4B";
+const BACKGROUND = "#0E302A";
 const svg = await readFile(new URL("../telegram/avatar.svg", import.meta.url), "utf8");
 const render = (size: number) =>
   new Resvg(svg, { fitTo: { mode: "width", value: size }, background: BACKGROUND }).render();

@@ -1,51 +1,45 @@
 <!--
-  A3 Spy avatar — source of truth. Render with `npm run avatar` (writes avatar.jpg).
-  Concept: an incognito hat and glasses; one lens is a different colour, because the spy is the odd one out.
+  A3 Spy avatar — source of truth. Render with `npm run avatar` (writes avatar.jpg and the web icons).
+  Concept: a playing card on a felt table, dealt face up. On it, an incognito hat over round glasses;
+  one lens is red, because the spy is the odd one out.
   Telegram crops to a circle: keep everything inside r ≈ 260 around the centre.
 -->
 <svg xmlns="http://www.w3.org/2000/svg" width="640" height="640" viewBox="0 0 640 640" role="img">
-  <title>A3 Spy: an incognito hat over round glasses, one lens lime green</title>
+  <title>A3 Spy: a playing card with an incognito hat over round glasses, one lens red</title>
   <defs>
-    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#1E1B4B"/>
-      <stop offset="0.55" stop-color="#4C1D95"/>
-      <stop offset="1" stop-color="#7C3AED"/>
-    </linearGradient>
-    <radialGradient id="glow-pink" cx="0.78" cy="0.18" r="0.55">
-      <stop offset="0" stop-color="#EC4899" stop-opacity="0.65"/>
-      <stop offset="1" stop-color="#EC4899" stop-opacity="0"/>
+    <radialGradient id="felt" cx="0.5" cy="0.45" r="0.7">
+      <stop offset="0" stop-color="#1A5247"/>
+      <stop offset="1" stop-color="#0E302A"/>
     </radialGradient>
-    <radialGradient id="glow-cyan" cx="0.12" cy="0.92" r="0.5">
-      <stop offset="0" stop-color="#22D3EE" stop-opacity="0.45"/>
-      <stop offset="1" stop-color="#22D3EE" stop-opacity="0"/>
-    </radialGradient>
-    <linearGradient id="lens-odd" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#D9F99D"/>
-      <stop offset="1" stop-color="#84CC16"/>
-    </linearGradient>
     <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
-      <feDropShadow dx="0" dy="14" stdDeviation="16" flood-color="#0B0720" flood-opacity="0.55"/>
+      <feDropShadow dx="0" dy="16" stdDeviation="18" flood-color="#06171A" flood-opacity="0.55"/>
     </filter>
   </defs>
 
-  <rect width="640" height="640" fill="url(#bg)"/>
-  <rect width="640" height="640" fill="url(#glow-pink)"/>
-  <rect width="640" height="640" fill="url(#glow-cyan)"/>
+  <!-- felt table -->
+  <rect width="640" height="640" fill="url(#felt)"/>
 
-  <g filter="url(#shadow)" transform="translate(0 34)">
-    <!-- hat crown: rounded trapezoid with a centre crease -->
-    <path d="M232 244 L254 158 Q260 136 282 140 L305 146 Q320 150 335 146 L358 140 Q380 136 386 158 L408 244 Z" fill="#FFFFFF"/>
-    <!-- hat band -->
-    <path d="M226 214 L414 214 L421 244 L219 244 Z" fill="#F472B6"/>
+  <g transform="rotate(-6 320 320)">
+    <!-- the card -->
+    <rect x="170" y="118" width="300" height="404" rx="30" fill="#F7F1E3" filter="url(#shadow)"/>
+    <!-- inner red frame, like a printed card border -->
+    <rect x="194" y="142" width="252" height="356" rx="16" fill="none" stroke="#B3261E" stroke-width="8"/>
+    <!-- corner pips: small lenses -->
+    <circle cx="222" cy="172" r="12" fill="#B3261E"/>
+    <circle cx="418" cy="468" r="12" fill="#B3261E"/>
+
+    <!-- hat crown -->
+    <path d="M248 286 L266 214 Q271 196 289 199 L307 204 Q320 207 333 204 L351 199 Q369 196 374 214 L392 286 Z" fill="#1F1A17"/>
+    <!-- hat band: a gap in the crown -->
+    <path d="M243 262 L397 262" stroke="#F7F1E3" stroke-width="10"/>
     <!-- brim -->
-    <rect x="146" y="238" width="348" height="40" rx="20" fill="#FFFFFF"/>
+    <rect x="204" y="282" width="232" height="30" rx="15" fill="#1F1A17"/>
 
     <!-- glasses -->
-    <path d="M300 352 Q320 334 340 352" fill="none" stroke="#FFFFFF" stroke-width="16" stroke-linecap="round"/>
-    <circle cx="246" cy="360" r="58" fill="#120D2E" stroke="#FFFFFF" stroke-width="16"/>
-    <circle cx="394" cy="360" r="58" fill="url(#lens-odd)" stroke="#FFFFFF" stroke-width="16"/>
-    <!-- glints -->
-    <path d="M216 338 Q228 322 248 320" fill="none" stroke="#FFFFFF" stroke-opacity="0.55" stroke-width="9" stroke-linecap="round"/>
-    <path d="M364 338 Q376 322 396 320" fill="none" stroke="#FFFFFF" stroke-opacity="0.8" stroke-width="9" stroke-linecap="round"/>
+    <path d="M300 368 Q320 352 340 368" fill="none" stroke="#1F1A17" stroke-width="14" stroke-linecap="round"/>
+    <circle cx="262" cy="374" r="44" fill="#1F1A17" stroke="#1F1A17" stroke-width="14"/>
+    <circle cx="378" cy="374" r="44" fill="#B3261E" stroke="#1F1A17" stroke-width="14"/>
+    <!-- glint on the odd lens only, so it differs by more than colour -->
+    <path d="M354 356 Q362 342 378 340" fill="none" stroke="#F7F1E3" stroke-opacity="0.85" stroke-width="9" stroke-linecap="round"/>
   </g>
 </svg>
