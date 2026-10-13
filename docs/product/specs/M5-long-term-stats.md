@@ -1,6 +1,6 @@
 # M5 Long-term stats
 
-Status: shipped 2026-10-14   ·   Serves: UC-6   ·   Roadmap: Shipped
+Status: shipped 2026-10-14   ·   Serves: UC-6   ·   Roadmap: Shipped   ·   Implementation: [M5](../../implementations/M5-long-term-stats.md)
 
 ## Problem
 
