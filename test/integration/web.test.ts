@@ -221,3 +221,26 @@ describe("a mixed game over sockets", () => {
     expect(state.view.players).toHaveLength(3);
   });
 });
+
+describe("host settings over the web", () => {
+  it("L4 AC2 the host changes settings over the socket; others see it; non-hosts cannot", async () => {
+    const host = await guest("Host");
+    const code = await createRoom(host);
+    const p = await guest("Lan");
+    await joinRoom(p, code);
+    const sh = await connect(host, code);
+    const sp = await connect(p, code);
+    await sh.next("state");
+    await sp.next("state");
+
+    sh.send({ type: "command", action: "configure", change: { kind: "theme", theme: "food" } });
+    const seen = await sp.next("state", (m) => m.view.settings.themes.some((t) => !t.on));
+    expect(seen.view.settings.themes.find((t) => t.id === "food")?.on).toBe(false);
+
+    sp.send({ type: "command", action: "configure", change: { kind: "white" } });
+    expect(await sp.next("error")).toEqual({ type: "error", code: "not_host" });
+
+    sh.send({ type: "command", action: "configure", change: { kind: "spies", delta: 2 } });
+    expect(await sh.next("error")).toEqual({ type: "error", code: "bad_request" });
+  });
+});

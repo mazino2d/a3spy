@@ -1,6 +1,6 @@
 # M2 Host settings and playtest fixes
 
-Status: draft   ·   Serves: UC-7   ·   Roadmap: Next
+Status: in progress   ·   Serves: UC-7   ·   Roadmap: Next
 
 ## Problem
 

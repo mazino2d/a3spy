@@ -1,5 +1,15 @@
 import { type Rng, shuffle } from "./rng";
-import { checkRoleCounts, deal, defaultRoleCounts, type Hand, MIN_PLAYERS, type Role, type WordPair } from "./roles";
+import {
+  type CountsProblem,
+  checkRoleCounts,
+  deal,
+  defaultRoleCounts,
+  type Hand,
+  MIN_PLAYERS,
+  type Role,
+  type RoleCounts,
+  type WordPair,
+} from "./roles";
 
 /**
  * Room and game state machine. Pure: every command takes the current room
@@ -38,6 +48,25 @@ export interface Game {
   names: Record<number, string>;
 }
 
+/** Host settings, kept for every game in the room until changed (docs/rules.md#host-settings). */
+export interface Settings {
+  /** Word themes (pack ids) to draw from; empty means every theme. */
+  themes: string[];
+  /** Role counts chosen by the host; null follows the role table for the player count. */
+  counts: RoleCounts | null;
+}
+
+export const DEFAULT_SETTINGS: Settings = { themes: [], counts: null };
+
+/** One host tap in the settings. */
+export type SettingsChange =
+  | { kind: "spies"; delta: 1 | -1 }
+  | { kind: "white" }
+  | { kind: "auto" }
+  | { kind: "theme"; theme: string };
+
+export const MAX_SPIES = 5;
+
 export interface Room {
   code: string;
   hostId: number;
@@ -48,6 +77,7 @@ export interface Room {
   gamesPlayed: number;
   scores: Record<number, number>;
   recentPairs: { key: string; at: number }[];
+  settings: Settings;
 }
 
 export type GameEvent =
@@ -56,6 +86,7 @@ export type GameEvent =
   | { type: "left"; player: Player }
   | { type: "host_changed"; hostId: number }
   | { type: "closed" }
+  | { type: "settings_changed"; settings: Settings }
   | { type: "game_started"; game: Game }
   | { type: "round_started"; round: number; order: number[] }
   | { type: "vote_opened"; candidates: number[]; voters: number[]; revote: boolean }
@@ -79,7 +110,9 @@ export type GameError =
   | "stale"
   | "not_alive"
   | "invalid_target"
-  | "not_white";
+  | "not_white"
+  | "bad_counts"
+  | "bad_setting";
 
 export type Result = { ok: true; room: Room; events: GameEvent[] } | { ok: false; error: GameError };
 
@@ -96,6 +129,7 @@ export function createRoom(code: string, host: Player): Room {
     gamesPlayed: 0,
     scores: {},
     recentPairs: [],
+    settings: DEFAULT_SETTINGS,
   };
 }
 
@@ -181,8 +215,61 @@ function removeFromGame(room: Room, game: Game, playerId: number): { room: Room;
   return after;
 }
 
+/** Everyone who would be dealt in if the host started now. */
+const seats = (room: Room) => room.players.length + room.waiting.length;
+
+/** The role counts the next game will use: the host's choice, else the role table. null below 3 players. */
+export function effectiveCounts(room: Room): RoleCounts | null {
+  return room.settings.counts ?? (seats(room) >= MIN_PLAYERS ? defaultRoleCounts(seats(room)) : null);
+}
+
+/** Why the next game cannot start with these settings, or null. */
+export function settingsProblem(room: Room): CountsProblem | null {
+  const counts = effectiveCounts(room);
+  return counts ? checkRoleCounts(seats(room), counts) : "too_few_players";
+}
+
+/**
+ * Applies one host change. Role counts start from the table the first time the host
+ * touches them, then stay fixed (AC5) until "auto" hands them back to the table.
+ * @param allThemes every theme id, in display order
+ */
+export function configure(room: Room, by: number, change: SettingsChange, allThemes: readonly string[]): Result {
+  if (by !== room.hostId) return fail("not_host");
+  if (isRunning(room)) return fail("game_running");
+  const current = room.settings;
+  let next: Settings;
+  switch (change.kind) {
+    case "spies":
+    case "white": {
+      const base =
+        current.counts ?? (seats(room) >= MIN_PLAYERS ? defaultRoleCounts(seats(room)) : { spies: 1, white: 0 });
+      const counts =
+        change.kind === "spies"
+          ? { ...base, spies: Math.min(MAX_SPIES, Math.max(1, base.spies + change.delta)) }
+          : { ...base, white: base.white > 0 ? 0 : 1 };
+      next = { ...current, counts };
+      break;
+    }
+    case "auto":
+      next = { ...current, counts: null };
+      break;
+    case "theme": {
+      if (!allThemes.includes(change.theme)) return fail("bad_setting");
+      const on = current.themes.length ? current.themes : [...allThemes];
+      const toggled = on.includes(change.theme) ? on.filter((t) => t !== change.theme) : [...on, change.theme];
+      if (toggled.length === 0) return fail("bad_setting");
+      const ordered = allThemes.filter((t) => toggled.includes(t));
+      next = { ...current, themes: ordered.length === allThemes.length ? [] : ordered };
+      break;
+    }
+  }
+  return ok({ ...room, settings: next }, [{ type: "settings_changed", settings: next }]);
+}
+
 export interface StartOptions {
   rng: Rng;
+  /** Pairs of the room's themes. */
   pairs: readonly WordPair[];
   now: number;
 }
@@ -194,13 +281,11 @@ export function start(room: Room, by: number, opts: StartOptions): Result {
   const players = [...room.players, ...room.waiting];
   if (players.length < MIN_PLAYERS) return fail("too_few_players");
 
-  const counts = defaultRoleCounts(players.length);
-  if (checkRoleCounts(players.length, counts)) return fail("too_few_players");
+  const counts = effectiveCounts(room);
+  if (!counts || checkRoleCounts(players.length, counts)) return fail("bad_counts");
 
   const recentPairs = room.recentPairs.filter((p) => opts.now - p.at < REPEAT_WINDOW_MS);
-  const used = new Set(recentPairs.map((p) => p.key));
-  const fresh = opts.pairs.filter((p) => !used.has(pairKey(p)));
-  const pool = fresh.length > 0 ? fresh : opts.pairs;
+  const pool = leastRecent(opts.pairs, recentPairs);
   const pair = pool[Math.floor(opts.rng() * pool.length)] as WordPair;
 
   const hands = deal(
@@ -240,6 +325,16 @@ export function start(room: Room, by: number, opts: StartOptions): Result {
     { type: "game_started", game },
     { type: "round_started", round: 1, order: game.order },
   ]);
+}
+
+/** Pairs not played in the window; if every pair was, the ones played longest ago. */
+function leastRecent(pairs: readonly WordPair[], recent: readonly { key: string; at: number }[]): WordPair[] {
+  const lastPlayed = new Map<string, number>();
+  for (const r of recent) lastPlayed.set(r.key, Math.max(r.at, lastPlayed.get(r.key) ?? 0));
+  const fresh = pairs.filter((p) => !lastPlayed.has(pairKey(p)));
+  if (fresh.length > 0) return fresh;
+  const oldest = Math.min(...pairs.map((p) => lastPlayed.get(pairKey(p)) ?? 0));
+  return pairs.filter((p) => (lastPlayed.get(pairKey(p)) ?? 0) === oldest);
 }
 
 export function pairKey(pair: WordPair): string {

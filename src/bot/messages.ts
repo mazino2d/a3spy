@@ -31,12 +31,22 @@ export const msg = {
   notInRoom: "Bạn chưa ở phòng nào. Gõ /newgame để mở phòng hoặc /join &lt;mã&gt; để vào.",
   joinUsage: "Gõ /join kèm mã phòng, ví dụ: <code>/join AB12</code>",
   roomNotFound: (code: string) => `Không tìm thấy phòng <b>${code}</b>. Kiểm tra lại mã nhé.`,
-  lobby: (code: string, host: string, players: string[], link: string, web: string | null, isHost: boolean) =>
+  lobby: (
+    code: string,
+    host: string,
+    players: string[],
+    link: string,
+    web: string | null,
+    settings: string[],
+    isHost: boolean,
+  ) =>
     [
       `🏠 <b>Phòng ${code}</b> · host: ${host}`,
       "",
       `<b>Người chơi (${players.length})</b>`,
       ...players.map((p, i) => `${i + 1}. ${p}`),
+      "",
+      ...settings,
       "",
       `Mời bạn bè: ${link}`,
       ...(web ? [`Không dùng Telegram? Mở web: ${web}`] : []),
@@ -53,6 +63,13 @@ export const msg = {
   hostChanged: (name: string) => `👑 ${name} giờ là host.`,
   roomIdleClosed: (code: string) => `Phòng <b>${code}</b> đã đóng vì không hoạt động 6 tiếng.`,
 
+  // Host settings
+  settingsCounts: (spies: number, white: number, auto: boolean) =>
+    `⚙️ ${spies} spy · Mr. White: ${white ? "có" : "không"}${auto ? " <i>(tự động theo số người)</i>" : ""}`,
+  settingsAutoPending: "⚙️ Số spy và Mr. White tự động theo số người.",
+  settingsThemes: (names: string[] | null) => `📚 Chủ đề: ${names ? names.join(", ") : "tất cả"}`,
+  settingsWarning: "⚠️ Dân phải đông hơn spy + Mr. White — giảm spy hoặc tắt Mr. White.",
+
   // Buttons
   btnStart: "▶️ Bắt đầu",
   btnLeave: "🚪 Rời phòng",
@@ -61,6 +78,10 @@ export const msg = {
   btnEnd: "⏹ Kết thúc ván",
   btnAgain: "🔁 Chơi lại",
   btnWord: "👀 Xem từ của tôi",
+  btnSpyLess: "➖ Spy",
+  btnSpyMore: "➕ Spy",
+  btnWhite: (on: boolean) => `${on ? "✅" : "⬜"} Mr. White`,
+  btnAuto: "🔄 Tự động",
 
   // Callback answers
   notHost: "Chỉ host mới bấm được nút này.",
@@ -71,6 +92,8 @@ export const msg = {
   invalidTarget: "Không vote cho người này được.",
   voted: (name: string) => `Đã vote ${name}. Đổi ý thì bấm người khác.`,
   notPlaying: "Bạn không chơi ván này.",
+  badCounts: "Dân phải đông hơn spy + Mr. White. Giảm spy hoặc tắt Mr. White nhé.",
+  badSetting: "Phải chọn ít nhất một chủ đề.",
   yourWordAlert: (word: string | null) => (word === null ? "Bạn là Mr. White — không có từ." : `Từ của bạn: ${word}`),
 
   // Game

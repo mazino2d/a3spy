@@ -2,6 +2,7 @@ import { useMemo, useState } from "preact/hooks";
 import { renderSVG } from "uqr";
 import { t } from "../messages";
 import type { RoomProps } from "./Room";
+import { Settings } from "./Settings";
 
 export function Lobby({ view, links, online, send }: RoomProps) {
   const [copied, setCopied] = useState(false);
@@ -67,6 +68,16 @@ export function Lobby({ view, links, online, send }: RoomProps) {
           </>
         )}
       </section>
+
+      {isHost ? (
+        <Settings
+          view={view}
+          online={online}
+          change={(change) => send({ type: "command", action: "configure", change })}
+        />
+      ) : (
+        <Settings view={view} online={online} />
+      )}
 
       <footer class="actions">
         {isHost ? (

@@ -45,6 +45,21 @@ export const t = {
   leave: "🚪 Rời phòng",
   telegramToo: "Bạn nào dùng Telegram thì vào bằng link này:",
 
+  // Host settings
+  settings: "⚙️ Cài đặt ván",
+  spies: "Spy",
+  mrWhite: "Mr. White",
+  on: "Có",
+  off: "Không",
+  autoCounts: "Tự động theo số người",
+  autoPending: "Số spy và Mr. White tự động theo số người.",
+  resetAuto: "🔄 Tự động",
+  themes: "Chủ đề",
+  allThemes: "Tất cả",
+  fewerSpies: "Bớt một spy",
+  moreSpies: "Thêm một spy",
+  badCounts: "Dân phải đông hơn spy + Mr. White — giảm spy hoặc tắt Mr. White.",
+
   // Game
   gameRound: (game: number, round: number) => `Ván #${game} · Vòng ${round}`,
   roles: { civilian: "Dân", spy: "Spy", white: "Mr. White" } as Record<string, string>,
@@ -121,6 +136,8 @@ export const t = {
     stale: "Màn hình cũ rồi, đã cập nhật lại.",
     not_alive: "Bạn đã bị loại, không vote được nữa.",
     invalid_target: "Không vote cho người này được.",
+    bad_counts: "Dân phải đông hơn spy + Mr. White. Giảm spy hoặc tắt Mr. White nhé.",
+    bad_setting: "Phải chọn ít nhất một chủ đề.",
     generic: "Có lỗi, thử lại nhé.",
   } as Record<string, string>,
   network: "Không kết nối được. Kiểm tra mạng rồi thử lại.",

@@ -356,3 +356,40 @@ button:focus-visible {
 .players .row {
   width: 100%;
 }
+
+.stepper {
+  gap: 12px;
+}
+
+.stepper button {
+  min-width: 48px;
+  min-height: 44px;
+  padding: 0;
+  font-size: 1.3rem;
+}
+
+.stepper strong {
+  min-width: 1.5em;
+  text-align: center;
+  font-size: 1.2rem;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.chip {
+  min-height: 44px;
+  padding: 0 14px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  font-weight: 600;
+}
+
+.chip.on {
+  border-color: var(--lime);
+  background: rgb(163 230 53 / 0.12);
+}
