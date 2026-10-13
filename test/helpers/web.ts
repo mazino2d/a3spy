@@ -50,7 +50,9 @@ export async function connect(p: WebPlayer, code: string): Promise<Socket> {
   if (!ws) throw new Error(`no websocket: ${res.status}`);
   ws.accept();
   const messages: ServerMessage[] = [];
-  ws.addEventListener("message", (e) => messages.push(JSON.parse(String(e.data))));
+  ws.addEventListener("message", (e) => {
+    messages.push(JSON.parse(String(e.data)));
+  });
   const closed = new Promise<{ code: number }>((resolve) =>
     ws.addEventListener("close", (e) => resolve({ code: e.code })),
   );

@@ -1,9 +1,11 @@
 import { useEffect, useRef, useState } from "preact/hooks";
-import type { RoomView } from "../../../src/game/view";
+import type { PublicEvent, RoomView } from "../../../src/game/view";
 import type { ClientMessage, Links, ServerMessage } from "../../../src/web/protocol";
 import { leaveRoom, RoomSocket, type SocketStatus } from "../api";
 import { t } from "../messages";
+import { nextOutcome } from "../outcome";
 import { go } from "../route";
+import { Game, GameOver, Scoreboard } from "./Game";
 import { Lobby } from "./Lobby";
 
 export interface RoomProps {
@@ -20,11 +22,14 @@ export function Room({ code, onLeft }: { code: string; onLeft(): void }) {
   const [status, setStatus] = useState<SocketStatus>("connecting");
   const [closed, setClosed] = useState<"left" | "closed" | null>(null);
   const [toast, setToast] = useState<string | null>(null);
+  const [outcome, setOutcome] = useState<PublicEvent[]>([]);
+  const [scoreOpen, setScoreOpen] = useState(false);
   const socket = useRef<RoomSocket | null>(null);
 
   useEffect(() => {
     const onMessage = (m: ServerMessage) => {
       if (m.type === "state") setState({ view: m.view, links: m.links });
+      else if (m.type === "events") setOutcome((current) => nextOutcome(current, m.events));
       else if (m.type === "error") setToast(t.errors[m.code] ?? t.errors.generic ?? "");
       else if (m.type === "closed" && m.reason !== "replaced") setClosed(m.reason);
     };
@@ -90,11 +95,14 @@ export function Room({ code, onLeft }: { code: string; onLeft(): void }) {
           {t.offline}
         </div>
       )}
-      {state.view.game && state.view.game.phase !== "ended" ? (
-        <main class="screen center muted">{t.gameRunning}</main>
-      ) : (
+      {!state.view.game ? (
         <Lobby {...props} />
+      ) : state.view.game.phase === "ended" ? (
+        <GameOver {...props} outcome={outcome} onScore={() => setScoreOpen(true)} />
+      ) : (
+        <Game {...props} outcome={outcome} onScore={() => setScoreOpen(true)} />
       )}
+      {scoreOpen && <Scoreboard view={state.view} onClose={() => setScoreOpen(false)} />}
       {toast && (
         <div class="toast" role="alert">
           {toast}
