@@ -59,6 +59,14 @@ export const t = {
   fewerSpies: "Bớt một spy",
   moreSpies: "Thêm một spy",
   badCounts: "Dân phải đông hơn spy + Mr. White — giảm spy hoặc tắt Mr. White.",
+  timers: "Hẹn giờ (chỉ nhắc, host vẫn tự bấm)",
+  discussionTimer: "Thảo luận",
+  voteTimer: "Vote",
+  minutes: (n: number) => (n ? `${n} phút` : "Tắt"),
+  timersSummary: (discussion: number, vote: number) =>
+    `Hẹn giờ: thảo luận ${discussion ? `${discussion} phút` : "tắt"} · vote ${vote ? `${vote} phút` : "tắt"}`,
+  timeLeft: (text: string) => `⏱ Còn ${text}`,
+  timeUp: { discussion: "⏰ Hết giờ thảo luận!", vote: "⏰ Hết giờ vote!" } as Record<string, string>,
 
   // Game
   gameRound: (game: number, round: number) => `Ván #${game} · Vòng ${round}`,

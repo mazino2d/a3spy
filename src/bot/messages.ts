@@ -68,6 +68,12 @@ export const msg = {
     `⚙️ ${spies} spy · Mr. White: ${white ? "có" : "không"}${auto ? " <i>(tự động theo số người)</i>" : ""}`,
   settingsAutoPending: "⚙️ Số spy và Mr. White tự động theo số người.",
   settingsThemes: (names: string[] | null) => `📚 Chủ đề: ${names ? names.join(", ") : "tất cả"}`,
+  settingsTimers: (discussion: number, vote: number) =>
+    `⏱ Thảo luận: ${discussion ? `${discussion} phút` : "tắt"} · Vote: ${vote ? `${vote} phút` : "tắt"}`,
+  discussionTimer: (minutes: number) => `⏱ Có ${minutes} phút thảo luận.`,
+  voteTimer: (minutes: number) => `⏱ Có ${minutes} phút để vote.`,
+  discussionUp: "⏰ <b>Hết giờ thảo luận!</b> Host mở vote khi cả bàn sẵn sàng nhé.",
+  voteUp: "⏰ <b>Hết giờ vote!</b> Ai chưa vote thì nhanh tay, host chốt vote nhé.",
   settingsWarning: "⚠️ Dân phải đông hơn spy + Mr. White — giảm spy hoặc tắt Mr. White.",
 
   // Buttons
@@ -82,6 +88,8 @@ export const msg = {
   btnSpyMore: "➕ Spy",
   btnWhite: (on: boolean) => `${on ? "✅" : "⬜"} Mr. White`,
   btnAuto: "🔄 Tự động",
+  btnTimer: (kind: "discussion" | "vote", minutes: number) =>
+    `⏱ ${kind === "discussion" ? "Thảo luận" : "Vote"}: ${minutes ? `${minutes} phút` : "tắt"}`,
 
   // Callback answers
   notHost: "Chỉ host mới bấm được nút này.",

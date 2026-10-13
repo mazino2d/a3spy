@@ -54,16 +54,22 @@ export interface Settings {
   themes: string[];
   /** Role counts chosen by the host; null follows the role table for the player count. */
   counts: RoleCounts | null;
+  /** Reminder timers in minutes; 0 is off (docs/rules.md#timers). */
+  timers: { discussion: number; vote: number };
 }
 
-export const DEFAULT_SETTINGS: Settings = { themes: [], counts: null };
+export const TIMER_OPTIONS = { discussion: [0, 2, 3, 5], vote: [0, 1, 2] } as const;
+
+export const DEFAULT_SETTINGS: Settings = { themes: [], counts: null, timers: { discussion: 0, vote: 0 } };
 
 /** One host tap in the settings. */
 export type SettingsChange =
   | { kind: "spies"; delta: 1 | -1 }
   | { kind: "white" }
   | { kind: "auto" }
-  | { kind: "theme"; theme: string };
+  | { kind: "theme"; theme: string }
+  /** Cycles the timer to its next duration. */
+  | { kind: "timer"; timer: "discussion" | "vote" };
 
 export const MAX_SPIES = 5;
 
@@ -254,6 +260,13 @@ export function configure(room: Room, by: number, change: SettingsChange, allThe
     case "auto":
       next = { ...current, counts: null };
       break;
+    case "timer": {
+      const options: readonly number[] = TIMER_OPTIONS[change.timer];
+      const at = options.indexOf(current.timers[change.timer]);
+      const minutes = options[(at + 1) % options.length] as number;
+      next = { ...current, timers: { ...current.timers, [change.timer]: minutes } };
+      break;
+    }
     case "theme": {
       if (!allThemes.includes(change.theme)) return fail("bad_setting");
       const on = current.themes.length ? current.themes : [...allThemes];

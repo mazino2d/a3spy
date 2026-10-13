@@ -393,3 +393,14 @@ button:focus-visible {
   border-color: var(--lime);
   background: rgb(163 230 53 / 0.12);
 }
+
+.timer {
+  text-align: center;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--cyan);
+}
+
+.timer.up {
+  color: var(--pink);
+}
