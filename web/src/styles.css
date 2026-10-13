@@ -1,0 +1,258 @@
+/* A3 Spy web app. Tokens follow the designer skill's visual identity. */
+:root {
+  --night: #1e1b4b;
+  --deep: #4c1d95;
+  --violet: #7c3aed;
+  --pink: #ec4899;
+  --cyan: #22d3ee;
+  --lime: #a3e635;
+  --text: #ffffff;
+  --muted: #c4b5fd;
+  --surface: rgb(255 255 255 / 0.08);
+  --border: rgb(255 255 255 / 0.16);
+  --danger: #fda4af;
+  --radius: 16px;
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  min-height: 100%;
+}
+
+body {
+  background: radial-gradient(circle at 20% 0%, var(--deep), var(--night) 60%) fixed var(--night);
+  color: var(--text);
+  font:
+    17px / 1.45 system-ui,
+    -apple-system,
+    "Segoe UI",
+    Roboto,
+    sans-serif;
+  -webkit-tap-highlight-color: transparent;
+}
+
+#app {
+  min-height: 100dvh;
+}
+
+.screen {
+  max-width: 480px;
+  min-height: 100dvh;
+  margin: 0 auto;
+  padding: max(16px, env(safe-area-inset-top)) 16px max(24px, env(safe-area-inset-bottom));
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.center {
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+}
+
+.row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.between {
+  justify-content: space-between;
+}
+
+h1 {
+  font-size: 1.6rem;
+  margin: 0;
+}
+
+h2 {
+  font-size: 1rem;
+  color: var(--muted);
+  margin: 0 0 8px;
+  font-weight: 600;
+}
+
+p {
+  margin: 0;
+}
+
+.muted {
+  color: var(--muted);
+}
+
+.small {
+  font-size: 0.875rem;
+}
+
+.center-text {
+  text-align: center;
+}
+
+.error {
+  color: var(--danger);
+}
+
+.logo {
+  border-radius: 50%;
+}
+
+label {
+  font-weight: 600;
+  text-align: left;
+}
+
+input {
+  width: 100%;
+  min-height: 52px;
+  padding: 0 16px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+}
+
+input:focus {
+  outline: 2px solid var(--cyan);
+  outline-offset: 1px;
+}
+
+input.code {
+  text-transform: uppercase;
+  letter-spacing: 0.3em;
+  text-align: center;
+  font-weight: 700;
+}
+
+button {
+  min-height: 52px;
+  padding: 0 20px;
+  border: 0;
+  border-radius: 12px;
+  font: inherit;
+  font-weight: 700;
+  color: var(--text);
+  cursor: pointer;
+}
+
+button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+button:focus-visible {
+  outline: 2px solid var(--cyan);
+  outline-offset: 2px;
+}
+
+.primary {
+  background: linear-gradient(135deg, var(--violet), var(--pink));
+  width: 100%;
+}
+
+.secondary {
+  background: var(--surface);
+  border: 1px solid var(--border);
+}
+
+.big {
+  min-height: 60px;
+  font-size: 1.1rem;
+}
+
+.link {
+  min-height: 44px;
+  padding: 0 4px;
+  background: none;
+  color: var(--muted);
+  font-weight: 600;
+  text-decoration: underline;
+}
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.qr {
+  width: min(60vw, 220px);
+  aspect-ratio: 1;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.qr svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.players {
+  margin: 0;
+  padding-left: 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.players .me {
+  font-weight: 700;
+}
+
+.actions {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.banner {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  padding: 10px 16px;
+  text-align: center;
+  background: var(--pink);
+  font-weight: 600;
+}
+
+.toast {
+  position: fixed;
+  left: 16px;
+  right: 16px;
+  bottom: max(24px, env(safe-area-inset-bottom));
+  max-width: 448px;
+  margin: 0 auto;
+  padding: 12px 16px;
+  border-radius: 12px;
+  background: var(--night);
+  border: 1px solid var(--pink);
+  text-align: center;
+}
+
+.hint {
+  margin-top: auto;
+  padding: 12px 16px;
+  border-radius: 12px;
+  background: var(--surface);
+  font-size: 0.875rem;
+}

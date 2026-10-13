@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - "src/**"
+      - "web/**"
       - "words/**"
       - "package.json"
       - "package-lock.json"
@@ -39,6 +40,8 @@ jobs:
           node-version-file: .nvmrc
           cache: npm
       - run: npm ci
+      - name: Build web app
+        run: npm run build:web
 
       - name: Check configuration
         run: |

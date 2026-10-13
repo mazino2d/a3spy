@@ -13,7 +13,8 @@ Product context: [docs/product/](docs/product/index.md).
 ## Language policy
 
 **Write everything in English**: code, comments, docs, issues, commit messages and PR
-descriptions. Only what players see is Vietnamese, and it lives in `src/bot/messages.ts`.
+descriptions. Only what players see is Vietnamese, and it lives in `src/bot/messages.ts`
+(Telegram) or `web/src/messages.ts` (web app).
 
 ## Critical rules
 
@@ -28,7 +29,8 @@ descriptions. Only what players see is Vietnamese, and it lives in `src/bot/mess
    popup). Never log them, never put them in `callback_data`, URLs or broadcasts.
 5. **Every button press is answered** (`answerCallbackQuery`) and checked against the
    current phase and round; stale buttons from an earlier round are ignored.
-6. **User-facing text is Vietnamese** and lives in `src/bot/messages.ts`.
+6. **User-facing text is Vietnamese** and lives in one messages file per client:
+   `src/bot/messages.ts` (Telegram) and `web/src/messages.ts` (web app).
 7. **Infra is not configured here.** Branch protection, repo settings, the Cloudflare
    deploy token and GitHub secrets are managed in `mazino2d/everything-as-code`
    (`terraform/github`, `terraform/cloudflare`). Change them there by PR.
@@ -37,11 +39,13 @@ descriptions. Only what players see is Vietnamese, and it lives in `src/bot/mess
 
 ```bash
 npm ci                          # install (Node 24, see .nvmrc; npm 11 respects allowScripts)
-npm run dev                     # wrangler dev (local Worker + DOs); secrets in .dev.vars
-npm run check                   # lint + typecheck + test — what CI runs; run before every PR
+npm run dev                     # wrangler dev (local Worker + DOs + built web app); secrets in .dev.vars
+npm run dev:web                 # Vite dev server for web/, proxies /api to `npm run dev`
+npm run build:web               # build web/ → web/dist (tests and wrangler need it)
+npm run check                   # lint + typecheck + build web + test — what CI runs; run before every PR
 npm test                        # vitest (unit + integration)
 npx wrangler deploy --dry-run   # validates bundle + bindings after config changes
-npm run avatar                  # render telegram/avatar.svg → avatar.jpg
+npm run avatar                  # render telegram/avatar.svg → avatar.jpg + web icons
 TELEGRAM_BOT_TOKEN=… npm run telegram:profile -- --dry-run   # diff the bot profile
 ```
 
@@ -108,8 +112,11 @@ src/
   player/         PlayerDO: player → current room; web guest name and token hash
   web/            Web API (/api/*), guest sessions, socket protocol shared with the client
 words/            Word-pair packs (JSON), one file per theme
+web/              Web app (PWA): Preact + Vite, served by the Worker as static assets
+  src/messages.ts Every web string (Vietnamese)
+  public/         manifest, service worker (never caches /api), icons rendered from the avatar
 telegram/         Bot profile as code: profile.json, avatar.svg → avatar.jpg
-scripts/          Node scripts: render the avatar, sync the profile to Telegram
+scripts/          Node scripts: render the avatar and web icons, sync the profile to Telegram
 docs/             Product docs, implementation plans, game rules
 test/unit/        Pure tests for src/game
 test/integration/ Worker + DO tests in the workers runtime
@@ -132,4 +139,4 @@ test/integration/ Worker + DO tests in the workers runtime
 - `npm run check` passes locally; CI is green.
 - `docs/rules.md` and the milestone spec updated if behaviour or rules changed; the
   implementation plan's phase table updated if the work follows one.
-- No new strings outside `src/bot/messages.ts`; no secrets or words in logs.
+- No new strings outside the messages files; no secrets or words in logs.
