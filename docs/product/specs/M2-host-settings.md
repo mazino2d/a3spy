@@ -11,7 +11,7 @@ before the group gets used to them.
 
 ## User stories
 
-- **L4** (#5) As a host, I set the word themes, the number of spies and Mr. White on or off
+- **L4** ([#5](https://github.com/mazino2d/a3spy/issues/5)) As a host, I set the word themes, the number of spies and Mr. White on or off
   before starting, so the game fits the table.
 - Playtest fixes: one story or bug issue per finding, added to this milestone as they come.
 
@@ -21,7 +21,7 @@ before the group gets used to them.
   and Mr. White from the [role table](../../rules.md#default-role-counts) for the current
   player count.
 - **AC2** Given the host's lobby, when the host changes a setting, then every player's
-  lobby shows the new value; settings controls appear only for the host.
+  lobby (Telegram and web) shows the new value; settings controls appear only for the host.
 - **AC3** Given settings where civilians ≤ spies + Mr. White, when the host taps Start, then
   the game does not start and the host sees why in one line.
 - **AC4** Given a finished game, when the host taps Play again, then the same settings apply.

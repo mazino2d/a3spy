@@ -1,6 +1,6 @@
 # M3 Web app (PWA)
 
-Status: draft   ·   Serves: UC-1 – UC-5   ·   Roadmap: Now   ·   Implementation: [M3](../../implementations/M3-web-app.md)
+Status: in progress   ·   Serves: UC-1 – UC-5   ·   Roadmap: Now   ·   Implementation: [M3](../../implementations/M3-web-app.md)
 
 ## Problem
 
