@@ -22,7 +22,7 @@ Each milestone has a spec in [specs/](specs/), and large ones an implementation 
 
 | ID | Item | Serves | Notes |
 | --- | --- | --- | --- |
-| M1 | Telegram game master: rooms, dealing, rounds, vote, elimination, Mr. White, reveal, play again, score | UC-1 – UC-6 | Shipped 2026-10-13 (#20) with every Must plus L5, R2, G4, E4, S1. Spec: [M1](specs/M1-telegram-game-master.md). |
+| M1 | Telegram game master: rooms, dealing, rounds, vote, elimination, Mr. White, reveal, play again, score | UC-1 – UC-6 | Shipped 2026-10-13 (#20) with every Must plus L5, R2, G4, E4, S1. Spec: [M1](specs/M1-telegram-game-master.md). Implementation: [M1](../implementations/M1-telegram-game-master.md). |
 
 ## Now
 

@@ -21,6 +21,6 @@ issues in the matching milestone.
 
 | Milestone | Status | Summary |
 | --- | --- | --- |
-| [M1 Telegram game master](specs/M1-telegram-game-master.md) | Shipped | The bot runs the whole game over DM: rooms, dealing, rounds, vote, reveal, play again, score. |
+| [M1 Telegram game master](specs/M1-telegram-game-master.md) | Shipped | The bot runs the whole game over DM: rooms, dealing, rounds, vote, reveal, play again, score. [Implementation](../implementations/M1-telegram-game-master.md). |
 | [M2 Host settings and playtest fixes](specs/M2-host-settings.md) | Planned | The host picks themes, spy count and Mr. White; fixes from the first café session. |
 | [M3 Web app (PWA)](specs/M3-web-app.md) | Planned | Anyone joins by QR and a name and plays the same game as Telegram players; installable. [Implementation](../implementations/M3-web-app.md). |

@@ -1,6 +1,6 @@
 # M1 Telegram game master
 
-Status: shipped 2026-10-13   ·   Serves: UC-1 – UC-6   ·   Roadmap: Shipped
+Status: shipped 2026-10-13   ·   Serves: UC-1 – UC-6   ·   Roadmap: Shipped   ·   Implementation: [M1](../../implementations/M1-telegram-game-master.md)
 
 ## Problem
 

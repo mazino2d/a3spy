@@ -47,7 +47,7 @@ Never change acceptance criteria in a plan; if a decision forces one to change, 
 
 - The Worker answers the webhook fast: reply with `200` after the handler finishes; grammY's `webhookCallback(bot, "cloudflare-mod", { secretToken })` checks the secret header.
 - Always `answerCallbackQuery`, even for rejected taps; use `show_alert: true` for private info (e.g. "Xem từ của tôi").
-- `callback_data` ≤ 64 bytes. Format: `<action>:<roomCode>:<round>[:<arg>]`. Reject when `round` ≠ current round (stale button).
+- `callback_data` ≤ 64 bytes. Format (`src/bot/callbacks.ts`): `<action>|<room>|<game>|<round>|<arg>`. Reject when `game` or `round` ≠ current (stale button).
 - Deep link payload (`/start <code>`) is `[A-Za-z0-9_-]`, ≤ 64 chars.
 - Broadcasting to a room = one `sendMessage` per player; stay under ~30 messages/second overall and 1/second per chat for bursts. A 12-player room is fine; batch per event, not per line.
 - Prefer editing the lobby/status message (`editMessageText`) over sending new ones to keep chats tidy; store message ids per player in room state.
