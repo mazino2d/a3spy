@@ -8,6 +8,8 @@ import type { Env } from "../env";
 import * as engine from "../game/engine";
 import { cryptoRng } from "../game/rng";
 import { pairsOf } from "../game/words";
+import { isWeb } from "./clients";
+import { type Command, decide } from "./commands";
 
 export const IDLE_MS = 6 * 60 * 60 * 1000;
 
@@ -34,6 +36,26 @@ const errorText: Record<engine.GameError, string> = {
   invalid_target: msg.invalidTarget,
   not_white: msg.stale,
 };
+
+/** null for "word", which only reads state and is answered with a popup. */
+function toCommand(cb: Callback): Command | null {
+  const turn = { gameId: cb.gameId, round: cb.round };
+  switch (cb.action) {
+    case "start":
+    case "leave":
+      return { action: cb.action };
+    case "again":
+    case "openVote":
+    case "closeVote":
+      return { action: cb.action, ...turn };
+    case "end":
+      return { action: "end", gameId: cb.gameId };
+    case "vote":
+      return { action: "vote", ...turn, target: cb.arg };
+    case "word":
+      return null;
+  }
+}
 
 /** One per room code. Owns the room state and every message the room sends. */
 export class RoomDO extends DurableObject<Env> {
@@ -83,62 +105,38 @@ export class RoomDO extends DurableObject<Env> {
   async onCallback(userId: number, cb: Callback): Promise<{ text: string; alert?: boolean }> {
     const stored = this.load();
     if (!stored) return { text: msg.stale };
-    const { room } = stored;
-    const turn = { gameId: cb.gameId, round: cb.round };
 
     if (cb.action === "word") {
-      if (!room.game || room.game.id !== cb.gameId) return { text: msg.stale };
-      return { text: wordAlert(room.game, userId), alert: true };
+      const game = stored.room.game;
+      if (!game || game.id !== cb.gameId) return { text: msg.stale };
+      return { text: wordAlert(game, userId), alert: true };
     }
 
-    let result: engine.Result;
-    switch (cb.action) {
-      case "start":
-        if (engine.isRunning(room)) return { text: msg.gameRunning };
-        result = engine.start(room, userId, { rng: cryptoRng, pairs: pairsOf(), now: Date.now() });
-        break;
-      case "again":
-        if (room.game?.id !== cb.gameId) return { text: msg.stale };
-        result = engine.start(room, userId, { rng: cryptoRng, pairs: pairsOf(), now: Date.now() });
-        break;
-      case "leave":
-        result = engine.leave(room, userId);
-        break;
-      case "openVote":
-        result = engine.openVote(room, userId, turn);
-        break;
-      case "closeVote":
-        result = engine.closeVote(room, userId, turn);
-        break;
-      case "vote":
-        result = engine.vote(room, userId, cb.arg, turn);
-        break;
-      case "end":
-        if (room.game?.id !== cb.gameId) return { text: msg.stale };
-        result = engine.end(room, userId);
-        break;
-    }
-
-    if (!result.ok) return { text: errorText[result.error] };
-    await this.commit(stored, result);
-    return { text: cb.action === "vote" ? msg.voted(engine.playerName(room, cb.arg)) : "👌" };
+    const cmd = toCommand(cb);
+    if (!cmd) return { text: msg.stale };
+    const error = await this.apply(stored, userId, cmd);
+    if (error) return { text: errorText[error] };
+    return { text: cb.action === "vote" ? msg.voted(engine.playerName(stored.room, cb.arg)) : "👌" };
   }
 
   /** Free text from a player in this room; only Mr. White's guess means anything. */
   async onText(userId: number, text: string): Promise<boolean> {
     const stored = this.load();
     if (!stored) return false;
-    const result = engine.guess(stored.room, userId, text);
-    if (!result.ok) return false;
-    await this.commit(stored, result);
-    return true;
+    return (await this.apply(stored, userId, { action: "guess", text })) === null;
   }
 
   async end(userId: number): Promise<string | null> {
     const stored = this.load();
     if (!stored) return msg.notInRoom;
-    const result = engine.end(stored.room, userId);
-    if (!result.ok) return errorText[result.error];
+    const error = await this.apply(stored, userId, { action: "end" });
+    return error ? errorText[error] : null;
+  }
+
+  /** Runs one command from any client; null on success. */
+  private async apply(stored: Stored, playerId: number, cmd: Command): Promise<engine.GameError | null> {
+    const result = decide(stored.room, playerId, cmd, { rng: cryptoRng, pairs: pairsOf(), now: Date.now() });
+    if (!result.ok) return result.error;
     await this.commit(stored, result);
     return null;
   }
@@ -188,7 +186,11 @@ export class RoomDO extends DurableObject<Env> {
   private async execute(stored: Stored, ops: Op[]): Promise<void> {
     const api = this.api();
     const byChat = new Map<number, Op[]>();
-    for (const op of ops) byChat.set(op.to, [...(byChat.get(op.to) ?? []), op]);
+    for (const op of ops) {
+      // Web players have no Telegram chat; they only need their room pointer.
+      if (isWeb(op.to) && op.kind !== "pointer") continue;
+      byChat.set(op.to, [...(byChat.get(op.to) ?? []), op]);
+    }
 
     await Promise.all(
       [...byChat.entries()].map(async ([chat, chatOps]) => {

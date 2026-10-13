@@ -163,3 +163,18 @@ describe("a full game over the webhook", () => {
     expect(tg.last(803)?.text).toContain("Lật bài");
   });
 });
+
+describe("web players in a Telegram room", () => {
+  it("W7 web players get no Telegram messages, Telegram players still do", async () => {
+    const { env } = await import("cloudflare:test");
+    const code = await openRoom([901, 902]);
+    tg.reset();
+    expect(await env.ROOM.getByName(code).join({ id: -5, name: "Web" })).toBe("ok");
+    await press(901, button(901, "Bắt đầu"));
+    const chats = new Set(tg.messages().map((m) => m.chat));
+    expect(chats.has(-5)).toBe(false);
+    expect(chats.has(901) && chats.has(902)).toBe(true);
+    expect(tg.last(901)?.text).toContain("Web");
+    expect(await env.PLAYER.getByName("-5").room()).toBe(code);
+  });
+});

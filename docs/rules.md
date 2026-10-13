@@ -7,6 +7,7 @@ Canonical rules for code and tests, the same on every client. Product context an
 - Everyone plays through a **private chat (DM) with the bot**. There is no group chat.
 - `/newgame` creates a room with a 4-character code and an invite link `t.me/<bot>?start=<code>`. The creator is the **host** and joins automatically.
 - Players join with the invite link or `/join <code>`. A player is in at most **one room** at a time.
+- Two players with the same display name are told apart by a suffix: `Minh`, `Minh (2)`.
 - Joining while a game is running puts the player in the **waiting list**; they are dealt in at the next game.
 - If the host leaves, the earliest remaining joiner becomes host. An empty room closes.
 - A room with no activity for **6 hours** closes.
