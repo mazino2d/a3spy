@@ -1,0 +1,53 @@
+name: Telegram profile
+
+# Syncs the bot's name, descriptions, command menu and avatar from telegram/ to the Bot API.
+on:
+  push:
+    branches: [main]
+    paths:
+      - "telegram/**"
+      - "scripts/sync-telegram-profile.ts"
+      - "src/telegram-profile.ts"
+      - ".github/workflows/telegram-profile.yml"
+  workflow_dispatch:
+    inputs:
+      avatar:
+        description: Upload telegram/avatar.jpg as the profile photo
+        type: boolean
+        default: false
+
+concurrency:
+  group: telegram-profile
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 2
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+      # The script only needs node built-ins; skip npm ci.
+
+      - name: Did the avatar change?
+        id: avatar
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            echo "upload=${{ inputs.avatar }}" >> "$GITHUB_OUTPUT"
+          elif git diff --name-only HEAD~1 HEAD | grep -qx 'telegram/avatar.jpg'; then
+            echo "upload=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "upload=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Sync profile
+        run: node scripts/sync-telegram-profile.ts ${{ steps.avatar.outputs.upload == 'true' && '--avatar' || '' }}

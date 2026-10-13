@@ -10,9 +10,11 @@
     "test": "vitest run",
     "lint": "biome check .",
     "format": "biome check --write .",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "tsc --noEmit && tsc --noEmit -p scripts",
     "check": "npm run lint && npm run typecheck && npm test",
-    "cf-typegen": "wrangler types --include-runtime false"
+    "cf-typegen": "wrangler types --include-runtime false",
+    "telegram:profile": "node scripts/sync-telegram-profile.ts",
+    "avatar": "node scripts/render-avatar.ts"
   },
   "dependencies": {
     "grammy": "1.46.0"
@@ -21,6 +23,9 @@
     "@biomejs/biome": "2.5.15",
     "@cloudflare/vitest-plugin": "1.4.0",
     "@cloudflare/workers-types": "5.20261012.1",
+    "@resvg/resvg-js": "2.6.2",
+    "@types/node": "24.12.0",
+    "jpeg-js": "0.4.4",
     "typescript": "6.0.3",
     "vitest": "4.1.11",
     "wrangler": "4.149.0"
