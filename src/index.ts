@@ -32,7 +32,8 @@ export default {
       if (!hasValidSecret(request, env.TELEGRAM_WEBHOOK_SECRET)) {
         return new Response("Unauthorized", { status: 401 });
       }
-      const bot = createBot(env, botInfo ? { botInfo } : undefined);
+      // Telegram calls the Worker's own URL, which also serves the web app.
+      const bot = createBot(env, botInfo ? { botInfo } : undefined, url.origin);
       const handle = webhookCallback(bot, "cloudflare-mod", {
         secretToken: env.TELEGRAM_WEBHOOK_SECRET,
         // A room broadcast is a few dozen Telegram calls; give it room before Telegram retries.

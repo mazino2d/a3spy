@@ -16,7 +16,8 @@ export function displayName(user: Pick<User, "first_name" | "last_name">): strin
 
 const toPlayer = (user: User): Player => ({ id: user.id, name: displayName(user) || `#${user.id}` });
 
-export function createBot(env: Env, config?: BotConfig<Context>): Bot {
+/** @param webOrigin origin of the web app (the Worker's own), shown in Telegram lobbies */
+export function createBot(env: Env, config?: BotConfig<Context>, webOrigin: string | null = null): Bot {
   const bot = new Bot(env.TELEGRAM_BOT_TOKEN, config);
   const roomOf = (code: string) => env.ROOM.getByName(code);
   const currentRoom = (userId: number) => currentRoomOf(env, userId);
@@ -51,7 +52,7 @@ export function createBot(env: Env, config?: BotConfig<Context>): Bot {
     if (current) return ctx.reply(msg.alreadyInRoom(current), { parse_mode: "HTML" });
     for (let attempt = 0; attempt < 5; attempt++) {
       const code = newRoomCode();
-      if (await roomOf(code).create(code, toPlayer(ctx.from), ctx.me.username)) return;
+      if (await roomOf(code).create(code, toPlayer(ctx.from), { botUsername: ctx.me.username, webOrigin })) return;
     }
     throw new Error("could not allocate a room code");
   });

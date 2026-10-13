@@ -1,6 +1,6 @@
 # M3 Web app (PWA) — implementation plan
 
-Status: in progress (P0 done, P1–P4 in review)   ·   Spec: [M3 Web app (PWA)](../product/specs/M3-web-app.md)   ·   Written 2026-10-13
+Status: in progress (P0 done, P1–P5 in review)   ·   Spec: [M3 Web app (PWA)](../product/specs/M3-web-app.md)   ·   Written 2026-10-13
 
 How M3 gets built: the architecture, the phases (one PR each) and the decisions behind
 them. The spec defines *what* must be true; this plan defines *how* and in what order.
@@ -69,7 +69,7 @@ Each phase is one PR, ends green on `npm run check`, and leaves production worki
 | P2 | Web sessions and realtime API: `POST /api/session`, `GET /api/me`, `POST /api/rooms`, `POST /api/rooms/<code>/join` and `/leave`, WebSocket upgrade with hibernation, integration tests for join, vote and reconnect | AC4–AC6, AC16, AC20–AC22 (server side) | 2 d | In review |
 | P3 | Web shell and PWA: `web/` (Vite + Preact), static assets in `wrangler.jsonc`, manifest, service worker, icons, CI and CD build steps; screens: name, home (create / join by code), lobby with QR and share | W1, W2, W9 · AC1–AC6, AC23, AC24 | 2.5 d | In review |
 | P4 | Game screens: word card (tap to reveal, auto-hide), speaking order, vote, results, Mr. White guess, end and reveal, play again, end game, scoreboard, connection banner | W3–W6, W8, W10 · AC7–AC16, AC20, AC21, AC25 | 2.5 d | In review |
-| P5 | Mixed tables: the web link in the Telegram lobby and the Telegram link in the web lobby, copy review with the designer skill | W7 · AC17, AC18 | 0.5 d | Planned |
+| P5 | Mixed tables: the web link in the Telegram lobby and the Telegram link in the web lobby, copy review with the designer skill | W7 · AC17, AC18 | 0.5 d | In review |
 | P6 | Release: mixed-table café playtest (≥ 2 web, ≥ 3 Telegram), install checks on iOS Safari and Android Chrome, README, `docs/rules.md` and AGENTS update, close milestone | Success check | 1 d | Planned |
 
 Total ≈ 10.5 days, matching the roadmap's Effort of 10.
@@ -127,8 +127,9 @@ Total ≈ 10.5 days, matching the roadmap's Effort of 10.
 
 ### P5 Mixed tables
 
-- `src/bot/render.ts` `lobbyPanel`: add the web room link (needs the web origin; derive from
-  a `WEB_ORIGIN` var in `wrangler.jsonc`, not a secret).
+- `src/bot/render.ts` `lobbyPanel`: add the web room link. The origin is the Worker's own:
+  the webhook request's origin for rooms opened on Telegram, the API request's for rooms
+  opened on the web. It is stored with the room, so no config var is needed.
 - Web lobby shows the Telegram invite link next to the QR code.
 
 ## Risks

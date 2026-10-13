@@ -108,8 +108,9 @@ describe("rooms over the web API", () => {
 
     await text(301, `/join ${code}`);
     expect((await sock.next("state")).view.players.map((x) => x.name)).toEqual(["Host", "Lan", "User301"]);
-    // The Telegram player sees web players in their lobby.
+    // The Telegram player sees web players and the web link in their lobby (AC18).
     expect(tg.last(301)?.text).toContain("Lan");
+    expect(tg.last(301)?.text).toContain(`https://a3spy.test/r/${code}`);
 
     await api(`/api/rooms/${code}/leave`, { method: "POST", cookie: p.cookie });
     expect((await sock.next("state")).view.players.map((x) => x.name)).toEqual(["Host", "User301"]);

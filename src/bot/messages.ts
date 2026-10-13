@@ -31,7 +31,7 @@ export const msg = {
   notInRoom: "Bạn chưa ở phòng nào. Gõ /newgame để mở phòng hoặc /join &lt;mã&gt; để vào.",
   joinUsage: "Gõ /join kèm mã phòng, ví dụ: <code>/join AB12</code>",
   roomNotFound: (code: string) => `Không tìm thấy phòng <b>${code}</b>. Kiểm tra lại mã nhé.`,
-  lobby: (code: string, host: string, players: string[], link: string, isHost: boolean) =>
+  lobby: (code: string, host: string, players: string[], link: string, web: string | null, isHost: boolean) =>
     [
       `🏠 <b>Phòng ${code}</b> · host: ${host}`,
       "",
@@ -39,6 +39,7 @@ export const msg = {
       ...players.map((p, i) => `${i + 1}. ${p}`),
       "",
       `Mời bạn bè: ${link}`,
+      ...(web ? [`Không dùng Telegram? Mở web: ${web}`] : []),
       isHost
         ? players.length < 3
           ? "Cần ít nhất 3 người để bắt đầu."

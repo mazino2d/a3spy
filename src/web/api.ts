@@ -37,7 +37,7 @@ export async function handleApi(request: Request, env: Env): Promise<Response> {
   if (path === "/api/me" && method === "GET") {
     return json({ ...guest, room: await currentRoom(env, guest.id) });
   }
-  if (path === "/api/rooms" && method === "POST") return createRoom(env, guest);
+  if (path === "/api/rooms" && method === "POST") return createRoom(env, guest, url.origin);
 
   const m = /^\/api\/rooms\/([A-Za-z0-9]{4})\/(join|leave|ws)$/.exec(path);
   if (!m) return error("not_found", 404);
@@ -82,12 +82,13 @@ async function session(request: Request, env: Env): Promise<Response> {
   return json(guest, 200, { "set-cookie": cookieHeader(guest.id, token) });
 }
 
-async function createRoom(env: Env, guest: Guest): Promise<Response> {
+async function createRoom(env: Env, guest: Guest, webOrigin: string): Promise<Response> {
   const current = await currentRoom(env, guest.id);
   if (current) return error("in_other_room", 409, { room: current });
   for (let attempt = 0; attempt < 5; attempt++) {
     const code = newRoomCode();
-    if (await env.ROOM.getByName(code).create(code, guest, env.TELEGRAM_BOT_USERNAME)) return json({ code });
+    if (await env.ROOM.getByName(code).create(code, guest, { botUsername: env.TELEGRAM_BOT_USERNAME, webOrigin }))
+      return json({ code });
   }
   return error("no_room_code", 503);
 }
