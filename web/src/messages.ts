@@ -122,6 +122,22 @@ export const t = {
   playAgain: "🔁 Chơi lại",
   waitAgain: "Chờ host bấm Chơi lại nhé.",
 
+  // Long-term stats
+  stats: "📈 Thống kê",
+  statsTitle: "📈 Thống kê",
+  statsMine: "Của bạn",
+  statsNone: "Bạn chưa chơi xong ván nào.",
+  statsTotal: (games: number, wins: number, rate: number) => `${games} ván · thắng ${wins} (${rate}%)`,
+  statsSpy: (games: number, wins: number) => `🕵️ Spy: thắng ${wins}/${games}`,
+  statsWhite: (games: number, wins: number, correct: number) =>
+    `🎩 Mr. White: thắng ${wins}/${games} · đoán đúng ${correct}`,
+  statsBoard: "🏆 Bảng xếp hạng cả nhóm",
+  statsBoardEmpty: "Chưa có ván nào kết thúc.",
+  statsBoardLine: (wins: number, games: number, rate: number) => `${wins} thắng / ${games} ván (${rate}%)`,
+  statsWebNote: "Thống kê trên web tính riêng với Telegram.",
+  longTermStats: "📈 Xem thống kê dài hạn",
+  back: "← Quay lại",
+
   // Score
   score: "🏅 Bảng điểm",
   scoreTitle: "Bảng điểm (ván thắng)",

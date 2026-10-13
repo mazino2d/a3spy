@@ -111,6 +111,7 @@ src/
   game/           Pure game logic. No grammY, no Cloudflare imports.
   room/           RoomDO: persists a room, applies commands from any client, broadcasts
   player/         PlayerDO: player → current room; web guest name and token hash
+  stats/          StatsDO "group": long-term stats per player (no words)
   web/            Web API (/api/*), guest sessions, socket protocol shared with the client
 words/            Word-pair packs (JSON), one file per theme
 web/              Web app (PWA): Preact + Vite, served by the Worker as static assets

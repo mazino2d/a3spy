@@ -4,8 +4,10 @@ import type { Env } from "../env";
 import type { Player } from "../game/engine";
 import { currentRoom as currentRoomOf } from "../player/pointer";
 import { CODE, newRoomCode } from "../room/codes";
+import { statsOf } from "../stats/StatsDO";
 import { decode } from "./callbacks";
 import { msg } from "./messages";
+import { statsMessage } from "./render";
 
 export function displayName(user: Pick<User, "first_name" | "last_name">): string {
   return [user.first_name, user.last_name]
@@ -74,6 +76,11 @@ export function createBot(env: Env, config?: BotConfig<Context>, webOrigin: stri
     const current = await currentRoom(ctx.from.id);
     if (!current) return ctx.reply(msg.notInRoom, { parse_mode: "HTML" });
     await ctx.reply(await roomOf(current).score(), { parse_mode: "HTML" });
+  });
+
+  dm.command("stats", async (ctx) => {
+    const { me, board } = await statsOf(env).read(ctx.from.id);
+    await ctx.reply(statsMessage(me, board), { parse_mode: "HTML" });
   });
 
   bot.on("callback_query:data", async (ctx) => {

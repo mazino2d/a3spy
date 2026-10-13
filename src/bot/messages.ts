@@ -20,6 +20,7 @@ export const msg = {
     "/join &lt;mã&gt; — vào phòng",
     "/leave — rời phòng",
     "/score — bảng điểm của phòng",
+    "/stats — thống kê dài hạn và bảng xếp hạng cả nhóm",
     "/end — (host) kết thúc ván đang chơi",
     "/help — xem hướng dẫn",
   ].join("\n"),
@@ -152,6 +153,18 @@ export const msg = {
     ),
   revealLine: (name: string, role: Role, alive: boolean) => `${alive ? "•" : "✝"} ${name}: ${roleName[role]}`,
   hostAgainHint: "Host bấm <b>Chơi lại</b> để chia ván mới với cùng người chơi.",
+
+  // Long-term stats
+  statsMine: "📈 <b>Thống kê của bạn</b>",
+  statsNone: "Bạn chưa chơi xong ván nào.",
+  statsTotal: (games: number, wins: number, rate: number) => `${games} ván · thắng ${wins} (${rate}%)`,
+  statsSpy: (games: number, wins: number) => `🕵️ Spy: thắng ${wins}/${games}`,
+  statsWhite: (games: number, wins: number, correct: number) =>
+    `🎩 Mr. White: thắng ${wins}/${games} · đoán đúng ${correct}`,
+  statsBoard: "🏆 <b>Bảng xếp hạng cả nhóm</b>",
+  statsBoardEmpty: "Chưa có ván nào kết thúc.",
+  statsBoardLine: (rank: number, name: string, wins: number, games: number, rate: number) =>
+    `${rank}. ${name} — ${wins} thắng / ${games} ván (${rate}%)`,
 
   // Score
   score: (lines: string[]) =>

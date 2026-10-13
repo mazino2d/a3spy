@@ -37,6 +37,17 @@ export async function getMe(): Promise<Me | null> {
   }
 }
 
+export interface Stats {
+  id: number;
+  name: string;
+  games: number;
+  wins: number;
+  spy: { games: number; wins: number };
+  white: { games: number; wins: number; correct: number };
+}
+
+export const getStats = () => call<{ me: Stats | null; board: Stats[] }>("/api/stats");
+
 export const saveName = (name: string) =>
   call<{ id: number; name: string }>("/api/session", { method: "POST", body: JSON.stringify({ name }) });
 export const createRoom = () => call<{ code: string }>("/api/rooms", { method: "POST" });

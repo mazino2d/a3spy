@@ -18,9 +18,11 @@ import { editOrSend, send } from "../bot/telegram";
 import type { Env } from "../env";
 import * as engine from "../game/engine";
 import { cryptoRng } from "../game/rng";
+import { gameResults } from "../game/stats";
 import { isDue, nextTimer, type Timer } from "../game/timers";
 import { publicEvents, viewFor } from "../game/view";
 import { PACKS, pairsOf } from "../game/words";
+import { statsOf } from "../stats/StatsDO";
 import { PLAYER_HEADER } from "../web/api";
 import { CLOSE_CODE, type CloseReason, parseClientMessage, type ServerMessage } from "../web/protocol";
 import { isWeb } from "./clients";
@@ -345,7 +347,21 @@ export class RoomDO extends DurableObject<Env> {
     // Web players first: their sockets are local and fast; Telegram calls can take a while.
     this.pushWeb(closed ? null : next, result.events);
 
+    const ended = result.events.find((e) => e.type === "game_ended");
+    if (ended?.type === "game_ended") await this.recordStats(ended.game);
+
     await this.execute(next, plan(before, result.room, result.events, linksOf(stored)));
+  }
+
+  /** Long-term stats are a bonus: a failed write must never break the game. */
+  private async recordStats(game: engine.Game): Promise<void> {
+    const results = gameResults(game);
+    if (!results.length) return;
+    try {
+      await statsOf(this.env).record(results);
+    } catch (err) {
+      console.warn("stats write failed", { room: this.load()?.room.code, error: String(err) });
+    }
   }
 
   /** Runs ops in order per chat, chats in parallel. Records message ids into stored.ui. */

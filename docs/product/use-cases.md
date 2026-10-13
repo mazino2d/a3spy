@@ -72,6 +72,7 @@ Criteria marked *(M2)* came with host settings ([spec](specs/M2-host-settings.md
 | # | Success criterion |
 | --- | --- |
 | 6.1 | The room scoreboard shows games won per player. |
+| 6.2 | `/stats` and the web Stats screen show a player's long-term numbers and the group leaderboard; no words ever. *(M5)* |
 
 ### UC-7 Configure a game
 

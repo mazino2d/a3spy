@@ -244,3 +244,15 @@ describe("host settings over the web", () => {
     expect(await sh.next("error")).toEqual({ type: "error", code: "bad_request" });
   });
 });
+
+describe("long-term stats on the web", () => {
+  it("S2 AC5 AC6 a guest gets their stats and the leaderboard", async () => {
+    const g = await guest("Stat");
+    const res = await api("/api/stats", { cookie: g.cookie });
+    expect(res.status).toBe(200);
+    const body = await res.json<{ me: unknown; board: unknown[] }>();
+    expect(body.me).toBeNull();
+    expect(Array.isArray(body.board)).toBe(true);
+    expect((await api("/api/stats")).status).toBe(401);
+  });
+});
