@@ -58,9 +58,9 @@ export function Room({ code, onLeft }: { code: string; onLeft(): void }) {
     };
   }, [code]);
 
-  // The call rides on the room socket: without it, the room no longer counts this device in.
+  // Audio keeps flowing through a socket drop; the call resumes its seat when the socket is back.
   useEffect(() => {
-    if (status !== "open") voiceCall.current?.hangup();
+    voiceCall.current?.onSocket(status);
   }, [status]);
 
   useEffect(() => {
