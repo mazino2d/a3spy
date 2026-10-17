@@ -32,6 +32,7 @@ Each milestone has a spec in [specs/](specs/), and large ones an implementation 
 
 | ID | Item | Serves | I | C | E | Score | Notes |
 | --- | --- | --- | --- | --- | --- | --- | --- |
+| M6 | Remote play: a voice call built into each room, for friends playing from different places | UC-1 – UC-4 (remote table) | 3 | 0.8 | 5 | 0.48 | Scores *proposed*. Impact 3: without voice the remote group cannot play at all. Confidence 0.8: WebRTC on mobile networks (CGNAT, TURN) is the main risk. Effort 5: signaling over the room's WebSocket, TURN/SFU on Cloudflare Realtime free allowance, Telegram players joining voice through the web app. Strategy change: dropped the "remote play" non-goal (see [strategy](strategy.md)). Spec: to be written. |
 
 ## Next
 
@@ -50,6 +51,6 @@ Ideas that were triaged and declined, kept so they are not re-litigated.
 | ID | Idea | Decision | Reason | Date |
 | --- | --- | --- | --- | --- |
 | — | Group chat mode (bot in a Telegram group) | Rejected | Words would need DMs anyway; a group chat mixes game noise with the friends' chat. "Private screen per player" covers it. | 2026-10-13 |
-| — | Remote play (describe and vote over chat or voice) | Rejected | Non-goal: the game is played out loud at the table. | 2026-10-13 |
+| — | Remote play (describe and vote over chat or voice) | Rejected, then reopened as M6 (voice only) on 2026-10-17 | Non-goal at the time: the game is played out loud at the table. Reopened when a part of the group living apart wanted to play daily. Text play stays rejected. | 2026-10-13 |
 | — | Native iOS/Android apps | Parked | The PWA covers install and full screen at no store cost. Revisit only if a needed feature is impossible on the web. | 2026-10-13 |
 | — | Custom word lists typed in chat (legacy `/config`) | Rejected | It let anyone replace everyone's words; packs come by PR and are reviewed. | 2026-10-13 |
