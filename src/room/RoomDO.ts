@@ -25,8 +25,17 @@ import { isDue, nextTimer, type Timer } from "../game/timers";
 import { publicEvents, viewFor } from "../game/view";
 import { PACKS, pairsOf } from "../game/words";
 import { statsOf } from "../stats/StatsDO";
+import { realtime } from "../voice/realtime";
+import { dropConn, members, prune, pullable, type Roster, sameRoster } from "../voice/roster";
 import { PLAYER_HEADER } from "../web/api";
-import { CLOSE_CODE, type CloseReason, parseClientMessage, type ServerMessage } from "../web/protocol";
+import {
+  CLOSE_CODE,
+  type CloseReason,
+  parseMessage,
+  type ServerMessage,
+  type VoiceError,
+  type VoiceOp,
+} from "../web/protocol";
 import { isWeb } from "./clients";
 import { type Command, decide } from "./commands";
 
@@ -49,6 +58,8 @@ interface Stored {
 interface SocketInfo {
   playerId: number;
   origin: string;
+  /** Identifies this socket in the voice roster; absent on sockets opened before voice existed. */
+  conn?: string;
 }
 
 export type JoinOutcome = "ok" | "not_found" | "already_in_room";
@@ -108,6 +119,19 @@ export class RoomDO extends DurableObject<Env> {
     if (stored && (!stored.room.settings?.timers || stored.room.settings.voice === undefined))
       stored.room = { ...stored.room, settings: { ...engine.DEFAULT_SETTINGS, ...stored.room.settings } };
     return stored;
+  }
+
+  /**
+   * The voice call, under its own key: execute() writes back a Stored it loaded before
+   * awaiting Telegram, and must not undo a join or mute that happened meanwhile.
+   */
+  private loadVoice(): Roster {
+    return this.ctx.storage.kv.get<Roster>("voice") ?? {};
+  }
+
+  private saveVoice(roster: Roster): void {
+    if (Object.keys(roster).length) this.ctx.storage.kv.put("voice", roster);
+    else this.ctx.storage.kv.delete("voice");
   }
 
   private api(): Api {
@@ -219,13 +243,19 @@ export class RoomDO extends DurableObject<Env> {
     if (!stored) return new Response("Not found", { status: 404 });
     if (!engine.inRoom(stored.room, playerId)) return new Response("Forbidden", { status: 403 });
 
-    // One socket per player: a new tab or a reconnect takes the seat over.
+    // One socket per player: a new tab or a reconnect takes the seat over, and leaves the call.
     for (const old of this.ctx.getWebSockets(String(playerId))) this.closeSocket(old, "replaced");
+    const roster = this.loadVoice();
+    if (roster[playerId]) {
+      const { [playerId]: _gone, ...rest } = roster;
+      this.saveVoice(rest);
+      this.pushVoice(stored, rest);
+    }
 
     const pair = new WebSocketPair();
     const [client, server] = [pair[0], pair[1]];
     this.ctx.acceptWebSocket(server, [String(playerId)]);
-    const info: SocketInfo = { playerId, origin: new URL(request.url).origin };
+    const info: SocketInfo = { playerId, origin: new URL(request.url).origin, conn: crypto.randomUUID() };
     server.serializeAttachment(info);
     this.sendState(server, stored, info);
     return new Response(null, { status: 101, webSocket: client });
@@ -235,9 +265,10 @@ export class RoomDO extends DurableObject<Env> {
     const info = ws.deserializeAttachment() as SocketInfo;
     const stored = this.load();
     if (!stored) return this.closeSocket(ws, "closed");
-    const cmd = typeof message === "string" ? parseClientMessage(message) : null;
-    if (!cmd) return this.sendTo(ws, { type: "error", code: "bad_request" });
-    const error = await this.apply(stored, info.playerId, cmd);
+    const parsed = typeof message === "string" ? parseMessage(message) : null;
+    if (!parsed) return this.sendTo(ws, { type: "error", code: "bad_request" });
+    if (parsed.type === "voice") return this.onVoice(ws, info, parsed);
+    const error = await this.apply(stored, info.playerId, parsed.cmd);
     if (error) {
       this.sendTo(ws, { type: "error", code: error });
       // Whatever the client showed was out of date; bring it back in line.
@@ -247,6 +278,14 @@ export class RoomDO extends DurableObject<Env> {
   }
 
   async webSocketClose(ws: WebSocket, code: number, reason: string): Promise<void> {
+    const { conn } = ws.deserializeAttachment() as SocketInfo;
+    const roster = this.loadVoice();
+    const kept = conn ? dropConn(roster, conn) : roster;
+    if (!sameRoster(roster, kept)) {
+      this.saveVoice(kept);
+      const stored = this.load();
+      if (stored) this.pushVoice(stored, kept);
+    }
     try {
       ws.close(code, reason);
     } catch {
@@ -269,6 +308,78 @@ export class RoomDO extends DurableObject<Env> {
       view: viewFor(room, info.playerId, stored.timer ?? null),
       links: { web: webLink(info.origin, room.code), telegram: inviteLink(stored.botUsername, room.code) },
     });
+    this.sendTo(ws, this.voiceMessage(stored, this.loadVoice()));
+  }
+
+  private voiceMessage(stored: Stored, roster: Roster): ServerMessage {
+    return { type: "voice", on: stored.room.settings.voice, members: members(stored.room, roster) };
+  }
+
+  /** Tells every connected web player who is in the call. */
+  private pushVoice(stored: Stored, roster: Roster): void {
+    const message = this.voiceMessage(stored, roster);
+    for (const ws of this.ctx.getWebSockets()) {
+      const info = ws.deserializeAttachment() as SocketInfo;
+      if (engine.inRoom(stored.room, info.playerId)) this.sendTo(ws, message);
+    }
+  }
+
+  /**
+   * Voice signaling. Calls to the Realtime API are awaited, and other messages can run
+   * meanwhile, so the roster is read again before every write. Voice never touches the game.
+   */
+  private async onVoice(ws: WebSocket, info: SocketInfo, op: VoiceOp): Promise<void> {
+    const fail = (code: VoiceError) => this.sendTo(ws, { type: "voiceError", code });
+    const me = info.playerId;
+    const stored = this.load();
+    if (!stored) return this.closeSocket(ws, "closed");
+    if (!stored.room.settings.voice) return fail("voice_off");
+    const seat = this.loadVoice()[me];
+    const mine = seat !== undefined && info.conn !== undefined && seat.conn === info.conn;
+
+    if (op.op === "leave" || op.op === "mute") {
+      if (!mine) return fail("not_in_call");
+      const roster = this.loadVoice();
+      const next =
+        op.op === "leave"
+          ? dropConn(roster, seat.conn)
+          : { ...roster, [me]: { ...(roster[me] ?? seat), muted: op.muted } };
+      this.saveVoice(next);
+      return this.pushVoice(stored, next);
+    }
+
+    const rt = realtime(this.env);
+    if (!rt || !info.conn) return fail("unavailable");
+    try {
+      if (op.op === "join") {
+        const sessionId = await rt.newSession();
+        const track = `p${Math.abs(me)}-${crypto.randomUUID().slice(0, 8)}`;
+        const answer = await rt.push(sessionId, { type: "offer", sdp: op.sdp }, op.mid, track);
+        const now = this.load();
+        if (!now?.room.settings.voice || !engine.inRoom(now.room, me)) return fail("voice_off");
+        const next = { ...this.loadVoice(), [me]: { sessionId, track, muted: false, conn: info.conn } };
+        this.saveVoice(next);
+        this.sendTo(ws, { type: "voiceSdp", sdp: answer, tracks: [] });
+        return this.pushVoice(now, next);
+      }
+      if (!mine) return fail("not_in_call");
+      if (op.op === "answer") return await rt.renegotiate(seat.sessionId, { type: "answer", sdp: op.sdp });
+      // pull
+      const wanted = pullable(prune(stored.room, this.loadVoice()), me, op.ids);
+      if (!wanted.length) return this.sendTo(ws, { type: "voiceSdp", sdp: null, tracks: [] });
+      const { offer, mids } = await rt.pull(
+        seat.sessionId,
+        wanted.map((w) => ({ sessionId: w.seat.sessionId, trackName: w.seat.track })),
+      );
+      const tracks = wanted.flatMap((w) => {
+        const mid = mids[w.seat.track];
+        return mid ? [{ id: w.id, key: w.seat.track, mid }] : [];
+      });
+      this.sendTo(ws, { type: "voiceSdp", sdp: offer, tracks });
+    } catch (err) {
+      console.warn("voice failed", { room: stored.room.code, op: op.op, error: String(err) });
+      fail("unavailable");
+    }
   }
 
   private closeSocket(ws: WebSocket, reason: CloseReason): void {
@@ -337,6 +448,7 @@ export class RoomDO extends DurableObject<Env> {
       ]),
     );
     this.ctx.storage.kv.delete("state");
+    this.saveVoice({});
     this.pushWeb(null, []);
   }
 
@@ -352,6 +464,10 @@ export class RoomDO extends DurableObject<Env> {
     };
 
     // Persist before talking to Telegram, so a failure mid-broadcast cannot replay the command.
+    // Players who left, or a host turning voice off, take seats out of the call.
+    const roster = this.loadVoice();
+    const kept = closed ? {} : prune(result.room, roster);
+    if (!sameRoster(roster, kept)) this.saveVoice(kept);
     if (closed) {
       this.ctx.storage.kv.delete("state");
       await this.ctx.storage.deleteAlarm();

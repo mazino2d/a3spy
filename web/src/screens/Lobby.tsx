@@ -4,7 +4,7 @@ import { t } from "../messages";
 import type { RoomProps } from "./Room";
 import { Settings } from "./Settings";
 
-export function Lobby({ view, links, online, send }: RoomProps) {
+export function Lobby({ view, links, online, send, mark }: RoomProps) {
   const [copied, setCopied] = useState(false);
   const qr = useMemo(() => renderSVG(links.web, { border: 2, whiteColor: "#fff", blackColor: "#2B241A" }), [links.web]);
   const isHost = view.me === view.hostId;
@@ -53,6 +53,7 @@ export function Lobby({ view, links, online, send }: RoomProps) {
             <li key={p.id} class={p.id === view.me ? "me" : undefined}>
               {p.name}
               {p.id === view.hostId && " 👑"}
+              {mark(p.id)}
               {p.id === view.me && <span class="muted"> ({t.you})</span>}
             </li>
           ))}
@@ -62,7 +63,10 @@ export function Lobby({ view, links, online, send }: RoomProps) {
             <h2>{t.waiting(view.waiting.length)}</h2>
             <ul class="players">
               {view.waiting.map((p) => (
-                <li key={p.id}>{p.name}</li>
+                <li key={p.id}>
+                  {p.name}
+                  {mark(p.id)}
+                </li>
               ))}
             </ul>
           </>
