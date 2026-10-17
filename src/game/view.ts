@@ -69,6 +69,8 @@ export interface SettingsView {
   problem: CountsProblem | null;
   /** Reminder timers in minutes; 0 is off. */
   timers: { discussion: number; vote: number };
+  /** "Chơi online": the room has a voice call. */
+  voice: boolean;
 }
 
 export interface RoomView {
@@ -112,6 +114,7 @@ export function settingsView(room: Room): SettingsView {
     })),
     problem: settingsProblem(room),
     timers: { ...room.settings.timers },
+    voice: room.settings.voice,
   };
 }
 

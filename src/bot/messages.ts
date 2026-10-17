@@ -78,6 +78,7 @@ export const msg = {
   themesClosed: (summary: string) => `📚 Chủ đề: ${summary}`,
   settingsTimers: (discussion: number, vote: number) =>
     `⏱ Thảo luận: ${discussion ? `${discussion} phút` : "tắt"} · Vote: ${vote ? `${vote} phút` : "tắt"}`,
+  settingsVoice: "🎙 Chơi online: phòng có voice call cho người ở xa.",
   discussionTimer: (minutes: number) => `⏱ Có ${minutes} phút thảo luận.`,
   voteTimer: (minutes: number) => `⏱ Có ${minutes} phút để vote.`,
   discussionUp: "⏰ <b>Hết giờ thảo luận!</b> Host mở vote khi cả bàn sẵn sàng nhé.",
@@ -99,6 +100,7 @@ export const msg = {
   btnThemes: (on: number, n: number) => `📚 Chủ đề (${on}/${n})`,
   btnAllThemes: "✅ Bật tất cả",
   btnThemesDone: "👌 Xong",
+  btnVoice: (on: boolean) => `${on ? "✅" : "⬜"} 🎙 Chơi online`,
   btnTimer: (kind: "discussion" | "vote", minutes: number) =>
     `⏱ ${kind === "discussion" ? "Thảo luận" : "Vote"}: ${minutes ? `${minutes} phút` : "tắt"}`,
 

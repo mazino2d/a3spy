@@ -35,6 +35,7 @@ export function Settings({ view, online, change }: Props) {
         {(s.timers.discussion > 0 || s.timers.vote > 0) && (
           <p class="muted small">{t.timersSummary(s.timers.discussion, s.timers.vote)}</p>
         )}
+        {s.voice && <p class="muted small">{t.voiceSummary}</p>}
       </section>
     );
 
@@ -106,6 +107,22 @@ export function Settings({ view, online, change }: Props) {
             </button>
           ))}
         </div>
+      </div>
+      <div class="row between">
+        <span>
+          {t.voice}
+          <br />
+          <span class="muted small">{t.voiceHint}</span>
+        </span>
+        <button
+          type="button"
+          class={s.voice ? "chip on" : "chip"}
+          aria-pressed={s.voice}
+          disabled={disabled}
+          onClick={() => change({ kind: "voice" })}
+        >
+          {s.voice ? `✅ ${t.on}` : `⬜ ${t.off}`}
+        </button>
       </div>
       <details class="themes">
         <summary>

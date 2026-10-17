@@ -56,11 +56,18 @@ export interface Settings {
   counts: RoleCounts | null;
   /** Reminder timers in minutes; 0 is off (docs/rules.md#timers). */
   timers: { discussion: number; vote: number };
+  /** "Chơi online": the room has a voice call (docs/rules.md#voice). */
+  voice: boolean;
 }
 
 export const TIMER_OPTIONS = { discussion: [0, 2, 3, 5], vote: [0, 1, 2] } as const;
 
-export const DEFAULT_SETTINGS: Settings = { themes: [], counts: null, timers: { discussion: 0, vote: 0 } };
+export const DEFAULT_SETTINGS: Settings = {
+  themes: [],
+  counts: null,
+  timers: { discussion: 0, vote: 0 },
+  voice: false,
+};
 
 /** One host tap in the settings. */
 export type SettingsChange =
@@ -71,7 +78,9 @@ export type SettingsChange =
   /** Turns every theme on. */
   | { kind: "allThemes" }
   /** Cycles the timer to its next duration. */
-  | { kind: "timer"; timer: "discussion" | "vote" };
+  | { kind: "timer"; timer: "discussion" | "vote" }
+  /** Turns "Chơi online" on or off. */
+  | { kind: "voice" };
 
 export const MAX_SPIES = 5;
 
@@ -272,6 +281,9 @@ export function configure(room: Room, by: number, change: SettingsChange, allThe
       next = { ...current, timers: { ...current.timers, [change.timer]: minutes } };
       break;
     }
+    case "voice":
+      next = { ...current, voice: !current.voice };
+      break;
     case "theme": {
       if (!allThemes.includes(change.theme)) return fail("bad_setting");
       const on = current.themes.length ? current.themes : [...allThemes];

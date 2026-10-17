@@ -44,7 +44,7 @@ function parseChange(raw: unknown): Command | null {
   const c = raw as Record<string, unknown>;
   if (c.kind === "spies" && (c.delta === 1 || c.delta === -1))
     return { action: "configure", change: { kind: "spies", delta: c.delta } };
-  if (c.kind === "white" || c.kind === "auto" || c.kind === "allThemes")
+  if (c.kind === "white" || c.kind === "auto" || c.kind === "allThemes" || c.kind === "voice")
     return { action: "configure", change: { kind: c.kind } };
   if (c.kind === "timer" && (c.timer === "discussion" || c.timer === "vote"))
     return { action: "configure", change: { kind: "timer", timer: c.timer } };

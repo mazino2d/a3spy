@@ -104,8 +104,8 @@ export class RoomDO extends DurableObject<Env> {
     const stored = this.ctx.storage.kv.get<Stored>("state") ?? null;
     // Rooms stored before the theme picker existed.
     if (stored && !stored.ui.themes) stored.ui = { ...stored.ui, themes: {} };
-    // Rooms stored before host settings or timers existed.
-    if (stored && !stored.room.settings?.timers)
+    // Rooms stored before host settings, timers or voice existed.
+    if (stored && (!stored.room.settings?.timers || stored.room.settings.voice === undefined))
       stored.room = { ...stored.room, settings: { ...engine.DEFAULT_SETTINGS, ...stored.room.settings } };
     return stored;
   }

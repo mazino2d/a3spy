@@ -61,6 +61,7 @@ export function lobbyPanel(room: Room, viewer: number, links: RoomLinks): { text
     ...(settings.timers.discussion || settings.timers.vote
       ? [msg.settingsTimers(settings.timers.discussion, settings.timers.vote)]
       : []),
+    ...(settings.voice ? [msg.settingsVoice] : []),
     ...(isHost && settings.problem === "civilians_not_majority" ? [msg.settingsWarning] : []),
   ];
   return {
@@ -93,6 +94,7 @@ function settingsKeyboard(room: Room): Keyboard {
     cfg(msg.btnTimer("discussion", s.timers.discussion), { kind: "timer", timer: "discussion" }),
     cfg(msg.btnTimer("vote", s.timers.vote), { kind: "timer", timer: "vote" }),
   ]);
+  rows.push([cfg(msg.btnVoice(s.voice), { kind: "voice" })]);
   const on = s.themes.filter((t) => t.on).length;
   rows.push([button(room, msg.btnThemes(on, s.themes.length), "configure", THEMES_OPEN)]);
   if (!s.auto) rows.push([cfg(msg.btnAuto, { kind: "auto" })]);
