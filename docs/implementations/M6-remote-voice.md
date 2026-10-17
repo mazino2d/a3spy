@@ -1,6 +1,6 @@
 # M6 Remote play with voice — implementation plan
 
-Status: planned   ·   Spec: [M6 Remote play with voice](../product/specs/M6-remote-voice.md)   ·   Written 2026-10-17
+Status: in progress   ·   Spec: [M6 Remote play with voice](../product/specs/M6-remote-voice.md)   ·   Written 2026-10-17
 
 How M6 gets built: where audio flows, what the Worker and the RoomDO add, and the PRs in
 order. The spec defines *what* is true; this plan records *how*.
@@ -11,11 +11,11 @@ order. The spec defines *what* is true; this plan records *how*.
 | --- | --- | --- |
 | Media routing | **Cloudflare Realtime SFU.** Each player has one `RTCPeerConnection` to Cloudflare: it pushes one audio track and pulls one track per other player. | A mesh of 10 players is 45 peer connections, each needing its own negotiation, NAT traversal and reconnect; it breaks first on Vietnamese 4G behind CGNAT. One connection per device to an anycast SFU connects faster (AC6), reconnects simply (AC18) and costs the phone one encoder. |
 | Cost | SFU and TURN egress share Realtime's free allowance (1,000 GB/month). Worst case 10 players: 10 × 9 streams × ~18 MB/h ≈ 1.6 GB/h, so about 600 hours a month; the remote group uses ~30. | Strategy: free to run. Verified before P2 (see Risks). |
-| The setting | `Settings.online: boolean`, default `false`, changed by `configure { kind: "online" }` through the existing M2 settings path. | It is a host setting like timers: lobby only, kept for play again (AC1–AC5). The engine's existing `game_running` check gives AC3 for free. |
+| The setting | `Settings.voice: boolean`, default `false`, changed by `configure { kind: "voice" }` through the existing M2 settings path; Telegram callback arg `-1`. Named `voice`, not `online`, because the web app already uses `online` for its connection state. | It is a host setting like timers: lobby only, kept for play again (AC1–AC5). The engine's existing `game_running` check gives AC3 for free. |
 | Voice state | Not in the engine. The RoomDO keeps `Stored.voice`: per seat `{ sessionId, track, muted, since }`. Pure helpers in `src/voice/roster.ts`. | Voice is not game state: the game never waits for it (AC19), and `src/game` must stay deterministic. A pure roster still gets unit tests. |
 | Signaling | Over the room's existing WebSocket: new `voice.*` client messages; the RoomDO calls the Realtime API and returns SDP. | The socket already authenticates the seat and survives hibernation; no second channel to secure. |
 | Realtime API calls | Made only by the RoomDO, with `REALTIME_APP_ID` (var) and `REALTIME_APP_TOKEN` (secret). Clients never see the token or other players' session ids. | The app token can create sessions on our account; a client holding it could run up usage. Session ids stay server-side so nobody outside the room can pull a track (AC11). |
-| Who may pull what | The RoomDO pulls a track into a session only if both seats are in the room and the room is online. | AC11: the room code alone gives nothing. |
+| Who may pull what | The RoomDO pulls a track into a session only if both seats are in the room and the room has voice on. | AC11: the room code alone gives nothing. |
 | Talking indicator | Computed on each device from the received audio level (`RTCRtpReceiver.getSynchronizationSources()`), never sent through the server. | AC13's 1 s needs no server round trip and costs no requests. |
 | Mute | Client sets `track.enabled = false` and sends `voice.mute`; the RoomDO stores it and broadcasts the roster. | Muting locally is instant and sends silence; the roster makes it visible to others (AC14). |
 | Audio settings | `getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true } })`, Opus defaults. | Phones on speaker in separate rooms; echo cancellation does most of the work, the headphones tip the rest (AC16). |
@@ -43,9 +43,9 @@ client → room   { type: "voice", op: "join",   offer: SDP }            push my
                 { type: "voice", op: "answer", answer: SDP }           after a renegotiation offer
                 { type: "voice", op: "mute",   muted: boolean }
                 { type: "voice", op: "leave" }
-room → client   { type: "voice", roster: [{ id, name, muted, reconnecting }], online: boolean }
+room → client   { type: "voice", roster: [{ id, name, muted, reconnecting }], voice: boolean }
                 { type: "voiceSdp", sdp: SDP, kind: "answer" | "offer", tracks: [{ id, mid }] }
-                { type: "voiceError", code: "not_online" | "realtime_unavailable" | "bad_sdp" }
+                { type: "voiceError", code: "voice_off" | "realtime_unavailable" | "bad_sdp" }
 ```
 
 ### Join sequence
@@ -64,7 +64,7 @@ invocation; 10 players is 12, under the free plan's 50.
 
 ### Leaving and drops
 
-- `voice.leave`, leaving the room, the room closing, or turning `online` off: the RoomDO
+- `voice.leave`, leaving the room, the room closing, or turning `voice` off: the RoomDO
   closes the seat's tracks (`tracks/close`), removes it from the roster and broadcasts.
 - Socket closed without `leave` (tab closed, network): the seat is marked `reconnecting`
   and removed after 30 s unless the same seat rejoins (the room alarm already exists;
@@ -79,8 +79,8 @@ Every phase leaves production working: voice exists only in rooms where the host
 
 | Phase | Scope | Stories · ACs | Effort | PR | Status |
 | --- | --- | --- | --- | --- | --- |
-| P1 | `Settings.online` in the engine, `configure online`, Telegram lobby toggle and "🎙 Phòng online" line, web settings toggle, load-time default for stored rooms | V1 · AC1, AC2, AC3, AC5 | 0.5 | | Planned |
-| P2 | Realtime app and secrets; `src/voice/realtime.ts` (API client) and `src/voice/roster.ts` (pure); RoomDO voice ops; web `VoiceCall` (join, mute, leave, roster marks on every player list, talking meter, microphone-denied line, headphones tip); turning online off ends the call | V2, V3, V6 · AC4, AC6, AC7, AC11–AC17, AC22, AC23 | 2 | | Planned |
+| P1 | `Settings.online` in the engine, `configure online`, Telegram lobby toggle and "🎙 Phòng online" line, web settings toggle, load-time default for stored rooms | V1 · AC1, AC2, AC3, AC5 | 0.5 | #59 | In review |
+| P2 | Realtime app and secrets; `src/voice/realtime.ts` (API client) and `src/voice/roster.ts` (pure); RoomDO voice ops; web `VoiceCall` (join, mute, leave, roster marks on every player list, talking meter, microphone-denied line, headphones tip); turning voice off ends the call | V2, V3, V6 · AC4, AC6, AC7, AC11–AC17, AC22, AC23 | 2 | | Planned |
 | P3 | Robustness: `reconnecting` mark and 30 s sweep, ICE restart and rejoin, seat taken over by a newer tab, leave/close cleanup, TURN credentials for UDP-blocked networks | V5 · AC18–AC21 | 1 | | Planned |
 | P4 | Spike `login_url` vs HMAC link on iOS and Android Telegram; `/v/<code>` voice page; voice-only socket; **Vào voice** button in lobby and round messages | V4 · AC8–AC10 | 1.5 | | Planned |
 
@@ -90,10 +90,10 @@ Total 5 days, as estimated on the roadmap.
 
 | Level | Where | Covers |
 | --- | --- | --- |
-| Unit | `test/unit/settings.test.ts` | `online` default off, host-only, refused while running, kept on play again |
+| Unit | `test/unit/settings.test.ts` | `voice` default off, host-only, refused while running, kept on play again |
 | Unit | `test/unit/voice-roster.test.ts` | Join, leave, mute, reconnecting and sweep; who may pull whom; roster view carries names and flags only |
 | Unit | `test/unit/realtime.test.ts` | API client against a mocked `fetch`: request shapes, error mapping to `voiceError` |
-| Integration | `test/integration/voice.test.ts` | Over a real RoomDO with the Realtime API mocked: join → answer and roster broadcast; offline room refuses; a seat outside the room cannot join; voice socket never receives `state` (AC9, AC23); online off ends the call |
+| Integration | `test/integration/voice.test.ts` | Over a real RoomDO with the Realtime API mocked: join → answer and roster broadcast; offline room refuses; a seat outside the room cannot join; voice socket never receives `state` (AC9, AC23); voice off ends the call |
 | Manual | Checklist in each PR | Real devices: Android Chrome, iOS Safari, laptop; 4G + home Wi-Fi; join time (AC6), delay (AC17), drop and recover (AC18), Telegram button (P4) |
 
 WebRTC itself cannot run inside workerd tests, so AC6, AC17 and AC18 are verified manually

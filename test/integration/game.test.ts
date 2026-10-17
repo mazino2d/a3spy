@@ -204,6 +204,21 @@ describe("host settings over Telegram", () => {
     expect(tg.last(1101)?.text).toContain("Dân phải đông hơn");
   });
 
+  it("V1 AC1 AC2 only the host gets the Chơi online button; turning it on shows in every lobby", async () => {
+    await openRoom([7901, 7902, 7903]);
+    expect(tg.last(7902)?.text).not.toContain("Chơi online");
+    expect(
+      tg
+        .to(7902)
+        .flatMap((m) => m.buttons)
+        .some((b) => b.text.includes("Chơi online")),
+    ).toBe(false);
+
+    await press(7901, button(7901, "⬜ 🎙 Chơi online"));
+    expect(tg.last(7902)?.text).toContain("Chơi online");
+    expect(button(7901, "✅ 🎙 Chơi online")).toBeTruthy();
+  });
+
   it("L4 AC3 starting with bad counts is refused with a reason", async () => {
     await openRoom([1201, 1202, 1203, 1204, 1205]);
     await press(1201, button(1201, "➕ Spy"));

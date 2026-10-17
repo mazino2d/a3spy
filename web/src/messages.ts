@@ -68,6 +68,9 @@ export const t = {
   minutes: (n: number) => (n ? `${n} phút` : "Tắt"),
   timersSummary: (discussion: number, vote: number) =>
     `Hẹn giờ: thảo luận ${discussion ? `${discussion} phút` : "tắt"} · vote ${vote ? `${vote} phút` : "tắt"}`,
+  voice: "🎙 Chơi online",
+  voiceHint: "Phòng có voice call cho người chơi ở xa.",
+  voiceSummary: "🎙 Chơi online: phòng có voice call",
   timeLeft: (text: string) => `⏱ Còn ${text}`,
   timeUp: { discussion: "⏰ Hết giờ thảo luận!", vote: "⏰ Hết giờ vote!" } as Record<string, string>,
 

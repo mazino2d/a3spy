@@ -15,6 +15,7 @@ import { seededRng } from "../../src/game/rng";
 import { settingsView } from "../../src/game/view";
 import { PACKS } from "../../src/game/words";
 import { decide } from "../../src/room/commands";
+import { parseClientMessage } from "../../src/web/protocol";
 import { expectOk, lobby, PAIRS, player } from "../helpers/game";
 
 const THEMES = PACKS.map((p) => p.id);
@@ -147,6 +148,7 @@ describe("L4 host settings", () => {
       { kind: "white" },
       { kind: "auto" },
       { kind: "allThemes" },
+      { kind: "voice" },
       ...THEMES.map((theme) => ({ kind: "theme", theme }) as const),
     ];
     for (const c of changes) expect(decodeChange(encodeChange(c))).toEqual(c);
@@ -155,5 +157,42 @@ describe("L4 host settings", () => {
     expect(decodeChange(7)).toBeNull();
     expect(decodeChange(9)).toBeNull();
     expect(decodeChange(99)).toBeNull();
+  });
+});
+
+describe("V1 Chơi online", () => {
+  it("V1 AC1 a new room has voice off", () => {
+    expect(settingsView(lobby(4)).voice).toBe(false);
+  });
+
+  it("V1 AC2 only the host turns voice on and off, and every change is announced", () => {
+    const room = lobby(4);
+    expect(configure(room, 2, { kind: "voice" }, THEMES)).toEqual({ ok: false, error: "not_host" });
+    const on = expectOk(configure(room, 1, { kind: "voice" }, THEMES));
+    expect(on.events).toEqual([{ type: "settings_changed", settings: on.room.settings }]);
+    expect(settingsView(on.room).voice).toBe(true);
+    expect(settingsView(set(on.room, { kind: "voice" })).voice).toBe(false);
+  });
+
+  it("V1 AC3 voice cannot change while a game is running", () => {
+    const room = expectOk(start(set(lobby(4), { kind: "voice" }), 1, opts())).room;
+    expect(configure(room, 1, { kind: "voice" }, THEMES)).toEqual({ ok: false, error: "game_running" });
+  });
+
+  it("V1 AC5 voice survives play again and a change of host", () => {
+    let room = set(lobby(4), { kind: "voice" });
+    room = expectOk(start(room, 1, opts())).room;
+    room = expectOk(end(room, 1)).room;
+    room = expectOk(start(room, 1, opts(2))).room;
+    expect(room.settings.voice).toBe(true);
+    room = expectOk(end(room, 1)).room;
+    expect(expectOk(leave(room, 1)).room.settings.voice).toBe(true);
+  });
+
+  it("V1 the web sends the voice toggle as a settings change", () => {
+    expect(parseClientMessage('{"type":"command","action":"configure","change":{"kind":"voice"}}')).toEqual({
+      action: "configure",
+      change: { kind: "voice" },
+    });
   });
 });
