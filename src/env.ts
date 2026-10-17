@@ -1,3 +1,4 @@
+import type { AudienceDO } from "./audience/AudienceDO";
 import type { PlayerDO } from "./player/PlayerDO";
 import type { RoomDO } from "./room/RoomDO";
 import type { StatsDO } from "./stats/StatsDO";
@@ -11,7 +12,10 @@ export interface Env {
   REALTIME_APP_ID: string;
   /** Secret; absent in local dev without voice. */
   REALTIME_APP_TOKEN?: string;
+  /** Secret; the only Telegram user who may send announcements (/announce). */
+  OWNER_TELEGRAM_ID?: string;
   ROOM: DurableObjectNamespace<RoomDO>;
   PLAYER: DurableObjectNamespace<PlayerDO>;
   STATS: DurableObjectNamespace<StatsDO>;
+  AUDIENCE: DurableObjectNamespace<AudienceDO>;
 }

@@ -26,6 +26,18 @@ export const msg = {
   ].join("\n"),
   unknownText: "Mình chỉ hiểu lệnh thôi nha. Gõ /help để xem danh sách lệnh.",
 
+  // Announcements (owner only; plain text, no HTML)
+  announceUsage: "Gõ /announce kèm nội dung, ví dụ: /announce A3 Spy có bộ từ mới!",
+  announceTooLong: (max: number) => `Thông báo dài quá, tối đa ${max} ký tự.`,
+  announcePreview: (count: number, text: string) => `📣 Xem trước — sẽ gửi tới ${count} người:\n\n${text}`,
+  btnAnnounceSend: "📤 Gửi",
+  btnAnnounceCancel: "✖️ Huỷ",
+  announceSending: "Đang gửi…",
+  announceCancelled: "Đã huỷ.",
+  announceStale: "Bản xem trước này cũ rồi, không gửi.",
+  announceBusy: "Đang gửi một thông báo khác, đợi xong đã.",
+  announceDone: (sent: number, failed: number) => `📣 Đã gửi tới ${sent} người, lỗi ${failed}.`,
+
   // Rooms
   alreadyInRoom: (code: string) => `Bạn đang ở phòng <b>${code}</b>. Gõ /leave để rời trước đã.`,
   alreadyInThisRoom: (code: string) => `Bạn đã ở trong phòng <b>${code}</b> rồi.`,
