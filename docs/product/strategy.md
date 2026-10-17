@@ -4,7 +4,7 @@
 > triaging, writing specs or reordering the roadmap. Change it deliberately: every change
 > here shifts what gets built.
 
-Last reviewed: 2026-10-17
+Last reviewed: 2026-10-17 (M7: web only)
 
 ## Vision
 
@@ -28,9 +28,11 @@ person never got to play properly.
   word list.
 - **It was unreliable.** It ran on a laptop with state in memory.
 
-[M1](specs/M1-telegram-game-master.md) fixed all five on Telegram. The open problem is
-reach. A friend without Telegram could not sit in, solved by the web app
-([M3](specs/M3-web-app.md)). A group of friends who live apart and play every day cannot
+[M1](specs/M1-telegram-game-master.md) fixed all five on Telegram, and the web app
+([M3](specs/M3-web-app.md)) let friends without Telegram sit in. Running the game on two
+clients then became the problem: every feature (settings, timers, stats, voice) was built
+twice, and chat messages cannot show what a screen can. From M7 the game runs only in the
+web app; Telegram is where people discover A3 Spy and hear about updates. A group of friends who live apart and play every day cannot
 play at all without juggling a separate call app next to A3 Spy (M6).
 
 ## Settings and personas
@@ -76,8 +78,8 @@ written reason to exist.
 
 ## Non-negotiable
 
-- **Secrets stay secret.** A word or a role is shown only to its owner (their Telegram DM,
-  a popup, or their own screen), never to anyone else, never in logs, links or button
+- **Secrets stay secret.** A word or a role is shown only to its owner (on their own
+  screen), never to anyone else, never in logs, links or button
   data.
 - **Nobody gets stuck.** A missing host, a player who does not vote, a dropped
   connection or a stale button never freezes a game.
@@ -91,15 +93,18 @@ written reason to exist.
 
 ## Strong defaults (can be challenged, with a written reason)
 
-- **Private screen per player, no shared screen.** Each player uses their own phone: a DM
-  with the bot or the web app. There is no group chat and no "table display" mode.
+- **Private screen per player, no shared screen.** Each player uses the web app on their own
+  phone. There is no group chat and no "table display" mode.
 - **Talk happens out loud, never by text.** At a café, across the table; on a remote table,
   over the voice call built into the room. Nobody needs a separate call app.
 - **The host sets the pace.** No timers by default; the host advances phases.
 - **One or two taps per phone interaction.** Typing only for a name or Mr. White's guess.
-- **No accounts, no passwords.** Telegram identifies Telegram players; a web player picks
+- **No accounts, no passwords.** A player picks
   a name.
 - **Vietnamese, playful and short.** Every message or screen reads in 3 seconds.
+
+*Changed 2026-10-17 (M7):* the game runs only in the web app. Telegram no longer runs
+rooms; the bot introduces A3 Spy, links to the web app and sends update announcements.
 
 *Changed 2026-10-17:* "Talk happens out loud" became a strong default that covers remote
 tables through a voice call built into the room (M6).
@@ -109,12 +114,18 @@ app ([M3](specs/M3-web-app.md)).
 
 ## Non-goals (for now)
 
+- **Playing in Telegram.** The bot is a signpost and an announcement channel, never a game
+  client. Every game feature is built once, for the web app.
 - **Text or video play.** No describing by chat or typed messages, and no video; remote
   tables talk over voice only.
 - **Public release.** No onboarding for strangers, no store listing, no monetisation.
 - **Native apps.** The web app is installable as a PWA; no App Store or Play Store build.
 - **Profiles and accounts.** Long-term stats exist ([M5](specs/M5-long-term-stats.md)), but there are
-  no profiles, no account linking between Telegram and the web, and no per-season boards.
+  no profiles, no accounts and no per-season boards. Stats were reset when the game moved to
+  the web (M7).
+
+*Changed 2026-10-17 (M7):* "playing in Telegram" became a non-goal; the bot's game features
+were removed and every room, session and stat recorded before the move was deleted.
 
 *Changed 2026-10-17:* "remote play" was removed from the non-goals: part of the group lives
 apart and wants to play every day, which needs voice. It is narrowed to "text or video
