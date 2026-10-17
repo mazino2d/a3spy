@@ -288,7 +288,9 @@ export class RoomDO extends DurableObject<Env> {
     const stored = this.load();
     if (stored && conn) await this.loseVoice(stored, { conn });
     try {
-      ws.close(code, reason);
+      // Answer the close handshake. A browser that closed without a code reports 1005, which
+      // may not be sent back: the reply would throw and leave the browser waiting ~10 s.
+      ws.close(code === 1000 || (code >= 3000 && code <= 4999) ? code : 1000, reason);
     } catch {
       // Already closed.
     }

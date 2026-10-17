@@ -197,4 +197,11 @@ describe("V5 voice through a dropped connection", () => {
     sa.send({ type: "command", action: "openVote", gameId: view.game?.id, round: view.game?.round });
     expect((await sa.next("state", (m) => m.view.game?.phase === "voting")).view.game?.phase).toBe("voting");
   });
+
+  it("V5 AC18 a browser that closes without a code gets an answer at once, so it can reconnect", async () => {
+    const { sa } = await onlineRoom(["Vy", "Khoa"]);
+    sa.ws.close();
+    const closed = await Promise.race([sa.closed, new Promise<null>((r) => setTimeout(() => r(null), 1000))]);
+    expect(closed).not.toBeNull();
+  });
 });
