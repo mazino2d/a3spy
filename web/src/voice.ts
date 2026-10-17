@@ -249,22 +249,40 @@ export class VoiceCall {
       }
     }
     const samples = new Float32Array(512);
-    this.meter = setInterval(() => {
+    this.meter = setInterval(() => void this.measure(samples), METER_MS);
+  }
+
+  private measuring = false;
+
+  /**
+   * Others' levels come from inbound-rtp stats: through Cloudflare's SFU, Chrome leaves
+   * getSynchronizationSources() without an audioLevel.
+   */
+  private async measure(samples: Float32Array<ArrayBuffer>): Promise<void> {
+    const pc = this.pc;
+    if (this.measuring || !pc) return;
+    this.measuring = true;
+    try {
       const now = performance.now();
       if (this.analyser && !this.state.muted) {
         this.analyser.getFloatTimeDomainData(samples);
         const rms = Math.sqrt(samples.reduce((sum, x) => sum + x * x, 0) / samples.length);
         if (rms > TALKING) this.lastLoud.set(this.me, now);
       }
-      for (const r of this.remotes.values()) {
-        const t = this.pc?.getTransceivers().find((x) => x.mid === r.mid);
-        const level = t?.receiver.getSynchronizationSources()[0]?.audioLevel ?? 0;
-        if (level > TALKING) this.lastLoud.set(r.id, now);
-      }
+      const levels = new Map<string, number>();
+      (await pc.getStats()).forEach((r) => {
+        if (r.type === "inbound-rtp" && r.kind === "audio" && r.mid) levels.set(r.mid, r.audioLevel ?? 0);
+      });
+      if (pc !== this.pc) return;
+      for (const r of this.remotes.values()) if ((levels.get(r.mid) ?? 0) > TALKING) this.lastLoud.set(r.id, now);
       const talking = new Set([...this.lastLoud].filter(([, at]) => now - at < TALKING_HOLD_MS).map(([id]) => id));
       const before = this.state.talking;
       if (talking.size !== before.size || [...talking].some((id) => !before.has(id))) this.set({ talking });
-    }, METER_MS);
+    } catch {
+      // Stats are best effort; the call itself is unaffected.
+    } finally {
+      this.measuring = false;
+    }
   }
 
   private set(patch: Partial<VoiceState>): void {
