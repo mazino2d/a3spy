@@ -131,7 +131,7 @@ test/integration/ Worker + DO tests in the workers runtime
 - One story (or one bug) per PR; a few tightly coupled stories of one milestone, or one
   phase of an implementation plan, may share a PR. The PR body says `Closes #<issue>` for
   each and lists the acceptance criteria covered.
-- The only required check is **`ci-ok`**; it aggregates the path-filtered jobs, so a
+- The only required check is **`ci / gate`**; it aggregates the path-filtered jobs, so a
   docs-only PR still gets a green check.
 
 ## Definition of Done

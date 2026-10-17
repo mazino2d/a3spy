@@ -52,7 +52,7 @@ Add word pairs in `words/*.json` (pairs of similar words, one theme per file); t
 
 ## Delivery
 
-- `main` is protected: changes land through PRs, and the `ci-ok` check must pass.
+- `main` is protected: changes land through PRs, and the `ci / gate` check must pass.
 - Merging to `main` deploys to Cloudflare and points the Telegram webhook at the Worker (`.github/workflows/cd.yml`).
 - The bot's name, descriptions, `/` command menu and avatar are configured in `telegram/` and synced on merge (`.github/workflows/telegram-profile.yml`).
 - Repo settings, the Cloudflare deploy token and secrets are managed as code in [everything-as-code](https://github.com/mazino2d/everything-as-code) (`terraform/github`, `terraform/cloudflare`).

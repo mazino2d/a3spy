@@ -69,7 +69,7 @@ Never change acceptance criteria in a plan; if a decision forces one to change, 
 
 ## CI/CD
 
-- `.github/workflows/ci.yml` runs on PRs; jobs are path-filtered and aggregated by **`ci-ok`**, the only required check. When adding a job, add it to `ci-ok`'s `needs` and to the path filters.
+- `.github/workflows/ci.yml` runs on PRs and calls the reusable `node-ci.yml` from [mazino2d/github-workflows](https://github.com/mazino2d/github-workflows): one command per line under `run:`, skipped unless a file in `paths:` changed, and aggregated by **`ci / gate`**, the only required check. To add a check, add its command to `run:` (and its files to `paths:`).
 - `.github/workflows/cd.yml` runs on push to `main`: `wrangler deploy`, pushes Worker secrets, then calls `setWebhook` with the secret token. It is serialized with a `concurrency` group.
 - Repo settings, branch protection and secrets are Terraform-managed in `mazino2d/everything-as-code`; do not change them in the GitHub UI.
 
