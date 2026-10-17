@@ -1,6 +1,6 @@
 # M6 Remote play with voice
 
-Status: draft   ·   Serves: UC-1 – UC-5, UC-9   ·   Roadmap: Now
+Status: ready   ·   Serves: UC-1 – UC-5, UC-9   ·   Roadmap: Now   ·   Implementation: [M6](../../implementations/M6-remote-voice.md)
 
 ## Problem
 
@@ -34,12 +34,12 @@ label `epic:voice`.
 
 | ID | Story | Priority |
 | --- | --- | --- |
-| V1 | As a host, I turn on "Chơi online" in the lobby so my room gets a voice call. | Must |
-| V2 | As a web player in an online room, I join the call with one tap and hear everyone. | Must |
-| V3 | As a player in the call, I mute and unmute myself and see who is in the call, who is muted and who is talking. | Must |
-| V4 | As a Telegram player in an online room, I tap one button and join the call for my seat without making a web account. | Must |
-| V5 | As a player whose connection drops, I get back into the call on my own and the game never waits for voice. | Must |
-| V6 | As a player at a remote table, I get a one-line tip to wear headphones so the call has no echo. | Should |
+| V1 ([#52](https://github.com/mazino2d/a3spy/issues/52)) | As a host, I turn on "Chơi online" in the lobby so my room gets a voice call. | Must |
+| V2 ([#53](https://github.com/mazino2d/a3spy/issues/53)) | As a web player in an online room, I join the call with one tap and hear everyone. | Must |
+| V3 ([#54](https://github.com/mazino2d/a3spy/issues/54)) | As a player in the call, I mute and unmute myself and see who is in the call, who is muted and who is talking. | Must |
+| V4 ([#55](https://github.com/mazino2d/a3spy/issues/55)) | As a Telegram player in an online room, I tap one button and join the call for my seat without making a web account. | Must |
+| V5 ([#56](https://github.com/mazino2d/a3spy/issues/56)) | As a player whose connection drops, I get back into the call on my own and the game never waits for voice. | Must |
+| V6 ([#57](https://github.com/mazino2d/a3spy/issues/57)) | As a player at a remote table, I get a one-line tip to wear headphones so the call has no echo. | Should |
 
 ## Acceptance criteria
 
