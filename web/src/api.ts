@@ -52,6 +52,16 @@ export const saveName = (name: string) =>
   call<{ id: number; name: string }>("/api/session", { method: "POST", body: JSON.stringify({ name }) });
 export const createRoom = () => call<{ code: string }>("/api/rooms", { method: "POST" });
 export const joinRoom = (code: string) => call<{ code: string }>(`/api/rooms/${code}/join`, { method: "POST" });
+/** A Telegram player's voice page: null when the voice cookie is missing or expired. */
+export async function getVoiceMe(code: string): Promise<{ id: number; inRoom: boolean } | null> {
+  try {
+    return await call<{ id: number; inRoom: boolean }>(`/api/voice/${code}`);
+  } catch (e) {
+    if (e instanceof ApiError && e.status === 401) return null;
+    throw e;
+  }
+}
+
 export const leaveRoom = (code: string) => call<object>(`/api/rooms/${code}/leave`, { method: "POST" });
 
 export type SocketStatus = "connecting" | "open" | "offline" | "replaced" | "closed";
@@ -71,6 +81,8 @@ export class RoomSocket {
     private readonly code: string,
     private readonly onMessage: (m: ServerMessage) => void,
     private readonly onStatus: (s: SocketStatus) => void,
+    /** The voice page's socket instead of the room's. */
+    private readonly path = `/api/rooms/${code}/ws`,
   ) {
     document.addEventListener("visibilitychange", this.wake);
     window.addEventListener("online", this.wake);
@@ -109,7 +121,7 @@ export class RoomSocket {
   private connect(): void {
     this.onStatus("connecting");
     const scheme = location.protocol === "https:" ? "wss" : "ws";
-    const ws = new WebSocket(`${scheme}://${location.host}/api/rooms/${this.code}/ws`);
+    const ws = new WebSocket(`${scheme}://${location.host}${this.path}`);
     this.ws = ws;
     ws.onopen = () => {
       this.retry = 0;

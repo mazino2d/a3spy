@@ -2,6 +2,7 @@ import { type Game, type GameEvent, handOf, isRunning, playerName, type Room } f
 import type { Hand } from "../game/roles";
 import { type PlayerStats, winRate } from "../game/stats";
 import { settingsView } from "../game/view";
+import { isTelegram } from "../room/clients";
 import { type Action, encode, encodeChange, THEMES_CLOSE, THEMES_OPEN } from "./callbacks";
 import { msg } from "./messages";
 
@@ -10,10 +11,8 @@ import { msg } from "./messages";
  * Pure: the Durable Object executes the plan and remembers message ids.
  */
 
-export interface Button {
-  text: string;
-  data: string;
-}
+/** A callback button, or a Telegram Login button that opens a URL with the user's signed identity. */
+export type Button = { text: string; data: string } | { text: string; login: string };
 export type Keyboard = Button[][];
 
 export type Slot = "lobby" | "vote" | "status" | "themes";
@@ -39,6 +38,14 @@ function button(room: Room, text: string, action: Action, arg = 0): Button {
 
 export const inviteLink = (botUsername: string, code: string) => `https://t.me/${botUsername}?start=${code}`;
 export const webLink = (origin: string, code: string) => `${origin}/r/${code}`;
+/** Opens the voice page for the Telegram player's own seat (docs/implementations/M6-remote-voice.md). */
+export const voiceLoginLink = (origin: string, code: string) => `${origin}/api/voice/login?room=${code}`;
+
+/** The "Vào voice" row for a Telegram player in an online room; none when the room has no web origin. */
+function voiceRow(room: Room, viewer: number, links: RoomLinks): Keyboard {
+  if (!room.settings.voice || !links.webOrigin || !isTelegram(viewer)) return [];
+  return [[{ text: msg.btnVoiceJoin, login: voiceLoginLink(links.webOrigin, room.code) }]];
+}
 
 /** Where a room can be joined from: Telegram, and the web app when its origin is known. */
 export interface RoomLinks {
@@ -51,8 +58,13 @@ export function lobbyPanel(room: Room, viewer: number, links: RoomLinks): { text
   const players = room.players.map((p) => esc(p.name) + (p.id === room.hostId ? " 👑" : ""));
   const settings = settingsView(room);
   const keyboard: Keyboard = isHost
-    ? [[button(room, msg.btnStart, "start")], ...settingsKeyboard(room), [button(room, msg.btnLeave, "leave")]]
-    : [[button(room, msg.btnLeave, "leave")]];
+    ? [
+        [button(room, msg.btnStart, "start")],
+        ...voiceRow(room, viewer, links),
+        ...settingsKeyboard(room),
+        [button(room, msg.btnLeave, "leave")],
+      ]
+    : [...voiceRow(room, viewer, links), [button(room, msg.btnLeave, "leave")]];
   const settingsLines = [
     settings.spies === null || settings.white === null
       ? msg.settingsAutoPending
@@ -296,8 +308,10 @@ export function plan(before: Room, after: Room, events: GameEvent[], links: Room
       const hint =
         isHost && phase === "describing" ? msg.hostRoundHint : isHost && phase === "ended" ? msg.hostAgainHint : null;
       const text = [...lines, ...(hint ? [hint] : [])].join("\n\n");
-      const keyboard = isHost ? hostKeyboard(after) : undefined;
-      ops.push(keyboard ? { kind: "send", to: id, text, keyboard } : { kind: "send", to: id, text });
+      // Every round message carries the voice button, so it is always near the bottom of the chat.
+      const voice = events.some((e) => e.type === "round_started") ? voiceRow(after, id, links) : [];
+      const rows = [...(isHost ? (hostKeyboard(after) ?? []) : []), ...voice];
+      ops.push(rows.length ? { kind: "send", to: id, text, keyboard: rows } : { kind: "send", to: id, text });
     }
   }
 

@@ -59,11 +59,14 @@ export function telegramStub() {
         text: String(c.body.text),
         messageId: (c.body.message_id as number) ?? 0,
         buttons: (
-          (c.body.reply_markup as { inline_keyboard?: { text: string; callback_data: string }[][] })?.inline_keyboard ??
-          []
+          (
+            c.body.reply_markup as {
+              inline_keyboard?: { text: string; callback_data?: string; login_url?: { url: string } }[][];
+            }
+          )?.inline_keyboard ?? []
         )
           .flat()
-          .map((b) => ({ text: b.text, data: b.callback_data })),
+          .map((b) => ({ text: b.text, data: b.callback_data ?? b.login_url?.url ?? "" })),
       }));
 
   return {

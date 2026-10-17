@@ -100,6 +100,7 @@ export const msg = {
   btnThemes: (on: number, n: number) => `📚 Chủ đề (${on}/${n})`,
   btnAllThemes: "✅ Bật tất cả",
   btnThemesDone: "👌 Xong",
+  btnVoiceJoin: "🎙 Vào voice",
   btnVoice: (on: boolean) => `${on ? "✅" : "⬜"} 🎙 Chơi online`,
   btnTimer: (kind: "discussion" | "vote", minutes: number) =>
     `⏱ ${kind === "discussion" ? "Thảo luận" : "Vote"}: ${minutes ? `${minutes} phút` : "tắt"}`,
