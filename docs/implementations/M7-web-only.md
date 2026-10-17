@@ -1,6 +1,6 @@
 # M7 Web only — implementation plan
 
-Status: planned   ·   Spec: [M7 Web only](../product/specs/M7-web-only.md)   ·   Written 2026-10-17
+Status: in progress   ·   Spec: [M7 Web only](../product/specs/M7-web-only.md)   ·   Written 2026-10-17
 
 How the game leaves Telegram: an announcement channel first, then one cutover deploy that
 removes the Telegram game and deletes the old data. The spec defines *what*; this plan
@@ -35,7 +35,7 @@ Browser ──/api, ws────▶ │──▶ GameRoomDO (per room) ──�
 
 | Phase | Scope | Stories · ACs | Effort | PR | Status |
 | --- | --- | --- | --- | --- | --- |
-| P1 | `AudienceDO` (migration `v3`), record every update's sender, seed from `StatsDO`, `/announce` with preview, confirm, batched send and summary; `OWNER_TELEGRAM_ID` secret in CD | B1 · AC1–AC6 | 1 | | Planned |
+| P1 | `AudienceDO` (migration `v3`), record every update's sender, seed from `StatsDO`, `/announce` with preview, confirm, batched send and summary; `OWNER_TELEGRAM_ID` secret in CD | B1 · AC1–AC6 | 1 | #71 | In review |
 | — | **Owner sends the "A3 Spy moves to the web" announcement** with the web link and the cutover date | — | — | | Planned |
 | P2 | Cutover: bot becomes a signpost; remove the Telegram game and Telegram voice; protocol and lobby drop Telegram links; migrations `v4`/`v5` delete and replace the old classes; bot profile; `docs/rules.md`, README, AGENTS updated | X1–X4, B2 · AC7–AC14 | 2 | | Planned |
 

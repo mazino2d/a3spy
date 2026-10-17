@@ -1,5 +1,6 @@
 import { Bot, type BotConfig, type Context } from "grammy";
 import type { User } from "grammy/types";
+import { audienceOf, TEXT_MAX } from "../audience/AudienceDO";
 import type { Env } from "../env";
 import type { Player } from "../game/engine";
 import { currentRoom as currentRoomOf } from "../player/pointer";
@@ -26,6 +27,35 @@ export function createBot(env: Env, config?: BotConfig<Context>, webOrigin: stri
 
   // The bot only works in private chats; ignore groups and channels.
   const dm = bot.chatType("private");
+  const isOwner = (userId: number) => env.OWNER_TELEGRAM_ID !== undefined && String(userId) === env.OWNER_TELEGRAM_ID;
+
+  // Everyone who talks to the bot can hear about updates (M7 B1, AC1).
+  dm.use(async (ctx, next) => {
+    await audienceOf(env).add(ctx.from.id);
+    await next();
+  });
+
+  // Owner only: preview an announcement, sent on confirmation. Anyone else falls through.
+  dm.command("announce", async (ctx, next) => {
+    if (!isOwner(ctx.from.id)) return next();
+    const text = ctx.match.trim();
+    if (!text) return ctx.reply(msg.announceUsage);
+    if (text.length > TEXT_MAX) return ctx.reply(msg.announceTooLong(TEXT_MAX));
+    const audience = audienceOf(env);
+    // Everyone who played on Telegram before the list existed hears the first announcement too.
+    await audience.seedOnce(await statsOf(env).telegramIds());
+    const { id, count } = await audience.prepare(text);
+    await ctx.reply(msg.announcePreview(count, text), {
+      reply_markup: {
+        inline_keyboard: [
+          [
+            { text: msg.btnAnnounceSend, callback_data: `an|${id}|send` },
+            { text: msg.btnAnnounceCancel, callback_data: `an|${id}|cancel` },
+          ],
+        ],
+      },
+    });
+  });
 
   async function joinRoom(ctx: Context, user: User, rawCode: string) {
     const code = rawCode.trim().toUpperCase();
@@ -84,6 +114,24 @@ export function createBot(env: Env, config?: BotConfig<Context>, webOrigin: stri
   });
 
   bot.on("callback_query:data", async (ctx) => {
+    const announce = /^an\|([0-9a-f]{8})\|(send|cancel)$/.exec(ctx.callbackQuery.data);
+    if (announce) {
+      if (!isOwner(ctx.from.id)) return ctx.answerCallbackQuery({ text: msg.stale });
+      const [, id, action] = announce as unknown as [string, string, string];
+      const audience = audienceOf(env);
+      const text =
+        action === "cancel"
+          ? (await audience.cancel(id))
+            ? msg.announceCancelled
+            : msg.announceStale
+          : { started: msg.announceSending, stale: msg.announceStale, busy: msg.announceBusy }[
+              await audience.start(id, ctx.from.id)
+            ];
+      await ctx.answerCallbackQuery({ text });
+      // The preview's buttons are spent either way.
+      await ctx.editMessageReplyMarkup({ reply_markup: { inline_keyboard: [] } }).catch(() => {});
+      return;
+    }
     const cb = decode(ctx.callbackQuery.data);
     if (!cb) return ctx.answerCallbackQuery({ text: msg.stale });
     const answer = await roomOf(cb.code).onCallback(ctx.from.id, cb);

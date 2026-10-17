@@ -13,16 +13,18 @@
     "run_worker_first": ["/api/*", "/webhook", "/healthz"]
   },
   "vars": { "TELEGRAM_BOT_USERNAME": "a3spy_bot", "REALTIME_APP_ID": "2578aff8745a85e8333679f34f814cb9" },
-  // Secrets (set by CD, never committed): TELEGRAM_BOT_TOKEN, TELEGRAM_WEBHOOK_SECRET, REALTIME_APP_TOKEN
+  // Secrets (set by CD, never committed): TELEGRAM_BOT_TOKEN, TELEGRAM_WEBHOOK_SECRET, REALTIME_APP_TOKEN, OWNER_TELEGRAM_ID
   "durable_objects": {
     "bindings": [
       { "name": "ROOM", "class_name": "RoomDO" },
       { "name": "PLAYER", "class_name": "PlayerDO" },
-      { "name": "STATS", "class_name": "StatsDO" }
+      { "name": "STATS", "class_name": "StatsDO" },
+      { "name": "AUDIENCE", "class_name": "AudienceDO" }
     ]
   },
   "migrations": [
     { "tag": "v1", "new_sqlite_classes": ["RoomDO", "PlayerDO"] },
-    { "tag": "v2", "new_sqlite_classes": ["StatsDO"] }
+    { "tag": "v2", "new_sqlite_classes": ["StatsDO"] },
+    { "tag": "v3", "new_sqlite_classes": ["AudienceDO"] }
   ]
 }

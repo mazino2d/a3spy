@@ -4,6 +4,7 @@ import { createBot } from "./bot/bot";
 import type { Env } from "./env";
 import { handleApi } from "./web/api";
 
+export { AudienceDO } from "./audience/AudienceDO";
 export { PlayerDO } from "./player/PlayerDO";
 export { RoomDO } from "./room/RoomDO";
 export { StatsDO } from "./stats/StatsDO";
