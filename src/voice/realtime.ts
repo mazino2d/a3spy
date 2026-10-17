@@ -1,6 +1,6 @@
 /**
  * Cloudflare Realtime SFU API (https://developers.cloudflare.com/realtime/sfu/https-api/).
- * Only the RoomDO calls it: the app token must never reach a browser.
+ * Only the GameRoomDO calls it: the app token must never reach a browser.
  */
 
 const BASE = "https://rtc.live.cloudflare.com/v1";

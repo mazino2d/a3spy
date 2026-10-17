@@ -1,15 +1,10 @@
 {
   "$comment": "Bot profile shown in Telegram. Synced by .github/workflows/telegram-profile.yml on merge to main.",
   "name": "A3 Spy",
-  "short_description": "Quản trò Who is Spy cho hội bạn ngồi cafe: chia từ bí mật, gọi lượt, đếm phiếu, lật bài.",
-  "description": "🕵️ A3 Spy làm quản trò Who is Spy khi cả nhóm ngồi chơi chung.\n\nMọi người mô tả và cãi nhau bằng miệng; bot chia từ bí mật qua tin nhắn riêng, gọi thứ tự, mở vote, loại người và lật bài.\n\nBấm Start rồi gõ /newgame để mở phòng, hoặc bấm link mời bạn bè gửi.",
+  "short_description": "Quản trò Who is Spy cho hội bạn. Giờ chơi trên web: a3spy.mazino2d.workers.dev",
+  "description": "🕵️ A3 Spy làm quản trò Who is Spy cho hội bạn: chia từ bí mật, gọi lượt, đếm phiếu, lật bài, có cả voice call cho hội ở xa.\n\nGame giờ chơi trên web: https://a3spy.mazino2d.workers.dev\nBấm Start để lấy link, và nhận tin khi có tính năng mới.",
   "commands": [
-    { "command": "newgame", "description": "Mở phòng mới" },
-    { "command": "join", "description": "Vào phòng bằng mã, ví dụ /join AB12" },
-    { "command": "leave", "description": "Rời phòng" },
-    { "command": "score", "description": "Bảng điểm của phòng" },
-    { "command": "stats", "description": "Thống kê dài hạn và bảng xếp hạng cả nhóm" },
-    { "command": "end", "description": "(Host) kết thúc ván đang chơi" },
-    { "command": "help", "description": "Hướng dẫn và danh sách lệnh" }
+    { "command": "start", "description": "Giới thiệu và link chơi trên web" },
+    { "command": "help", "description": "Luật chơi nhanh" }
   ]
 }

@@ -175,7 +175,7 @@ describe("V5 voice through a dropped connection", () => {
     sa.ws.close(1001, "going away");
     await sb.next("voice", (m) => m.members[0]?.reconnecting === true);
 
-    const stub = env.ROOM.getByName(code);
+    const stub = env.GAME_ROOM.getByName(code);
     // Move the loss back past the grace period instead of waiting 30 s.
     await runInDurableObject(stub, (_, state) => {
       const roster = state.storage.kv.get<Record<string, { lostAt?: number }>>("voice") ?? {};

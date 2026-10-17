@@ -1,7 +1,7 @@
 import { inRoom, playerName, type Room } from "../game/engine";
 
 /**
- * Who is in a room's voice call (docs/rules.md#voice). Pure. Kept by the RoomDO
+ * Who is in a room's voice call (docs/rules.md#voice). Pure. Kept by the GameRoomDO
  * next to the room, never inside the engine: the game never waits for voice.
  */
 

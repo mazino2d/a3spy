@@ -33,9 +33,9 @@ export type VoiceError = "voice_off" | "not_in_call" | "unavailable" | "bad_requ
 export interface Links {
   /** Room link for the web app, also encoded in the QR code. */
   web: string;
-  /** Telegram deep link that joins the same room. */
-  telegram: string;
 }
+
+export const webLink = (origin: string, code: string) => `${origin}/r/${code}`;
 
 export type CloseReason = "left" | "closed" | "replaced";
 

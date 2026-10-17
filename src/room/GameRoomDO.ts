@@ -1,22 +1,4 @@
 import { DurableObject } from "cloudflare:workers";
-import { Api } from "grammy";
-import { type Callback, decodeChange, THEMES_CLOSE, THEMES_OPEN } from "../bot/callbacks";
-import { msg } from "../bot/messages";
-import {
-  inviteLink,
-  lobbyPanel,
-  type Op,
-  plan,
-  type RoomLinks,
-  type Slot,
-  scoreboard,
-  themesClosed,
-  themesPanel,
-  timerReminder,
-  webLink,
-  wordAlert,
-} from "../bot/render";
-import { editOrSend, send } from "../bot/telegram";
 import type { Env } from "../env";
 import * as engine from "../game/engine";
 import { cryptoRng } from "../game/rng";
@@ -24,7 +6,7 @@ import { gameResults } from "../game/stats";
 import { isDue, nextTimer, type Timer } from "../game/timers";
 import { publicEvents, viewFor } from "../game/view";
 import { PACKS, pairsOf } from "../game/words";
-import { statsOf } from "../stats/StatsDO";
+import { statsOf } from "../stats/LeaderboardDO";
 import { realtime } from "../voice/realtime";
 import {
   dropConn,
@@ -37,7 +19,7 @@ import {
   sameRoster,
   sweep,
 } from "../voice/roster";
-import { PLAYER_HEADER, VOICE_HEADER } from "../web/api";
+import { PLAYER_HEADER } from "../web/api";
 import {
   CLOSE_CODE,
   type CloseReason,
@@ -45,8 +27,9 @@ import {
   type ServerMessage,
   type VoiceError,
   type VoiceOp,
+  webLink,
 } from "../web/protocol";
-import { isTelegram, isWeb } from "./clients";
+import { isWeb } from "./clients";
 import { type Command, decide } from "./commands";
 
 export const IDLE_MS = 6 * 60 * 60 * 1000;
@@ -54,11 +37,6 @@ const THEMES = PACKS.map((p) => p.id);
 
 interface Stored {
   room: engine.Room;
-  botUsername: string;
-  /** Origin of the web app; absent in rooms stored before the web app existed. */
-  webOrigin?: string;
-  /** Message ids we edit in place, per slot and player. */
-  ui: Record<Slot, Record<number, number>>;
   updatedAt: number;
   /** The reminder timer of the current phase, if one is on (src/game/timers.ts). */
   timer?: Timer | null;
@@ -70,72 +48,28 @@ interface SocketInfo {
   origin: string;
   /** Identifies this socket in the voice roster; absent on sockets opened before voice existed. */
   conn?: string;
-  /** A Telegram player's voice page: gets voice messages only, never the room state (AC9). */
-  voiceOnly?: boolean;
 }
 
 export type JoinOutcome = "ok" | "not_found" | "already_in_room";
 
-const errorText: Record<engine.GameError, string> = {
-  already_in_room: msg.alreadyInThisRoom(""),
-  not_in_room: msg.notInRoom,
-  not_host: msg.notHost,
-  too_few_players: msg.tooFewPlayers,
-  game_running: msg.gameRunning,
-  no_game: msg.stale,
-  wrong_phase: msg.stale,
-  stale: msg.stale,
-  not_alive: msg.notAlive,
-  invalid_target: msg.invalidTarget,
-  not_white: msg.stale,
-  bad_counts: msg.badCounts,
-  bad_setting: msg.badSetting,
-};
-
-const linksOf = (stored: Stored): RoomLinks => ({
-  botUsername: stored.botUsername,
-  webOrigin: stored.webOrigin ?? null,
-});
-
-/** null for "word", which only reads state and is answered with a popup. */
-function toCommand(cb: Callback): Command | null {
-  const turn = { gameId: cb.gameId, round: cb.round };
-  switch (cb.action) {
-    case "start":
-    case "leave":
-      return { action: cb.action };
-    case "again":
-    case "openVote":
-    case "closeVote":
-      return { action: cb.action, ...turn };
-    case "end":
-      return { action: "end", gameId: cb.gameId };
-    case "vote":
-      return { action: "vote", ...turn, target: cb.arg };
-    case "configure": {
-      const change = decodeChange(cb.arg);
-      return change ? { action: "configure", change } : null;
-    }
-    case "word":
-      return null;
-  }
+/** Which room each player is in, after a command: the GuestDO pointer behind one-room-per-player. */
+function pointers(room: engine.Room, events: engine.GameEvent[]): [number, string | null][] {
+  return events.flatMap((e): [number, string | null][] => {
+    if (e.type === "joined" || e.type === "queued") return [[e.player.id, room.code]];
+    if (e.type === "left") return [[e.player.id, null]];
+    return [];
+  });
 }
 
-/** One per room code. Owns the room state and every message the room sends. */
-export class RoomDO extends DurableObject<Env> {
+/** One per room code. Owns the room state and pushes it to every player's web socket. */
+export class GameRoomDO extends DurableObject<Env> {
   private load(): Stored | null {
-    const stored = this.ctx.storage.kv.get<Stored>("state") ?? null;
-    // Rooms stored before the theme picker existed.
-    if (stored && !stored.ui.themes) stored.ui = { ...stored.ui, themes: {} };
-    // Rooms stored before host settings, timers or voice existed.
-    if (stored && (!stored.room.settings?.timers || stored.room.settings.voice === undefined))
-      stored.room = { ...stored.room, settings: { ...engine.DEFAULT_SETTINGS, ...stored.room.settings } };
-    return stored;
+    return this.ctx.storage.kv.get<Stored>("state") ?? null;
   }
 
   /**
-   * The voice call, under its own key: execute() writes back a Stored it loaded before
-   * awaiting Telegram, and must not undo a join or mute that happened meanwhile.
+   * The voice call, under its own key: it changes between awaited Realtime calls, apart
+   * from the room state.
    */
   private loadVoice(): Roster {
     return this.ctx.storage.kv.get<Roster>("voice") ?? {};
@@ -146,25 +80,17 @@ export class RoomDO extends DurableObject<Env> {
     else this.ctx.storage.kv.delete("voice");
   }
 
-  private api(): Api {
-    return new Api(this.env.TELEGRAM_BOT_TOKEN);
+  async create(code: string, host: engine.Player): Promise<boolean> {
+    if (this.load()) return false;
+    const stored: Stored = { room: engine.createRoom(code, host), updatedAt: Date.now() };
+    this.ctx.storage.kv.put("state", stored);
+    await this.schedule(stored);
+    await this.point(host.id, code);
+    return true;
   }
 
-  async create(code: string, host: engine.Player, links: RoomLinks): Promise<boolean> {
-    if (this.load()) return false;
-    const room = engine.createRoom(code, host);
-    const stored: Stored = {
-      room,
-      botUsername: links.botUsername,
-      ...(links.webOrigin ? { webOrigin: links.webOrigin } : {}),
-      ui: { lobby: {}, vote: {}, status: {}, themes: {} },
-      updatedAt: Date.now(),
-    };
-    await this.execute(stored, [
-      { kind: "pointer", to: host.id, code: room.code },
-      { kind: "send", to: host.id, slot: "lobby", ...lobbyPanel(room, host.id, links) },
-    ]);
-    return true;
+  private point(playerId: number, code: string | null): Promise<void> {
+    return this.env.GUEST.getByName(String(playerId)).setRoom(code);
   }
 
   async join(player: engine.Player): Promise<JoinOutcome> {
@@ -191,50 +117,7 @@ export class RoomDO extends DurableObject<Env> {
     return true;
   }
 
-  async onCallback(userId: number, cb: Callback): Promise<{ text: string; alert?: boolean }> {
-    const stored = this.load();
-    if (!stored) return { text: msg.stale };
-
-    if (cb.action === "word") {
-      const game = stored.room.game;
-      if (!game || game.id !== cb.gameId) return { text: msg.stale };
-      return { text: wordAlert(game, userId), alert: true };
-    }
-
-    if (cb.action === "configure" && (cb.arg === THEMES_OPEN || cb.arg === THEMES_CLOSE)) {
-      const { room } = stored;
-      if (userId !== room.hostId) return { text: msg.notHost };
-      if (engine.isRunning(room)) return { text: msg.gameRunning };
-      await this.execute(stored, [
-        cb.arg === THEMES_OPEN
-          ? { kind: "send", to: userId, slot: "themes", ...themesPanel(room) }
-          : { kind: "edit", to: userId, slot: "themes", ifShown: true, text: themesClosed(room) },
-      ]);
-      return { text: "👌" };
-    }
-
-    const cmd = toCommand(cb);
-    if (!cmd) return { text: msg.stale };
-    const error = await this.apply(stored, userId, cmd);
-    if (error) return { text: errorText[error] };
-    return { text: cb.action === "vote" ? msg.voted(engine.playerName(stored.room, cb.arg)) : "👌" };
-  }
-
-  /** Free text from a player in this room; only Mr. White's guess means anything. */
-  async onText(userId: number, text: string): Promise<boolean> {
-    const stored = this.load();
-    if (!stored) return false;
-    return (await this.apply(stored, userId, { action: "guess", text })) === null;
-  }
-
-  async end(userId: number): Promise<string | null> {
-    const stored = this.load();
-    if (!stored) return msg.notInRoom;
-    const error = await this.apply(stored, userId, { action: "end" });
-    return error ? errorText[error] : null;
-  }
-
-  /** Runs one command from any client; null on success. */
+  /** Runs one command; null on success. */
   private async apply(stored: Stored, playerId: number, cmd: Command): Promise<engine.GameError | null> {
     const result = decide(stored.room, playerId, cmd, {
       rng: cryptoRng,
@@ -247,34 +130,24 @@ export class RoomDO extends DurableObject<Env> {
     return null;
   }
 
-  /**
-   * A web player's WebSocket, or a Telegram player's voice page, forwarded by the Worker
-   * after it checked their session or voice cookie.
-   */
+  /** A web player's WebSocket, forwarded by the Worker after it checked their session. */
   async fetch(request: Request): Promise<Response> {
     const playerId = Number(request.headers.get(PLAYER_HEADER));
-    const voiceOnly = request.headers.get(VOICE_HEADER) === "1";
-    if (!Number.isSafeInteger(playerId) || (voiceOnly ? !isTelegram(playerId) : !isWeb(playerId)))
-      return new Response("Forbidden", { status: 403 });
+    if (!Number.isSafeInteger(playerId) || !isWeb(playerId)) return new Response("Forbidden", { status: 403 });
     const stored = this.load();
     if (!stored) return new Response("Not found", { status: 404 });
     if (!engine.inRoom(stored.room, playerId)) return new Response("Forbidden", { status: 403 });
 
     // One socket per player: a new tab or a reconnect takes the seat over. The call seat waits
     // for this socket to resume it, and leaves the call after GRACE_MS otherwise.
-    const tag = voiceOnly ? `voice:${playerId}` : String(playerId);
+    const tag = String(playerId);
     for (const old of this.ctx.getWebSockets(tag)) this.closeSocket(old, "replaced");
     await this.loseVoice(stored, { id: playerId });
 
     const pair = new WebSocketPair();
     const [client, server] = [pair[0], pair[1]];
     this.ctx.acceptWebSocket(server, [tag]);
-    const info: SocketInfo = {
-      playerId,
-      origin: new URL(request.url).origin,
-      conn: crypto.randomUUID(),
-      ...(voiceOnly ? { voiceOnly } : {}),
-    };
+    const info: SocketInfo = { playerId, origin: new URL(request.url).origin, conn: crypto.randomUUID() };
     server.serializeAttachment(info);
     this.sendState(server, stored, info);
     return new Response(null, { status: 101, webSocket: client });
@@ -287,7 +160,6 @@ export class RoomDO extends DurableObject<Env> {
     const parsed = typeof message === "string" ? parseMessage(message) : null;
     if (!parsed) return this.sendTo(ws, { type: "error", code: "bad_request" });
     if (parsed.type === "voice") return this.onVoice(ws, info, parsed);
-    if (info.voiceOnly) return this.sendTo(ws, { type: "error", code: "bad_request" });
     const error = await this.apply(stored, info.playerId, parsed.cmd);
     if (error) {
       this.sendTo(ws, { type: "error", code: error });
@@ -320,15 +192,10 @@ export class RoomDO extends DurableObject<Env> {
 
   private sendState(ws: WebSocket, stored: Stored, info: SocketInfo): void {
     const { room } = stored;
-    // A voice page never gets the room state: it holds the player's word (AC9).
-    if (info.voiceOnly) {
-      this.sendTo(ws, this.voiceMessage(stored, this.loadVoice()));
-      return;
-    }
     this.sendTo(ws, {
       type: "state",
       view: viewFor(room, info.playerId, stored.timer ?? null),
-      links: { web: webLink(info.origin, room.code), telegram: inviteLink(stored.botUsername, room.code) },
+      links: { web: webLink(info.origin, room.code) },
     });
     this.sendTo(ws, this.voiceMessage(stored, this.loadVoice()));
   }
@@ -446,14 +313,9 @@ export class RoomDO extends DurableObject<Env> {
         this.closeSocket(ws, "left");
         continue;
       }
-      if (pub.length && !info.voiceOnly) this.sendTo(ws, { type: "events", events: pub });
+      if (pub.length) this.sendTo(ws, { type: "events", events: pub });
       this.sendState(ws, stored, info);
     }
-  }
-
-  score(): string {
-    const stored = this.load();
-    return stored ? scoreboard(stored.room) : msg.notInRoom;
   }
 
   /** One alarm per room: the earliest of the reminder timer, a lost voice seat to sweep, and the idle close. */
@@ -480,8 +342,8 @@ export class RoomDO extends DurableObject<Env> {
       const next: Stored = { ...stored, timer: { ...timer, fired: true } };
       this.ctx.storage.kv.put("state", next);
       await this.schedule(next);
+      // The web shows "time is up" from the view; the host still opens or closes the vote.
       this.pushWeb(next, []);
-      await this.execute(next, timerReminder(next.room, timer.kind));
       return;
     }
     if (now - stored.updatedAt < IDLE_MS) {
@@ -489,20 +351,13 @@ export class RoomDO extends DurableObject<Env> {
       return;
     }
     const everyone = [...stored.room.players, ...stored.room.waiting].map((p) => p.id);
-    await this.execute(
-      stored,
-      everyone.flatMap((id): Op[] => [
-        { kind: "pointer", to: id, code: null },
-        { kind: "send", to: id, text: msg.roomIdleClosed(stored.room.code) },
-      ]),
-    );
+    await Promise.all(everyone.map((id) => this.point(id, null)));
     this.ctx.storage.kv.delete("state");
     this.saveVoice({});
     this.pushWeb(null, []);
   }
 
   private async commit(stored: Stored, result: Extract<engine.Result, { ok: true }>): Promise<void> {
-    const before = stored.room;
     const closed = result.events.some((e) => e.type === "closed");
     const now = Date.now();
     const next: Stored = {
@@ -512,7 +367,7 @@ export class RoomDO extends DurableObject<Env> {
       timer: nextTimer(result.room, stored.timer ?? null, now),
     };
 
-    // Persist before talking to Telegram, so a failure mid-broadcast cannot replay the command.
+    // Persist before pushing, so a failure afterwards cannot replay the command.
     // Players who left, or a host turning voice off, take seats out of the call.
     const roster = this.loadVoice();
     const kept = closed ? {} : prune(result.room, roster);
@@ -525,13 +380,11 @@ export class RoomDO extends DurableObject<Env> {
       await this.schedule(next);
     }
 
-    // Web players first: their sockets are local and fast; Telegram calls can take a while.
     this.pushWeb(closed ? null : next, result.events);
+    await Promise.all(pointers(result.room, result.events).map(([id, code]) => this.point(id, code)));
 
     const ended = result.events.find((e) => e.type === "game_ended");
     if (ended?.type === "game_ended") await this.recordStats(ended.game);
-
-    await this.execute(next, plan(before, result.room, result.events, linksOf(stored)));
   }
 
   /** Long-term stats are a bonus: a failed write must never break the game. */
@@ -543,36 +396,5 @@ export class RoomDO extends DurableObject<Env> {
     } catch (err) {
       console.warn("stats write failed", { room: this.load()?.room.code, error: String(err) });
     }
-  }
-
-  /** Runs ops in order per chat, chats in parallel. Records message ids into stored.ui. */
-  private async execute(stored: Stored, ops: Op[]): Promise<void> {
-    const api = this.api();
-    const byChat = new Map<number, Op[]>();
-    for (const op of ops) {
-      // Web players have no Telegram chat; they only need their room pointer.
-      if (isWeb(op.to) && op.kind !== "pointer") continue;
-      byChat.set(op.to, [...(byChat.get(op.to) ?? []), op]);
-    }
-
-    await Promise.all(
-      [...byChat.entries()].map(async ([chat, chatOps]) => {
-        for (const op of chatOps) {
-          if (op.kind === "pointer") {
-            await this.env.PLAYER.getByName(String(chat)).setRoom(op.code);
-          } else if (op.kind === "send") {
-            const id = await send(api, chat, op.text, op.keyboard);
-            if (op.slot && id !== null) stored.ui[op.slot][chat] = id;
-          } else {
-            const shown = stored.ui[op.slot][chat];
-            if (op.ifShown && shown === undefined) continue;
-            const id = await editOrSend(api, chat, shown, op.text, op.keyboard);
-            if (id !== null) stored.ui[op.slot][chat] = id;
-          }
-        }
-      }),
-    );
-    // Save the message ids unless the room was closed while we were sending.
-    if (this.load() !== null || ops.some((o) => o.kind === "send" && o.slot)) this.ctx.storage.kv.put("state", stored);
   }
 }

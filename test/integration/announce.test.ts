@@ -129,14 +129,4 @@ describe("B1 owner announcements", () => {
     await runDurableObjectAlarm(audience());
     expect(tg.messages().some((m) => m.text === "Bản một" || m.text === "Bản hai")).toBe(false);
   });
-
-  it("B1 the first announcement also reaches Telegram players from the stats", async () => {
-    await env.STATS.getByName("group").record([
-      { id: 3701, name: "Cũ", won: true, role: "civilian", guessed: false },
-      { id: -55, name: "Web", won: false, role: "spy", guessed: false },
-    ]);
-    await text(OWNER, "/announce Chuyển sang web");
-    expect(tg.last(OWNER)?.text).toContain("sẽ gửi tới 2 người");
-    expect(await ids()).toEqual([OWNER, 3701]);
-  });
 });

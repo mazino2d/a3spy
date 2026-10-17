@@ -3,7 +3,7 @@ import type { Env } from "../env";
 import { addResult, emptyStats, type GameResult, leaderboard, type PlayerStats } from "../game/stats";
 
 /** Long-term stats for the whole group: one instance, named "group". Never stores words. */
-export class StatsDO extends DurableObject<Env> {
+export class LeaderboardDO extends DurableObject<Env> {
   private get(id: number): PlayerStats | undefined {
     return this.ctx.storage.kv.get<PlayerStats>(`p:${id}`);
   }
@@ -13,11 +13,6 @@ export class StatsDO extends DurableObject<Env> {
       this.ctx.storage.kv.put(`p:${r.id}`, addResult(this.get(r.id) ?? emptyStats(r.id, r.name), r));
   }
 
-  /** Telegram players who finished a game (positive ids); seeds the announcement list. */
-  telegramIds(): number[] {
-    return [...this.ctx.storage.kv.list<PlayerStats>({ prefix: "p:" })].map(([, s]) => s.id).filter((id) => id > 0);
-  }
-
   /** The player's stats (null before their first finished game) and the group leaderboard. */
   read(id: number): { me: PlayerStats | null; board: PlayerStats[] } {
     const all = [...this.ctx.storage.kv.list<PlayerStats>({ prefix: "p:" })].map(([, s]) => s);
@@ -25,4 +20,4 @@ export class StatsDO extends DurableObject<Env> {
   }
 }
 
-export const statsOf = (env: Env) => env.STATS.getByName("group");
+export const statsOf = (env: Env) => env.LEADERBOARD.getByName("group");
