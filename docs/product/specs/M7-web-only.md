@@ -1,6 +1,6 @@
 # M7 Web only
 
-Status: draft   ·   Serves: UC-1, UC-6, UC-9   ·   Roadmap: Now   ·   Implementation: [M7](../../implementations/M7-web-only.md)
+Status: in progress   ·   Serves: UC-1, UC-6, UC-9   ·   Roadmap: Now   ·   Implementation: [M7](../../implementations/M7-web-only.md)
 
 ## Problem
 
@@ -24,7 +24,7 @@ lets the owner announce what is new.
 | Old data | **Deleted at cutover**: every room, web guest session, room pointer and long-term stat. Everyone starts fresh on the web, with a new name prompt. |
 | Long-term stats | Reset to zero. The Stats screen keeps working and counts from the cutover on. |
 | What the bot does | (1) **Signpost**: `/start`, `/help` and any message get a short intro, the rules in a few lines and a **Chơi trên web** button. (2) **Old invite links** `t.me/a3spy_bot?start=<code>` answer with a button to that room on the web. (3) **Announcements** from the owner to everyone who has started the bot. |
-| Announcement audience | Every Telegram user who started or messaged the bot. Users who block the bot are dropped. *Proposed:* before the cutover, the owner sends one announcement ("A3 Spy moves to the web") to everyone who played on Telegram, so that list is collected first and kept through the data deletion. It holds Telegram user ids only, no game data. |
+| Announcement audience | Every Telegram user who started or messaged the bot. Users who block the bot are dropped. Before the cutover, the owner sends one announcement ("A3 Spy moves to the web") to everyone who played on Telegram, so that list is collected first and kept through the data deletion. It holds Telegram user ids only, no game data. |
 | Who may announce | Only the owner's Telegram account (configured as a secret, not in the code). Each announcement shows a preview and is sent only after the owner confirms. |
 | Voice for Telegram players | Removed with the rest of the Telegram game (M6 V4). Voice works in the web app as before. |
 | Bot profile | Name, description and command menu say "play on the web": commands `/start` and `/help` only. |

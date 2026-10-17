@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { press, telegramStub, text } from "../helpers/telegram";
-import { api, connect, createRoom, guest, joinRoom } from "../helpers/web";
+import type { RoomView } from "../../src/game/view";
+import { telegramStub } from "../helpers/telegram";
+import { api, connect, createRoom, guest, joinRoom, type Socket, type WebPlayer } from "../helpers/web";
 
 let tg: ReturnType<typeof telegramStub>;
 
@@ -10,16 +11,6 @@ beforeEach(() => {
 afterEach(() => {
   vi.restoreAllMocks();
 });
-
-const button = (chat: number, label: string) => {
-  const b = tg
-    .to(chat)
-    .flatMap((m) => m.buttons)
-    .filter((x) => x.text.includes(label))
-    .at(-1);
-  if (!b) throw new Error(`no "${label}" button for ${chat}`);
-  return b.data;
-};
 
 describe("sessions", () => {
   it("W1 AC1 a name creates a guest with a negative ID and an HttpOnly cookie", async () => {
@@ -61,16 +52,15 @@ describe("sessions", () => {
 });
 
 describe("rooms over the web API", () => {
-  it("W2 AC3 a guest opens a room and is its host", async () => {
+  it("W2 AC3 X4 AC13 a guest opens a room and is its host; links point to the web only", async () => {
     const host = await guest("Host");
     const code = await createRoom(host);
     expect(code).toMatch(/^[A-Z0-9]{4}$/);
     const sock = await connect(host, code);
     const state = await sock.next("state");
     expect(state.view).toMatchObject({ code, me: host.id, hostId: host.id, players: [{ id: host.id, name: "Host" }] });
-    expect(state.links.web).toBe(`https://a3spy.test/r/${code}`);
-    expect(state.links.telegram).toBe(`https://t.me/a3spy_bot?start=${code}`);
-    // Web players never trigger Telegram calls.
+    expect(state.links).toEqual({ web: `https://a3spy.test/r/${code}` });
+    // Rooms never call Telegram.
     expect(tg.calls).toHaveLength(0);
   });
 
@@ -96,7 +86,7 @@ describe("rooms over the web API", () => {
     expect((await api("/api/rooms", { method: "POST", cookie: a.cookie })).status).toBe(409);
   });
 
-  it("W1 AC6 every web lobby updates when someone joins or leaves, on either client", async () => {
+  it("W1 AC6 every lobby updates when someone joins or leaves", async () => {
     const host = await guest("Host");
     const code = await createRoom(host);
     const sock = await connect(host, code);
@@ -105,15 +95,14 @@ describe("rooms over the web API", () => {
     const p = await guest("Lan");
     await joinRoom(p, code);
     expect((await sock.next("state")).view.players.map((x) => x.name)).toEqual(["Host", "Lan"]);
-
-    await text(301, `/join ${code}`);
-    expect((await sock.next("state")).view.players.map((x) => x.name)).toEqual(["Host", "Lan", "User301"]);
-    // The Telegram player sees web players and the web link in their lobby (AC18).
-    expect(tg.last(301)?.text).toContain("Lan");
-    expect(tg.last(301)?.text).toContain(`https://a3spy.test/r/${code}`);
+    const q = await guest("Minh");
+    await joinRoom(q, code);
+    expect((await sock.next("state")).view.players.map((x) => x.name)).toEqual(["Host", "Lan", "Minh"]);
 
     await api(`/api/rooms/${code}/leave`, { method: "POST", cookie: p.cookie });
-    expect((await sock.next("state")).view.players.map((x) => x.name)).toEqual(["Host", "User301"]);
+    expect((await sock.next("state")).view.players.map((x) => x.name)).toEqual(["Host", "Minh"]);
+    const me = await (await api("/api/me", { cookie: p.cookie })).json<{ room: string | null }>();
+    expect(me.room).toBeNull();
   });
 
   it("refuses a socket for a room the guest is not in", async () => {
@@ -126,30 +115,30 @@ describe("rooms over the web API", () => {
   });
 });
 
-describe("a mixed game over sockets", () => {
-  /** Telegram host `t` opens the room; two web guests and Telegram player `t + 1` join. Storage is shared across tests. */
-  async function mixedRoom(t: number) {
-    await text(t, "/newgame");
-    const code = /Phòng (\w{4})/.exec(tg.last(t)?.text ?? "")?.[1] as string;
-    await text(t + 1, `/start ${code}`);
-    const a = await guest("Web A");
-    const b = await guest("Web B");
-    await joinRoom(a, code);
-    await joinRoom(b, code);
-    const sa = await connect(a, code);
-    const sb = await connect(b, code);
-    await sa.next("state");
-    await sb.next("state");
-    return { code, a, b, sa, sb };
+describe("a game over sockets", () => {
+  /** A web host and `n - 1` web guests in one room, all connected. */
+  async function webRoom(n: number) {
+    const players = [await guest("Host")];
+    for (let i = 1; i < n; i++) players.push(await guest(`P${i}`));
+    const code = await createRoom(players[0] as WebPlayer);
+    for (const p of players.slice(1)) await joinRoom(p, code);
+    const socks: Socket[] = [];
+    for (const p of players) {
+      const s = await connect(p, code);
+      await s.next("state", (m) => m.view.players.length === n);
+      socks.push(s);
+    }
+    return { code, players, socks, host: socks[0] as Socket };
   }
+  const turn = (view: RoomView) => ({ gameId: view.game?.id ?? 0, round: view.game?.round ?? 0 });
 
-  it("W3 W4 W5 W7 web players get their own word, vote, and see the same result as Telegram", async () => {
-    const { a, b, sa, sb } = await mixedRoom(500);
-    await press(500, button(500, "Bắt đầu"));
+  it("W3 W4 W5 each player gets their own word, votes, and everyone sees the same result", async () => {
+    const { players, socks, host } = await webRoom(4);
+    const [sa, sb] = socks as [Socket, Socket];
+    host.send({ type: "command", action: "start" });
 
     const stateA = await sa.next("state", (m) => m.view.game !== null);
     const stateB = await sb.next("state", (m) => m.view.game !== null);
-    // Each web player has a hand; neither sees the other's word.
     expect(stateA.view.game?.hand).not.toBeNull();
     const wordB = stateB.view.game?.hand?.word;
     if (wordB && wordB !== stateA.view.game?.hand?.word) expect(JSON.stringify(sa.messages)).not.toContain(wordB);
@@ -157,56 +146,118 @@ describe("a mixed game over sockets", () => {
     const started = sa.messages.find((m) => m.type === "events");
     expect(JSON.stringify(started)).not.toContain('"hands"');
 
-    await press(500, button(500, "Mở vote"));
+    host.send({ type: "command", action: "openVote", ...turn(stateA.view) });
     const voting = await sa.next("state", (m) => m.view.game?.phase === "voting");
-    const game = voting.view.game as NonNullable<typeof voting.view.game>;
-    expect(game.canVoteFor).not.toContain(a.id);
+    const target = (players[3] as WebPlayer).id;
+    expect(voting.view.game?.canVoteFor).not.toContain((players[0] as WebPlayer).id);
 
-    // Everyone votes for 501; 501 votes for web A.
-    sa.send({ type: "command", action: "vote", gameId: game.id, round: game.round, target: 501 });
-    const afterVote = await sa.next("state", (m) => m.view.game?.myVote === 501);
-    expect(afterVote.view.game?.votes.count).toBe(1);
-    sb.send({ type: "command", action: "vote", gameId: game.id, round: game.round, target: 501 });
-    await press(501, button(501, "Web A"));
-    await press(500, button(500, "User501"));
+    for (const s of socks.slice(0, 3)) s.send({ type: "command", action: "vote", ...turn(voting.view), target });
+    socks[3]?.send({ type: "command", action: "vote", ...turn(voting.view), target: (players[0] as WebPlayer).id });
 
-    const result = await sb.next("events", (m) => m.events.some((e) => e.type === "eliminated"));
-    expect(result.events).toContainEqual(expect.objectContaining({ type: "eliminated", playerId: 501 }));
-    expect(result.events.find((e) => e.type === "vote_closed")).toMatchObject({ tally: { 501: 3, [a.id]: 1 } });
-    // Telegram players got the same result.
-    expect(tg.last(500)?.text).toContain("User501 bị loại");
-    void b;
+    const results = await Promise.all(
+      socks.map((s) => s.next("events", (m) => m.events.some((e) => e.type === "eliminated"))),
+    );
+    for (const r of results)
+      expect(r.events).toContainEqual(expect.objectContaining({ type: "eliminated", playerId: target }));
+    expect(results[0]?.events.find((e) => e.type === "vote_closed")).toMatchObject({ tally: { [target]: 3 } });
+  });
+
+  it("S2 a game won on the web is counted in the leaderboard", async () => {
+    const { players, socks, host } = await webRoom(3);
+    host.send({ type: "command", action: "start" });
+    const views = await Promise.all(socks.map((s) => s.next("state", (m) => m.view.game !== null)));
+    // With 3 players there is one spy and no Mr. White: the spy holds the odd word.
+    const words = views.map((v) => v.view.game?.hand?.word);
+    const spyAt = words.findIndex((w) => words.filter((x) => x === w).length === 1);
+    const spy = (players[spyAt] as WebPlayer).id;
+
+    host.send({ type: "command", action: "openVote", ...turn(views[0]?.view as RoomView) });
+    const voting = await host.next("state", (m) => m.view.game?.phase === "voting");
+    socks.forEach((s, i) => {
+      const target = i === spyAt ? (players[(i + 1) % 3] as WebPlayer).id : spy;
+      s.send({ type: "command", action: "vote", ...turn(voting.view), target });
+    });
+    await host.next("state", (m) => m.view.game?.phase === "ended");
+
+    const { board } = await (await api("/api/stats", { cookie: (players[0] as WebPlayer).cookie })).json<{
+      board: { id: number; wins: number }[];
+    }>();
+    const winners = players.filter((_, i) => i !== spyAt).map((p) => p.id);
+    for (const id of winners) expect(board.find((b) => b.id === id)?.wins).toBeGreaterThanOrEqual(1);
+  });
+
+  it("G5 AC3 AC6 a due discussion timer shows on every screen and changes nothing else", async () => {
+    const { env, runInDurableObject, runDurableObjectAlarm } = await import("cloudflare:test");
+    const { code, socks, host } = await webRoom(3);
+    host.send({ type: "command", action: "configure", change: { kind: "timer", timer: "discussion" } });
+    await host.next("state", (m) => m.view.settings.timers.discussion === 2);
+    host.send({ type: "command", action: "start" });
+    const started = await host.next("state", (m) => m.view.game?.timer?.kind === "discussion");
+
+    const stub = env.GAME_ROOM.getByName(code);
+    // Move the deadline into the past instead of waiting two minutes.
+    await runInDurableObject(stub, (_, state) => {
+      const stored = state.storage.kv.get<{ timer: { endsAt: number } }>("state");
+      if (!stored?.timer) throw new Error("no timer stored");
+      stored.timer.endsAt = 0;
+      state.storage.kv.put("state", stored);
+    });
+    expect(await runDurableObjectAlarm(stub)).toBe(true);
+    for (const s of socks) {
+      const after = await s.next("state", (m) => m.view.game?.timer?.endsAt === 0);
+      expect(after.view.game?.phase).toBe("describing");
+      expect(after.view.game?.round).toBe(started.view.game?.round);
+    }
+  });
+
+  it("an idle room closes, and its players are free to join another", async () => {
+    const { env, runInDurableObject, runDurableObjectAlarm } = await import("cloudflare:test");
+    const { code, players, host } = await webRoom(3);
+    const stub = env.GAME_ROOM.getByName(code);
+    await runInDurableObject(stub, (_, state) => {
+      const stored = state.storage.kv.get<{ updatedAt: number }>("state");
+      if (!stored) throw new Error("no room");
+      stored.updatedAt = 0;
+      state.storage.kv.put("state", stored);
+    });
+    await runDurableObjectAlarm(stub);
+    expect(await host.closed).toEqual({ code: 4001 });
+    for (const p of players) {
+      const me = await (await api("/api/me", { cookie: p.cookie })).json<{ room: string | null }>();
+      expect(me.room).toBeNull();
+    }
   });
 
   it("W5 AC16 a stale command gets an error and a fresh state", async () => {
-    const { sa } = await mixedRoom(600);
-    await press(600, button(600, "Bắt đầu"));
+    const { socks, host } = await webRoom(3);
+    const sa = socks[1] as Socket;
+    host.send({ type: "command", action: "start" });
     const { view } = await sa.next("state", (m) => m.view.game !== null);
-    const game = view.game as NonNullable<typeof view.game>;
-    sa.send({ type: "command", action: "vote", gameId: game.id, round: game.round + 1, target: 600 });
+    sa.send({ type: "command", action: "vote", gameId: view.game?.id, round: (view.game?.round ?? 0) + 1, target: 1 });
     expect(await sa.next("error")).toEqual({ type: "error", code: "stale" });
     await sa.next("state");
   });
 
   it("W5 only the host advances phases", async () => {
-    const { sa } = await mixedRoom(700);
-    sa.send({ type: "command", action: "start" });
-    expect(await sa.next("error")).toEqual({ type: "error", code: "not_host" });
+    const { socks } = await webRoom(3);
+    socks[1]?.send({ type: "command", action: "start" });
+    expect(await socks[1]?.next("error")).toEqual({ type: "error", code: "not_host" });
   });
 
   it("rejects malformed messages", async () => {
-    const { sa } = await mixedRoom(800);
-    sa.ws.send("not json");
-    expect(await sa.next("error")).toEqual({ type: "error", code: "bad_request" });
-    sa.send({ type: "command", action: "vote", gameId: "1" });
-    expect(await sa.next("error")).toEqual({ type: "error", code: "bad_request" });
+    const { host } = await webRoom(3);
+    host.ws.send("not json");
+    expect(await host.next("error")).toEqual({ type: "error", code: "bad_request" });
+    host.send({ type: "command", action: "vote", gameId: "1" });
+    expect(await host.next("error")).toEqual({ type: "error", code: "bad_request" });
   });
 
   it("W8 AC20 reconnecting takes the seat over and gets the current state at once", async () => {
-    const { code, a, sa } = await mixedRoom(900);
-    await press(900, button(900, "Bắt đầu"));
+    const { code, players, socks, host } = await webRoom(3);
+    const sa = socks[1] as Socket;
+    host.send({ type: "command", action: "start" });
     const before = await sa.next("state", (m) => m.view.game !== null);
-    const again = await connect(a, code);
+    const again = await connect(players[1] as WebPlayer, code);
     const after = await again.next("state");
     expect(after.view.game?.hand).toEqual(before.view.game?.hand);
     expect(await sa.closed).toEqual({ code: 4002 });
@@ -214,11 +265,12 @@ describe("a mixed game over sockets", () => {
   });
 
   it("W5 leaving over the socket closes it and tells the others", async () => {
-    const { sa, sb, a } = await mixedRoom(1000);
-    sa.send({ type: "command", action: "leave" });
-    expect(await sa.closed).toEqual({ code: 4000 });
-    const state = await sb.next("state", (m) => !m.view.players.some((p) => p.id === a.id));
-    expect(state.view.players).toHaveLength(3);
+    const { players, socks, host } = await webRoom(3);
+    const leaver = (players[1] as WebPlayer).id;
+    socks[1]?.send({ type: "command", action: "leave" });
+    expect(await socks[1]?.closed).toEqual({ code: 4000 });
+    const state = await host.next("state", (m) => !m.view.players.some((p) => p.id === leaver));
+    expect(state.view.players).toHaveLength(2);
   });
 });
 

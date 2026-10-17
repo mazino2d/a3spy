@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-import { decodeChange, encodeChange } from "../../src/bot/callbacks";
 import { closeVote, configure, openVote, type Room, type SettingsChange, vote } from "../../src/game/engine";
 import { isDue, nextTimer } from "../../src/game/timers";
 import { settingsView, viewFor } from "../../src/game/view";
@@ -73,10 +72,5 @@ describe("G5 timers", () => {
     expect(viewFor(room, 2, timer).game?.timer).toEqual({ kind: "discussion", endsAt: 2 * MIN });
     const voting = expectOk(openVote(room, 1, turnOf(room))).room;
     expect(viewFor(voting, 2, timer).game?.timer).toBeNull();
-  });
-
-  it("G5 Telegram buttons carry the timer changes", () => {
-    for (const timer of ["discussion", "vote"] as const)
-      expect(decodeChange(encodeChange({ kind: "timer", timer }))).toEqual({ kind: "timer", timer });
   });
 });

@@ -2,10 +2,10 @@ import { DurableObject } from "cloudflare:workers";
 import type { Env } from "../env";
 
 /**
- * One per player ID: which room they are in. RoomDO is the source of truth and keeps this in sync.
- * For a web guest it also holds their name and the SHA-256 of their session token.
+ * One per web guest: their name, the SHA-256 of their session token, and which room they are
+ * in. GameRoomDO is the source of truth for the room and keeps this in sync.
  */
-export class PlayerDO extends DurableObject<Env> {
+export class GuestDO extends DurableObject<Env> {
   room(): string | null {
     return this.ctx.storage.kv.get<string>("room") ?? null;
   }

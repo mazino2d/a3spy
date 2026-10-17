@@ -131,7 +131,7 @@ Status: draft | ready | in progress | shipped   ·   Serves: <UC ids>   ·   Roa
    - Copy: Vietnamese, readable in 3 seconds, long names and words.
 5. **Good acceptance criteria**:
    - Say what a player **sees or can tap**, never how (`every player sees X`, not
-     `RoomDO broadcasts X`).
+     `GameRoomDO broadcasts X`).
    - Exact numbers (counts, seconds, limits), never "fast" or "a few".
    - Each one independently testable; if a tester couldn't write a test for it, rewrite
      it.

@@ -1,6 +1,5 @@
 /**
- * Player IDs tell clients apart: Telegram user IDs are positive, web guests
- * get a random negative ID, so the engine and stored rooms need no client field.
+ * Web guests get a random negative ID, so it can never be mistaken for a Telegram user id
+ * (positive) from the time the game also ran in Telegram.
  */
-export const isTelegram = (playerId: number): boolean => playerId > 0;
 export const isWeb = (playerId: number): boolean => playerId < 0;

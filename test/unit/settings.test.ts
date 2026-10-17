@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-import { decodeChange, encodeChange } from "../../src/bot/callbacks";
 import {
   configure,
   createRoom,
@@ -139,24 +138,6 @@ describe("L4 host settings", () => {
         pairKey(PAIRS[1] as (typeof PAIRS)[1]),
       );
     }
-  });
-
-  it("L4 Telegram buttons carry every change in the numeric argument", () => {
-    const changes: SettingsChange[] = [
-      { kind: "spies", delta: 1 },
-      { kind: "spies", delta: -1 },
-      { kind: "white" },
-      { kind: "auto" },
-      { kind: "allThemes" },
-      { kind: "voice" },
-      ...THEMES.map((theme) => ({ kind: "theme", theme }) as const),
-    ];
-    for (const c of changes) expect(decodeChange(encodeChange(c))).toEqual(c);
-    expect(decodeChange(0)).toBeNull();
-    // 7 and 9 open and close the picker; they are not settings changes.
-    expect(decodeChange(7)).toBeNull();
-    expect(decodeChange(9)).toBeNull();
-    expect(decodeChange(99)).toBeNull();
   });
 });
 
