@@ -150,7 +150,7 @@ function Outcome({ view, events }: { view: RoomView; events: PublicEvent[] }) {
 
 type PhaseProps = GameProps & { game: GameView; isHost: boolean };
 
-function Describing({ view, game, isHost, online, send }: PhaseProps) {
+function Describing({ view, game, isHost, online, send, mark }: PhaseProps) {
   const alive = game.alive.includes(view.me);
   const dead = game.dealt.filter((p) => !game.alive.includes(p.id));
   return (
@@ -161,6 +161,7 @@ function Describing({ view, game, isHost, online, send }: PhaseProps) {
           {game.order.map((id) => (
             <li key={id} class={id === view.me ? "me" : undefined}>
               {nameOf(view, id)}
+              {mark(id)}
               {id === view.me && <span class="muted"> ({t.you})</span>}
             </li>
           ))}
@@ -212,7 +213,7 @@ function EndButton({ game, online, send }: Pick<PhaseProps, "game" | "online" | 
   );
 }
 
-function Voting({ view, game, isHost, online, send }: PhaseProps) {
+function Voting({ view, game, isHost, online, send, mark }: PhaseProps) {
   const canVote = game.canVoteFor.length > 0;
   return (
     <>
@@ -239,6 +240,7 @@ function Voting({ view, game, isHost, online, send }: PhaseProps) {
                 >
                   {id === game.myVote ? "✅ " : ""}
                   {nameOf(view, id)}
+                  {mark(id)}
                 </button>
               ))}
             </div>
