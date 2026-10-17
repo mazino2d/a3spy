@@ -76,6 +76,7 @@ export const t = {
   voiceMute: "🔇 Tắt mic",
   voiceUnmute: "🎙 Bật mic",
   voiceConnecting: "Đang vào voice…",
+  voiceReconnecting: "⏳ Đang kết nối lại voice…",
   voiceFailed: "Không vào được voice, thử lại nhé.",
   voiceCount: (n: number) => (n ? `🎙 ${n} người đang trong voice` : "🎙 Phòng có voice call"),
   voiceInCall: (n: number) => `🎙 Đang trong voice · ${n} người`,

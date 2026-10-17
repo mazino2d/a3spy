@@ -28,11 +28,17 @@ export function VoiceBar({ call, count, online, onJoin, onMute, onLeave }: Props
 
   return (
     <section class="voicebar" aria-label={t.voice}>
-      {call.status === "in" ? (
+      {call.status === "in" || call.status === "reconnecting" ? (
         <>
-          <span class="small">{call.listenOnly ? t.voiceListenOnly : t.voiceInCall(count)}</span>
+          <span class="small">
+            {call.status === "reconnecting"
+              ? t.voiceReconnecting
+              : call.listenOnly
+                ? t.voiceListenOnly
+                : t.voiceInCall(count)}
+          </span>
           <span class="row">
-            {!call.listenOnly && (
+            {!call.listenOnly && call.status === "in" && (
               <button
                 type="button"
                 class={call.muted ? "chip on" : "chip"}

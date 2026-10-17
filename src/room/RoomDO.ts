@@ -26,7 +26,17 @@ import { publicEvents, viewFor } from "../game/view";
 import { PACKS, pairsOf } from "../game/words";
 import { statsOf } from "../stats/StatsDO";
 import { realtime } from "../voice/realtime";
-import { dropConn, members, prune, pullable, type Roster, sameRoster } from "../voice/roster";
+import {
+  dropConn,
+  markLost,
+  members,
+  nextSweep,
+  prune,
+  pullable,
+  type Roster,
+  sameRoster,
+  sweep,
+} from "../voice/roster";
 import { PLAYER_HEADER } from "../web/api";
 import {
   CLOSE_CODE,
@@ -243,14 +253,10 @@ export class RoomDO extends DurableObject<Env> {
     if (!stored) return new Response("Not found", { status: 404 });
     if (!engine.inRoom(stored.room, playerId)) return new Response("Forbidden", { status: 403 });
 
-    // One socket per player: a new tab or a reconnect takes the seat over, and leaves the call.
+    // One socket per player: a new tab or a reconnect takes the seat over. The call seat waits
+    // for this socket to resume it, and leaves the call after GRACE_MS otherwise.
     for (const old of this.ctx.getWebSockets(String(playerId))) this.closeSocket(old, "replaced");
-    const roster = this.loadVoice();
-    if (roster[playerId]) {
-      const { [playerId]: _gone, ...rest } = roster;
-      this.saveVoice(rest);
-      this.pushVoice(stored, rest);
-    }
+    await this.loseVoice(stored, { id: playerId });
 
     const pair = new WebSocketPair();
     const [client, server] = [pair[0], pair[1]];
@@ -279,13 +285,8 @@ export class RoomDO extends DurableObject<Env> {
 
   async webSocketClose(ws: WebSocket, code: number, reason: string): Promise<void> {
     const { conn } = ws.deserializeAttachment() as SocketInfo;
-    const roster = this.loadVoice();
-    const kept = conn ? dropConn(roster, conn) : roster;
-    if (!sameRoster(roster, kept)) {
-      this.saveVoice(kept);
-      const stored = this.load();
-      if (stored) this.pushVoice(stored, kept);
-    }
+    const stored = this.load();
+    if (stored && conn) await this.loseVoice(stored, { conn });
     try {
       ws.close(code, reason);
     } catch {
@@ -309,6 +310,16 @@ export class RoomDO extends DurableObject<Env> {
       links: { web: webLink(info.origin, room.code), telegram: inviteLink(stored.botUsername, room.code) },
     });
     this.sendTo(ws, this.voiceMessage(stored, this.loadVoice()));
+  }
+
+  /** A seat whose socket went away stays in the call for GRACE_MS, shown as reconnecting. */
+  private async loseVoice(stored: Stored, lost: { conn: string } | { id: number }): Promise<void> {
+    const roster = this.loadVoice();
+    const next = markLost(roster, lost, Date.now());
+    if (sameRoster(roster, next)) return;
+    this.saveVoice(next);
+    this.pushVoice(stored, next);
+    await this.schedule(stored);
   }
 
   private voiceMessage(stored: Stored, roster: Roster): ServerMessage {
@@ -336,6 +347,16 @@ export class RoomDO extends DurableObject<Env> {
     if (!stored.room.settings.voice) return fail("voice_off");
     const seat = this.loadVoice()[me];
     const mine = seat !== undefined && info.conn !== undefined && seat.conn === info.conn;
+
+    if (op.op === "resume") {
+      const roster = this.loadVoice();
+      const own = roster[me];
+      if (!own || own.track !== op.key || !info.conn) return fail("not_in_call");
+      const { lostAt: _, ...back } = own;
+      const next = { ...roster, [me]: { ...back, conn: info.conn } };
+      this.saveVoice(next);
+      return this.pushVoice(stored, next);
+    }
 
     if (op.op === "leave" || op.op === "mute") {
       if (!mine) return fail("not_in_call");
@@ -414,11 +435,12 @@ export class RoomDO extends DurableObject<Env> {
     return stored ? scoreboard(stored.room) : msg.notInRoom;
   }
 
-  /** One alarm per room: the reminder timer when one is due first, else the idle close. */
+  /** One alarm per room: the earliest of the reminder timer, a lost voice seat to sweep, and the idle close. */
   private async schedule(stored: Stored): Promise<void> {
     const idle = stored.updatedAt + IDLE_MS;
     const timer = stored.timer && !stored.timer.fired ? stored.timer.endsAt : Number.POSITIVE_INFINITY;
-    await this.ctx.storage.setAlarm(Math.min(idle, timer));
+    const voice = nextSweep(this.loadVoice()) ?? Number.POSITIVE_INFINITY;
+    await this.ctx.storage.setAlarm(Math.min(idle, timer, voice));
   }
 
   /** Sends a due reminder, or closes the room after IDLE_MS without activity. */
@@ -426,6 +448,12 @@ export class RoomDO extends DurableObject<Env> {
     const stored = this.load();
     if (!stored) return;
     const now = Date.now();
+    const roster = this.loadVoice();
+    const swept = sweep(roster, now);
+    if (!sameRoster(roster, swept)) {
+      this.saveVoice(swept);
+      this.pushVoice(stored, swept);
+    }
     if (isDue(stored.room, stored.timer ?? null, now)) {
       const timer = stored.timer as Timer;
       const next: Stored = { ...stored, timer: { ...timer, fired: true } };

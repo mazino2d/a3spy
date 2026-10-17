@@ -1,13 +1,18 @@
 import type { VoiceMember } from "../../src/voice/roster";
 import type { ServerMessage, VoiceMessage } from "../../src/web/protocol";
+import type { SocketStatus } from "./api";
 
 /**
  * This device's side of the room's voice call: one RTCPeerConnection to Cloudflare's SFU
  * that sends the microphone and receives one track per other player. The room socket
  * carries the signaling; see docs/implementations/M6-remote-voice.md.
+ *
+ * Audio flows straight to the SFU, so a dropped room socket does not stop it: the call
+ * keeps playing and the device resumes its seat when the socket is back. Only a failed
+ * media connection makes the device join again, with a new session.
  */
 
-export type VoiceStatus = "idle" | "connecting" | "in" | "failed";
+export type VoiceStatus = "idle" | "connecting" | "in" | "reconnecting" | "failed";
 
 export interface VoiceState {
   status: VoiceStatus;
@@ -19,9 +24,11 @@ export interface VoiceState {
 }
 
 const ICE: RTCConfiguration = { iceServers: [{ urls: "stun:stun.cloudflare.com:3478" }], bundlePolicy: "max-bundle" };
-/** Audio level (0–1) above which a player counts as talking. */
-const TALKING = 0.03;
-const METER_MS = 250;
+/** Audio level (0–1, linear) above which a player counts as talking: about −40 dBov. */
+const TALKING = 0.01;
+/** A player stays marked as talking this long after their last loud sample, so the mark does not flicker. */
+const TALKING_HOLD_MS = 600;
+const METER_MS = 200;
 
 interface Remote {
   id: number;
@@ -38,8 +45,13 @@ export class VoiceCall {
   /** Received tracks, by member key. */
   private remotes = new Map<string, Remote>();
   private members: VoiceMember[] = [];
-  /** A join or pull waiting for the room's voiceSdp; one exchange at a time. */
-  private waiting: "join" | "pull" | null = null;
+  /** This device's own track name, once the room lists it; needed to resume. */
+  private myKey: string | null = null;
+  /** The player wants to be in the call: survives drops, cleared only by leaving. */
+  private wanted = false;
+  /** The exchange waiting for the room's answer; one at a time. */
+  private waiting: "join" | "pull" | "resume" | null = null;
+  private lastLoud = new Map<number, number>();
   private state: VoiceState = { status: "idle", muted: false, listenOnly: false, talking: new Set() };
 
   constructor(
@@ -48,14 +60,12 @@ export class VoiceCall {
     private readonly onChange: (s: VoiceState) => void,
   ) {}
 
-  get current(): VoiceState {
-    return this.state;
-  }
-
-  /** Must run from a tap: browsers only allow the microphone and audio playback after one. */
+  /** The first time, from a tap: browsers allow the microphone and audio playback only after one. */
   async join(): Promise<void> {
-    if (this.state.status === "connecting" || this.state.status === "in") return;
-    this.set({ status: "connecting", muted: false, listenOnly: false });
+    if (this.pc || this.state.status === "connecting") return;
+    this.wanted = true;
+    const muted = this.state.muted;
+    this.set({ status: "connecting" });
     try {
       this.mic = (
         await navigator.mediaDevices.getUserMedia({
@@ -66,19 +76,26 @@ export class VoiceCall {
       // No microphone: join to listen (AC12). The send transceiver carries nothing.
       this.mic = null;
     }
+    if (!this.wanted) return this.stop();
     try {
       const pc = new RTCPeerConnection(ICE);
       this.pc = pc;
+      // The media path itself failed (network change, NAT timeout): start over with a new session.
+      pc.onconnectionstatechange = () => {
+        if (pc === this.pc && pc.connectionState === "failed") void this.rejoin();
+      };
       const sender = pc.addTransceiver(this.mic ?? "audio", { direction: "sendonly" });
       await pc.setLocalDescription(await pc.createOffer());
       if (!pc.localDescription || !sender.mid) throw new Error("no offer");
+      if (this.mic) this.mic.enabled = !muted;
       this.startMeter();
+      this.myKey = null;
       this.waiting = "join";
       if (!this.send({ type: "voice", op: "join", sdp: pc.localDescription.sdp, mid: sender.mid }))
         throw new Error("offline");
-      this.set({ listenOnly: this.mic === null, muted: this.mic === null });
+      this.set({ listenOnly: this.mic === null, muted: this.mic === null || muted });
     } catch {
-      this.hangup("failed");
+      this.stop("failed");
     }
   }
 
@@ -90,37 +107,56 @@ export class VoiceCall {
   }
 
   leave(): void {
+    this.wanted = false;
     if (this.state.status === "idle") return;
     this.send({ type: "voice", op: "leave" });
-    this.hangup("idle");
+    this.stop();
   }
 
-  /** Drops the call on this device only, e.g. when the room socket is lost. */
-  hangup(status: "idle" | "failed" = "idle"): void {
-    clearInterval(this.meter);
-    this.mic?.stop();
-    this.mic = null;
-    this.pc?.close();
-    this.pc = null;
-    for (const r of this.remotes.values()) r.audio.srcObject = null;
-    this.remotes.clear();
-    void this.audioCtx?.close().catch(() => {});
-    this.audioCtx = null;
-    this.analyser = null;
-    this.waiting = null;
-    this.set({ status, muted: false, listenOnly: false, talking: new Set() });
+  /** Follow the room socket: keep the call through drops, resume the seat when it is back. */
+  onSocket(status: SocketStatus): void {
+    if (status === "replaced" || status === "closed") {
+      // Another tab took the seat, or the room is gone: this device is out of the call.
+      this.wanted = false;
+      this.stop();
+      return;
+    }
+    if (!this.wanted) return;
+    if (status !== "open") {
+      if (this.state.status === "in") this.set({ status: "reconnecting" });
+      return;
+    }
+    if (!this.pc) return void this.join();
+    // A join whose answer was lost with the socket cannot be resumed: start over.
+    if (this.waiting === "join" || !this.myKey) return void this.rejoin();
+    this.waiting = "resume";
+    this.send({ type: "voice", op: "resume", key: this.myKey });
   }
 
   /** Feed every voice message from the room socket. */
   async onMessage(m: ServerMessage): Promise<void> {
     if (m.type === "voice") {
       this.members = m.members;
-      if (!m.on && this.state.status !== "idle") return this.hangup("idle");
+      const mine = m.members.find((x) => x.id === this.me);
+      if (mine && this.waiting !== "join") this.myKey = mine.key;
+      if (!m.on && this.state.status !== "idle") {
+        this.wanted = false;
+        return this.stop();
+      }
+      if (this.waiting === "resume" && mine && !mine.reconnecting) {
+        this.waiting = null;
+        this.set({ status: "in" });
+      }
       return this.sync();
     }
     if (m.type === "voiceError") {
-      if (m.code === "voice_off") return this.hangup("idle");
-      if (this.waiting === "join" || m.code === "not_in_call") return this.hangup("failed");
+      if (m.code === "voice_off") {
+        this.wanted = false;
+        return this.stop();
+      }
+      // The seat was swept while away, or a join failed: join again from scratch.
+      if (this.waiting === "resume" || m.code === "not_in_call") return this.rejoin();
+      if (this.waiting === "join") return this.stop("failed");
       this.waiting = null;
       return;
     }
@@ -131,8 +167,8 @@ export class VoiceCall {
         if (m.sdp) await pc.setRemoteDescription(m.sdp);
         this.waiting = null;
         this.set({ status: "in" });
-        // Listening without a microphone: everyone sees this player as muted.
-        if (this.state.listenOnly) this.send({ type: "voice", op: "mute", muted: true });
+        // Keep the mute state across a rejoin; without a microphone everyone sees this player as muted.
+        if (this.state.muted) this.send({ type: "voice", op: "mute", muted: true });
       } else if (this.waiting === "pull") {
         if (m.sdp) {
           await pc.setRemoteDescription(m.sdp);
@@ -143,9 +179,16 @@ export class VoiceCall {
         this.waiting = null;
       }
     } catch {
-      return this.hangup("failed");
+      return this.rejoin();
     }
     return this.sync();
+  }
+
+  /** Drops this device's media and starts a new session, keeping the player's intent and mute. */
+  private async rejoin(): Promise<void> {
+    if (!this.wanted) return;
+    this.stop("reconnecting");
+    await this.join();
   }
 
   /** Receives everyone in the call this device is not hearing yet; stops those who left. */
@@ -174,6 +217,25 @@ export class VoiceCall {
     this.remotes.set(key, { id, mid, audio });
   }
 
+  /** Releases the microphone, the connection and every player's audio on this device. */
+  private stop(status: VoiceStatus = "idle"): void {
+    clearInterval(this.meter);
+    this.mic?.stop();
+    this.mic = null;
+    if (this.pc) this.pc.onconnectionstatechange = null;
+    this.pc?.close();
+    this.pc = null;
+    for (const r of this.remotes.values()) r.audio.srcObject = null;
+    this.remotes.clear();
+    void this.audioCtx?.close().catch(() => {});
+    this.audioCtx = null;
+    this.analyser = null;
+    this.waiting = null;
+    this.lastLoud.clear();
+    const keepMute = status === "reconnecting" ? this.state.muted : false;
+    this.set({ status, muted: keepMute, listenOnly: false, talking: new Set() });
+  }
+
   /** "Talking" comes from audio levels on this device; nothing is sent to the server. */
   private startMeter(): void {
     if (this.mic) {
@@ -188,17 +250,18 @@ export class VoiceCall {
     }
     const samples = new Float32Array(512);
     this.meter = setInterval(() => {
-      const talking = new Set<number>();
+      const now = performance.now();
       if (this.analyser && !this.state.muted) {
         this.analyser.getFloatTimeDomainData(samples);
         const rms = Math.sqrt(samples.reduce((sum, x) => sum + x * x, 0) / samples.length);
-        if (rms > TALKING) talking.add(this.me);
+        if (rms > TALKING) this.lastLoud.set(this.me, now);
       }
       for (const r of this.remotes.values()) {
         const t = this.pc?.getTransceivers().find((x) => x.mid === r.mid);
         const level = t?.receiver.getSynchronizationSources()[0]?.audioLevel ?? 0;
-        if (level > TALKING) talking.add(r.id);
+        if (level > TALKING) this.lastLoud.set(r.id, now);
       }
+      const talking = new Set([...this.lastLoud].filter(([, at]) => now - at < TALKING_HOLD_MS).map(([id]) => id));
       const before = this.state.talking;
       if (talking.size !== before.size || [...talking].some((id) => !before.has(id))) this.set({ talking });
     }, METER_MS);
@@ -210,10 +273,11 @@ export class VoiceCall {
   }
 }
 
-/** The mark shown after a player's name: talking, muted, or in the call. */
+/** The mark shown after a player's name: reconnecting, muted, talking, or in the call. */
 export function voiceMark(members: VoiceMember[], talking: ReadonlySet<number>, id: number): string {
   const m = members.find((x) => x.id === id);
   if (!m) return "";
+  if (m.reconnecting) return " ⏳";
   if (m.muted) return " 🔇";
   return talking.has(id) ? " 🗣" : " 🎙";
 }

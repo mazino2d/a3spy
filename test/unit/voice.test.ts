@@ -2,7 +2,17 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { configure, leave, type Room } from "../../src/game/engine";
 import { PACKS } from "../../src/game/words";
 import { realtime } from "../../src/voice/realtime";
-import { dropConn, members, prune, pullable, type Roster } from "../../src/voice/roster";
+import {
+  dropConn,
+  GRACE_MS,
+  markLost,
+  members,
+  nextSweep,
+  prune,
+  pullable,
+  type Roster,
+  sweep,
+} from "../../src/voice/roster";
 import { parseMessage } from "../../src/web/protocol";
 import { expectOk, lobby } from "../helpers/game";
 
@@ -22,8 +32,8 @@ describe("V2 V3 voice roster", () => {
     const roster: Roster = { 1: seat(1), 2: seat(2, { muted: true }) };
     const list = members(room, roster);
     expect(list).toEqual([
-      { id: 1, name: room.players[0]?.name, muted: false, key: "p1-x" },
-      { id: 2, name: room.players[1]?.name, muted: true, key: "p2-x" },
+      { id: 1, name: room.players[0]?.name, muted: false, reconnecting: false, key: "p1-x" },
+      { id: 2, name: room.players[1]?.name, muted: true, reconnecting: false, key: "p2-x" },
     ]);
     expect(JSON.stringify(list)).not.toContain("s1");
   });
@@ -45,8 +55,20 @@ describe("V2 V3 voice roster", () => {
     expect(pullable(roster, 1, [1, 2, 2, 9]).map((x) => x.id)).toEqual([2]);
   });
 
-  it("V5 a closed socket removes only the seat it opened", () => {
+  it("V5 leaving the call removes only the seat that socket opened", () => {
     expect(Object.keys(dropConn({ 1: seat(1), 2: seat(2) }, "c2"))).toEqual(["1"]);
+  });
+
+  it("V5 AC18 a lost seat shows as reconnecting and stays for the grace period", () => {
+    const room = voiceOn(lobby(3));
+    const lost = markLost({ 1: seat(1), 2: seat(2) }, { conn: "c2" }, 1000);
+    expect(members(room, lost).map((m) => m.reconnecting)).toEqual([false, true]);
+    // Marking again keeps the first time it was lost.
+    expect(markLost(lost, { id: 2 }, 5000)[2]?.lostAt).toBe(1000);
+    expect(nextSweep(lost)).toBe(1000 + GRACE_MS);
+    expect(Object.keys(sweep(lost, 1000 + GRACE_MS - 1))).toEqual(["1", "2"]);
+    expect(Object.keys(sweep(lost, 1000 + GRACE_MS))).toEqual(["1"]);
+    expect(nextSweep({ 1: seat(1) })).toBeNull();
   });
 });
 
@@ -68,6 +90,11 @@ describe("voice messages from the web", () => {
       op: "mute",
       muted: true,
     });
+    expect(parseMessage('{"type":"voice","op":"resume","key":"p1-ab"}')).toEqual({
+      type: "voice",
+      op: "resume",
+      key: "p1-ab",
+    });
     expect(parseMessage('{"type":"command","action":"start"}')).toEqual({ type: "command", cmd: { action: "start" } });
     for (const bad of [
       '{"type":"voice","op":"join","sdp":"","mid":"0"}',
@@ -76,6 +103,7 @@ describe("voice messages from the web", () => {
       '{"type":"voice","op":"pull","ids":["1"]}',
       '{"type":"voice","op":"mute","muted":"yes"}',
       '{"type":"voice","op":"record"}',
+      '{"type":"voice","op":"resume","key":""}',
     ])
       expect(parseMessage(bad)).toBeNull();
   });

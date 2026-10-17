@@ -67,13 +67,19 @@ invocation; 10 players is 12, under the free plan's 50.
 
 ### Leaving and drops
 
-- `voice.leave`, leaving the room, the room closing, or turning `voice` off: the RoomDO
-  closes the seat's tracks (`tracks/close`), removes it from the roster and broadcasts.
-- Socket closed without `leave` (tab closed, network): the seat is marked `reconnecting`
-  and removed after 30 s unless the same seat rejoins (the room alarm already exists;
-  the voice sweep shares it like the M4 timer).
-- Client side: on `iceconnectionstate = failed` or a socket reconnect, the client drops the
-  old peer connection and repeats the join sequence with the same mute state (AC18).
+- `voice.leave`, leaving the room, the room closing, or turning `voice` off: the seat leaves
+  the roster at once and every device stops that player's audio.
+- **Room socket dropped** (tab in the background, network blip, reconnect): audio does not
+  go through the socket, so the call keeps playing. The RoomDO marks the seat
+  `reconnecting` (shown as ⏳). When the socket is back, the device sends
+  `voice.resume { key }` with its own track name and gets the seat back with the same
+  session and mute state. A seat not resumed within 30 s is swept by the room alarm, which
+  it shares with the M4 timer and the idle close.
+- **Media path failed** (`connectionState = failed`, e.g. Wi-Fi to 4G): the device drops its
+  connection and joins again with a new session, keeping its mute state; other devices pull
+  the new track because its key changed. A refused resume (seat already swept) does the same.
+- **Reload**: the page loses its connection; the seat waits 30 s as reconnecting, and one tap
+  on **Vào voice** joins again (browsers need the tap to play audio).
 
 ## Phases
 
@@ -83,8 +89,8 @@ Every phase leaves production working: voice exists only in rooms where the host
 | Phase | Scope | Stories · ACs | Effort | PR | Status |
 | --- | --- | --- | --- | --- | --- |
 | P1 | `Settings.online` in the engine, `configure online`, Telegram lobby toggle and "🎙 Phòng online" line, web settings toggle, load-time default for stored rooms | V1 · AC1, AC2, AC3, AC5 | 0.5 | #59 | Done |
-| P2 | Realtime app and secrets (everything-as-code #230); `src/voice/realtime.ts` (API client) and `src/voice/roster.ts` (pure); RoomDO voice ops; web `VoiceCall` (join, mute, leave, roster marks on every player list, talking meter, microphone-denied line, headphones tip); turning voice off ends the call | V2, V3, V6 · AC4, AC6, AC7, AC11–AC17, AC22, AC23 | 2 | #60 | In review |
-| P3 | Robustness: `reconnecting` mark and 30 s sweep, ICE restart and rejoin, seat taken over by a newer tab, leave/close cleanup, TURN credentials for UDP-blocked networks | V5 · AC18–AC21 | 1 | | Planned |
+| P2 | Realtime app and secrets (everything-as-code #230); `src/voice/realtime.ts` (API client) and `src/voice/roster.ts` (pure); RoomDO voice ops; web `VoiceCall` (join, mute, leave, roster marks on every player list, talking meter, microphone-denied line, headphones tip); turning voice off ends the call | V2, V3, V6 · AC4, AC6, AC7, AC11–AC17, AC22, AC23 | 2 | #60 | Done |
+| P3 | Robustness: `reconnecting` mark, resume over a new socket, 30 s sweep, rejoin on a failed media path, seat taken over by a newer tab; talking mark threshold lowered to −40 dBov with a 600 ms hold | V5 · AC18–AC21 | 1 | #61 | In review |
 | P4 | Spike `login_url` vs HMAC link on iOS and Android Telegram; `/v/<code>` voice page; voice-only socket; **Vào voice** button in lobby and round messages | V4 · AC8–AC10 | 1.5 | | Planned |
 
 Total 5 days, as estimated on the roadmap.
@@ -108,6 +114,7 @@ and timed in the PR.
 | Realtime needs a payment method, or bills past the free allowance instead of stopping | Check before P2. If billing can run, add a Cloudflare billing notification at $1 and a usage note in the PR; if a card is required and the owner declines, stop and raise it with the product owner (strategy: free to run). |
 | iOS pauses the browser call when the player switches to Telegram or locks the screen | Spec's default: accept for M6, recommend iPhone players use the web app. Measured in the first remote evening; P3's rejoin makes coming back one tap. |
 | Telegram opens links in an in-app browser where the microphone may not work | P4's spike tests both button kinds on iOS and Android before building the page. |
+| A network that blocks UDP cannot reach the SFU | Deferred: no TURN in P3. Home Wi-Fi and 4G pass UDP; add a Realtime TURN app (everything-as-code) only if a player cannot connect. |
 | Echo when someone plays on speaker | Browser echo cancellation, the headphones tip, and each player's own mute. |
 | Realtime API changes | All calls in one module (`src/voice/realtime.ts`) behind small typed functions. |
 | A forwarded HMAC link lets someone else talk as that seat | Prefer `login_url` if the spike passes; otherwise the link only goes to the player's DM, the call shows the seat's name, and the latest device takes the seat. Raised with the product owner against AC10 if HMAC is chosen. |

@@ -49,7 +49,9 @@ describe("V1 V2 voice call on the web", () => {
       tracks: [],
     });
     const seen = await sb.next("voice", (m) => m.members.length === 1);
-    expect(seen.members).toEqual([{ id: a.id, name: "Vy", muted: false, key: expect.stringMatching(/^p\d+-/) }]);
+    expect(seen.members).toEqual([
+      { id: a.id, name: "Vy", muted: false, reconnecting: false, key: expect.stringMatching(/^p\d+-/) },
+    ]);
     expect(rt.calls.map((c) => c.path)).toEqual(["/sessions/new", "/sessions/S1/tracks/new"]);
     expect(rt.calls[1]?.body).toMatchObject({ tracks: [{ location: "local", mid: "0" }] });
   });
@@ -129,5 +131,70 @@ describe("V1 V2 voice call on the web", () => {
     expect(voiceOnly.length).toBeGreaterThan(0);
     if (word) expect(JSON.stringify(voiceOnly)).not.toContain(word);
     expect(JSON.stringify(voiceOnly)).not.toContain('"role"');
+  });
+});
+
+describe("V5 voice through a dropped connection", () => {
+  it("V5 AC18 a dropped socket leaves the seat reconnecting; resuming keeps the seat and its mute", async () => {
+    const { a, code, sa, sb } = await onlineRoom(["Vy", "Khoa"]);
+    join(sa);
+    await sa.next("voiceSdp");
+    sa.send({ type: "voice", op: "mute", muted: true });
+    const { members } = await sb.next("voice", (m) => m.members[0]?.muted === true);
+    const key = members[0]?.key as string;
+    const sessions = rt.calls.filter((c) => c.path === "/sessions/new").length;
+
+    sa.ws.close(1001, "going away");
+    await sb.next("voice", (m) => m.members[0]?.reconnecting === true);
+
+    const back = await connect(a, code);
+    back.send({ type: "voice", op: "resume", key });
+    const resumed = await sb.next("voice", (m) => m.members[0]?.reconnecting === false);
+    expect(resumed.members).toEqual([expect.objectContaining({ id: a.id, key, muted: true })]);
+    // Same seat and session: no new join.
+    expect(rt.calls.filter((c) => c.path === "/sessions/new")).toHaveLength(sessions);
+    back.send({ type: "voice", op: "mute", muted: false });
+    await sb.next("voice", (m) => m.members[0]?.muted === false);
+  });
+
+  it("V5 AC18 resuming with an old key is refused, so the device joins again", async () => {
+    const { a, code, sa } = await onlineRoom(["Vy", "Khoa"]);
+    join(sa);
+    await sa.next("voiceSdp");
+    sa.ws.close(1001, "going away");
+    const back = await connect(a, code);
+    back.send({ type: "voice", op: "resume", key: "p1-stale" });
+    expect(await back.next("voiceError")).toEqual({ type: "voiceError", code: "not_in_call" });
+  });
+
+  it("V5 AC18 a seat that does not come back leaves the call after the grace period", async () => {
+    const { env, runInDurableObject, runDurableObjectAlarm } = await import("cloudflare:test");
+    const { code, sa, sb } = await onlineRoom(["Vy", "Khoa"]);
+    join(sa);
+    await sa.next("voiceSdp");
+    sa.ws.close(1001, "going away");
+    await sb.next("voice", (m) => m.members[0]?.reconnecting === true);
+
+    const stub = env.ROOM.getByName(code);
+    // Move the loss back past the grace period instead of waiting 30 s.
+    await runInDurableObject(stub, (_, state) => {
+      const roster = state.storage.kv.get<Record<string, { lostAt?: number }>>("voice") ?? {};
+      for (const seat of Object.values(roster)) if (seat.lostAt) seat.lostAt = 0;
+      state.storage.kv.put("voice", roster);
+    });
+    expect(await runDurableObjectAlarm(stub)).toBe(true);
+    await sb.next("voice", (m) => m.members.length === 0);
+  });
+
+  it("V5 AC19 the game goes on while a player's voice is reconnecting", async () => {
+    const { code, sa, sb } = await onlineRoom(["Vy", "Khoa"]);
+    await joinRoom(await guest("Linh"), code);
+    join(sb);
+    await sb.next("voiceSdp");
+    sb.ws.close(1001, "going away");
+    sa.send({ type: "command", action: "start" });
+    const { view } = await sa.next("state", (m) => m.view.game !== null);
+    sa.send({ type: "command", action: "openVote", gameId: view.game?.id, round: view.game?.round });
+    expect((await sa.next("state", (m) => m.view.game?.phase === "voting")).view.game?.phase).toBe("voting");
   });
 });

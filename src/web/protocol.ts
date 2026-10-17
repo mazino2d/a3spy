@@ -20,6 +20,8 @@ export type VoiceOp =
   /** The device's answer to a voiceSdp offer. */
   | { op: "answer"; sdp: string }
   | { op: "mute"; muted: boolean }
+  /** After the room socket reconnects: take back this player's seat, whose track is `key`. */
+  | { op: "resume"; key: string }
   | { op: "leave" };
 
 export type VoiceMessage = { type: "voice" } & VoiceOp;
@@ -95,6 +97,8 @@ function parseVoice(m: Record<string, unknown>): VoiceOp | null {
       return sdp(m.sdp) ? { op: "answer", sdp: m.sdp } : null;
     case "mute":
       return typeof m.muted === "boolean" ? { op: "mute", muted: m.muted } : null;
+    case "resume":
+      return typeof m.key === "string" && m.key.length > 0 && m.key.length <= 64 ? { op: "resume", key: m.key } : null;
     case "leave":
       return { op: "leave" };
     default:
