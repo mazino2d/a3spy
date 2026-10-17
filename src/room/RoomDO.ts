@@ -37,7 +37,7 @@ import {
   sameRoster,
   sweep,
 } from "../voice/roster";
-import { PLAYER_HEADER } from "../web/api";
+import { PLAYER_HEADER, VOICE_HEADER } from "../web/api";
 import {
   CLOSE_CODE,
   type CloseReason,
@@ -46,7 +46,7 @@ import {
   type VoiceError,
   type VoiceOp,
 } from "../web/protocol";
-import { isWeb } from "./clients";
+import { isTelegram, isWeb } from "./clients";
 import { type Command, decide } from "./commands";
 
 export const IDLE_MS = 6 * 60 * 60 * 1000;
@@ -70,6 +70,8 @@ interface SocketInfo {
   origin: string;
   /** Identifies this socket in the voice roster; absent on sockets opened before voice existed. */
   conn?: string;
+  /** A Telegram player's voice page: gets voice messages only, never the room state (AC9). */
+  voiceOnly?: boolean;
 }
 
 export type JoinOutcome = "ok" | "not_found" | "already_in_room";
@@ -245,23 +247,34 @@ export class RoomDO extends DurableObject<Env> {
     return null;
   }
 
-  /** A web player's WebSocket, forwarded by the Worker after it checked their session. */
+  /**
+   * A web player's WebSocket, or a Telegram player's voice page, forwarded by the Worker
+   * after it checked their session or voice cookie.
+   */
   async fetch(request: Request): Promise<Response> {
     const playerId = Number(request.headers.get(PLAYER_HEADER));
-    if (!Number.isSafeInteger(playerId) || playerId >= 0) return new Response("Forbidden", { status: 403 });
+    const voiceOnly = request.headers.get(VOICE_HEADER) === "1";
+    if (!Number.isSafeInteger(playerId) || (voiceOnly ? !isTelegram(playerId) : !isWeb(playerId)))
+      return new Response("Forbidden", { status: 403 });
     const stored = this.load();
     if (!stored) return new Response("Not found", { status: 404 });
     if (!engine.inRoom(stored.room, playerId)) return new Response("Forbidden", { status: 403 });
 
     // One socket per player: a new tab or a reconnect takes the seat over. The call seat waits
     // for this socket to resume it, and leaves the call after GRACE_MS otherwise.
-    for (const old of this.ctx.getWebSockets(String(playerId))) this.closeSocket(old, "replaced");
+    const tag = voiceOnly ? `voice:${playerId}` : String(playerId);
+    for (const old of this.ctx.getWebSockets(tag)) this.closeSocket(old, "replaced");
     await this.loseVoice(stored, { id: playerId });
 
     const pair = new WebSocketPair();
     const [client, server] = [pair[0], pair[1]];
-    this.ctx.acceptWebSocket(server, [String(playerId)]);
-    const info: SocketInfo = { playerId, origin: new URL(request.url).origin, conn: crypto.randomUUID() };
+    this.ctx.acceptWebSocket(server, [tag]);
+    const info: SocketInfo = {
+      playerId,
+      origin: new URL(request.url).origin,
+      conn: crypto.randomUUID(),
+      ...(voiceOnly ? { voiceOnly } : {}),
+    };
     server.serializeAttachment(info);
     this.sendState(server, stored, info);
     return new Response(null, { status: 101, webSocket: client });
@@ -274,6 +287,7 @@ export class RoomDO extends DurableObject<Env> {
     const parsed = typeof message === "string" ? parseMessage(message) : null;
     if (!parsed) return this.sendTo(ws, { type: "error", code: "bad_request" });
     if (parsed.type === "voice") return this.onVoice(ws, info, parsed);
+    if (info.voiceOnly) return this.sendTo(ws, { type: "error", code: "bad_request" });
     const error = await this.apply(stored, info.playerId, parsed.cmd);
     if (error) {
       this.sendTo(ws, { type: "error", code: error });
@@ -306,6 +320,11 @@ export class RoomDO extends DurableObject<Env> {
 
   private sendState(ws: WebSocket, stored: Stored, info: SocketInfo): void {
     const { room } = stored;
+    // A voice page never gets the room state: it holds the player's word (AC9).
+    if (info.voiceOnly) {
+      this.sendTo(ws, this.voiceMessage(stored, this.loadVoice()));
+      return;
+    }
     this.sendTo(ws, {
       type: "state",
       view: viewFor(room, info.playerId, stored.timer ?? null),
@@ -427,7 +446,7 @@ export class RoomDO extends DurableObject<Env> {
         this.closeSocket(ws, "left");
         continue;
       }
-      if (pub.length) this.sendTo(ws, { type: "events", events: pub });
+      if (pub.length && !info.voiceOnly) this.sendTo(ws, { type: "events", events: pub });
       this.sendState(ws, stored, info);
     }
   }

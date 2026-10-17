@@ -4,7 +4,15 @@ import type { Keyboard } from "./render";
 
 export function markup(keyboard: Keyboard | undefined): InlineKeyboardMarkup | undefined {
   return keyboard
-    ? { inline_keyboard: keyboard.map((row) => row.map((b) => ({ text: b.text, callback_data: b.data }))) }
+    ? {
+        inline_keyboard: keyboard.map((row) =>
+          row.map((b) =>
+            "login" in b
+              ? { text: b.text, login_url: { url: b.login, request_write_access: false } }
+              : { text: b.text, callback_data: b.data },
+          ),
+        ),
+      }
     : undefined;
 }
 

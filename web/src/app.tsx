@@ -6,6 +6,7 @@ import { Home } from "./screens/Home";
 import { NameScreen } from "./screens/NameScreen";
 import { RoomGate } from "./screens/RoomGate";
 import { StatsScreen } from "./screens/Stats";
+import { VoicePage } from "./screens/VoicePage";
 
 export function App() {
   const [route, setRoute] = useState<Route>(() => parseRoute(location.pathname));
@@ -32,6 +33,8 @@ export function App() {
     if (route.name === "home" && me?.room) go({ name: "room", code: me.room }, true);
   }, [route.name, me?.room]);
 
+  // A Telegram player's voice page needs no web session.
+  if (route.name === "voice") return <VoicePage code={route.code} />;
   if (failed)
     return (
       <main class="screen center">

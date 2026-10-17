@@ -1,12 +1,11 @@
 import { useEffect, useRef, useState } from "preact/hooks";
 import type { PublicEvent, RoomView } from "../../../src/game/view";
-import type { VoiceMember } from "../../../src/voice/roster";
 import type { CommandMessage, Links, ServerMessage } from "../../../src/web/protocol";
 import { leaveRoom, RoomSocket, type SocketStatus } from "../api";
 import { t } from "../messages";
 import { nextOutcome } from "../outcome";
 import { go } from "../route";
-import { VoiceCall, type VoiceState, voiceMark } from "../voice";
+import { useVoice } from "../useVoice";
 import { Game, GameOver, Scoreboard } from "./Game";
 import { Lobby } from "./Lobby";
 import { VoiceBar } from "./VoiceBar";
@@ -21,8 +20,6 @@ export interface RoomProps {
   mark(id: number): string;
 }
 
-const NO_CALL: VoiceState = { status: "idle", muted: false, listenOnly: false, talking: new Set() };
-
 /** One live room: the socket, the latest state, and which screen to show. */
 export function Room({ code, onLeft }: { code: string; onLeft(): void }) {
   const [state, setState] = useState<{ view: RoomView; links: Links } | null>(null);
@@ -31,19 +28,15 @@ export function Room({ code, onLeft }: { code: string; onLeft(): void }) {
   const [toast, setToast] = useState<string | null>(null);
   const [outcome, setOutcome] = useState<PublicEvent[]>([]);
   const [scoreOpen, setScoreOpen] = useState(false);
-  const [voice, setVoice] = useState<{ on: boolean; members: VoiceMember[] }>({ on: false, members: [] });
-  const [call, setCall] = useState<VoiceState>(NO_CALL);
   const socket = useRef<RoomSocket | null>(null);
-  const voiceCall = useRef<VoiceCall | null>(null);
+  const voice = useVoice((m) => socket.current?.send(m) ?? false, status);
+  const voiceRef = useRef(voice);
+  voiceRef.current = voice;
 
   useEffect(() => {
     const onMessage = (m: ServerMessage) => {
-      if (m.type === "voice" || m.type === "voiceSdp" || m.type === "voiceError") {
-        if (m.type === "voice") setVoice({ on: m.on, members: m.members });
-        if (m.type === "voiceError" && m.code === "unavailable") setToast(t.voiceFailed);
-        void voiceCall.current?.onMessage(m);
-        return;
-      }
+      if (m.type === "voiceError" && m.code === "unavailable") setToast(t.voiceFailed);
+      if (voiceRef.current.onMessage(m)) return;
       if (m.type === "state") setState({ view: m.view, links: m.links });
       else if (m.type === "events") setOutcome((current) => nextOutcome(current, m.events));
       else if (m.type === "error") setToast(t.errors[m.code] ?? t.errors.generic ?? "");
@@ -51,17 +44,8 @@ export function Room({ code, onLeft }: { code: string; onLeft(): void }) {
     };
     const s = new RoomSocket(code, onMessage, setStatus);
     socket.current = s;
-    return () => {
-      voiceCall.current?.leave();
-      voiceCall.current = null;
-      s.close();
-    };
+    return () => s.close();
   }, [code]);
-
-  // Audio keeps flowing through a socket drop; the call resumes its seat when the socket is back.
-  useEffect(() => {
-    voiceCall.current?.onSocket(status);
-  }, [status]);
 
   useEffect(() => {
     if (closed === "left") onLeft();
@@ -99,12 +83,8 @@ export function Room({ code, onLeft }: { code: string; onLeft(): void }) {
   if (!state) return <main class="screen center muted">{t.connecting}</main>;
 
   const online = status === "open";
-  const joinVoice = () => {
-    voiceCall.current ??= new VoiceCall(state.view.me, (m) => socket.current?.send(m) ?? false, setCall);
-    void voiceCall.current.join();
-  };
   const props: RoomProps = {
-    mark: (id) => (voice.on ? voiceMark(voice.members, call.talking, id) : ""),
+    mark: voice.mark,
     view: state.view,
     links: state.links,
     online,
@@ -127,12 +107,12 @@ export function Room({ code, onLeft }: { code: string; onLeft(): void }) {
       )}
       {voice.on && (
         <VoiceBar
-          call={call}
+          call={voice.call}
           count={voice.members.length}
           online={online}
-          onJoin={joinVoice}
-          onMute={(muted) => voiceCall.current?.setMuted(muted)}
-          onLeave={() => voiceCall.current?.leave()}
+          onJoin={() => voice.join(state.view.me)}
+          onMute={voice.setMuted}
+          onLeave={voice.leave}
         />
       )}
       {!state.view.game ? (
