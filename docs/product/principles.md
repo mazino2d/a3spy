@@ -8,6 +8,8 @@ is listed so the trade-off is visible when deciding.
 The game happens at the table. Phones come out only to read a word, vote and see a result,
 with at most 1–2 taps each time.
 
+- On a remote table the voice call is the table: the screen shows whose turn it is to
+  speak and stays as quiet as at the café.
 - One idea per message or screen; lead with the point.
 - No feeds, chat, emoji reactions, animations to wait for or anything else that keeps eyes
   down.
@@ -22,6 +24,8 @@ it by hand.
 - If the host leaves, the earliest remaining joiner becomes host; an empty room closes.
 - If someone does not vote, the host closes the vote anyway.
 - A reload, a locked phone or a dropped connection puts the player back in their seat.
+- Voice is never required to advance: if a player's call drops, the game goes on and the
+  call reconnects.
 - Every tap is answered, even a stale or rejected one.
 - **Cost:** more edge cases to build and test than the happy path suggests.
 
