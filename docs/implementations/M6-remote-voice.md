@@ -1,6 +1,6 @@
 # M6 Remote play with voice — implementation plan
 
-Status: in progress   ·   Spec: [M6 Remote play with voice](../product/specs/M6-remote-voice.md)   ·   Written 2026-10-17
+Status: shipped 2026-10-17   ·   Spec: [M6 Remote play with voice](../product/specs/M6-remote-voice.md)   ·   Written 2026-10-17
 
 How M6 gets built: where audio flows, what the Worker and the RoomDO add, and the PRs in
 order. The spec defines *what* is true; this plan records *how*.
@@ -91,7 +91,7 @@ Every phase leaves production working: voice exists only in rooms where the host
 | P1 | `Settings.online` in the engine, `configure online`, Telegram lobby toggle and "🎙 Phòng online" line, web settings toggle, load-time default for stored rooms | V1 · AC1, AC2, AC3, AC5 | 0.5 | #59 | Done |
 | P2 | Realtime app and secrets (everything-as-code #230); `src/voice/realtime.ts` (API client) and `src/voice/roster.ts` (pure); RoomDO voice ops; web `VoiceCall` (join, mute, leave, roster marks on every player list, talking meter, microphone-denied line, headphones tip); turning voice off ends the call | V2, V3, V6 · AC4, AC6, AC7, AC11–AC17, AC22, AC23 | 2 | #60 | Done |
 | P3 | Robustness: `reconnecting` mark, resume over a new socket, 30 s sweep, rejoin on a failed media path, seat taken over by a newer tab; talking mark threshold lowered to −40 dBov with a 600 ms hold | V5 · AC18–AC21 | 1 | #61, #62 | Done |
-| P4 | `login_url` voice button in lobby and round messages; login check and voice cookie (`src/web/voiceAuth.ts`); `/v/<code>` voice page; voice-only socket that never receives room state | V4 · AC8–AC10 | 1.5 | #63 | In review |
+| P4 | `login_url` voice button in lobby and round messages; login check and voice cookie (`src/web/voiceAuth.ts`); `/v/<code>` voice page; voice-only socket that never receives room state | V4 · AC8–AC10 | 1.5 | #63 | Done |
 
 Total 5 days, as estimated on the roadmap.
 

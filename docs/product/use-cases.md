@@ -5,7 +5,7 @@ Supporting use cases must work correctly but are optimised only when it costs th
 nothing.
 
 Criteria marked *(M2)* came with host settings ([spec](specs/M2-host-settings.md)), and
-*(M3)* with the web app ([spec](specs/M3-web-app.md)), applying to web players, and *(M6)* with remote play ([spec](specs/M6-remote-voice.md)), applying to online rooms. "Any client" means Telegram and the web app.
+*(M3)* with the web app ([spec](specs/M3-web-app.md)), applying to web players, and *(M6)* with remote play ([spec](specs/M6-remote-voice.md)), applying to online rooms. From M7 ([spec](specs/M7-web-only.md)) the web app is the only client.
 
 ## Core
 
@@ -19,7 +19,7 @@ Criteria marked *(M2)* came with host settings ([spec](specs/M2-host-settings.md
 | 1.2 | A player joins with one tap on an invite link (or a code); joining twice never adds them twice. |
 | 1.3 | Everyone in the room sees the lobby update live, with correct display names. |
 | 1.4 | The game cannot start with fewer than 3 players; above 12 it warns and still allows it. |
-| 1.5 | A player without Telegram joins by scanning a QR code or opening a link and typing a name. *(M3)* |
+| 1.5 | A player joins by scanning a QR code or opening a link and typing a name; an old Telegram invite link leads to the same room on the web. *(M3, M7)* |
 
 ### UC-2 Get my word in secret
 
@@ -27,7 +27,7 @@ Criteria marked *(M2)* came with host settings ([spec](specs/M2-host-settings.md
 
 | # | Success criterion |
 | --- | --- |
-| 2.1 | Each player's word or role reaches only that player, on any client. |
+| 2.1 | Each player's word or role reaches only that player. |
 | 2.2 | Civilians and spies see the same format, so a spy cannot tell from the message or screen. |
 | 2.3 | The word can be seen again in one tap without scrolling. |
 | 2.4 | On the web, the word is hidden until the player taps to reveal it and hides again on its own. *(M3)* |
@@ -63,7 +63,7 @@ Criteria marked *(M2)* came with host settings ([spec](specs/M2-host-settings.md
 | # | Success criterion |
 | --- | --- |
 | 9.1 | The host turns a room into an online room in one tap; café rooms never ask for the microphone. *(M6)* |
-| 9.2 | From joining an online room to hearing everyone: < 30 s, on any client. *(M6)* |
+| 9.2 | From joining an online room to hearing everyone: < 30 s. *(M6)* |
 | 9.3 | Everyone hears everyone with < 500 ms delay; every screen shows who is talking. *(M6)* |
 | 9.4 | A dropped call reconnects on its own and never blocks the game. *(M6)* |
 
@@ -83,7 +83,7 @@ Criteria marked *(M2)* came with host settings ([spec](specs/M2-host-settings.md
 | # | Success criterion |
 | --- | --- |
 | 6.1 | The room scoreboard shows games won per player. |
-| 6.2 | `/stats` and the web Stats screen show a player's long-term numbers and the group leaderboard; no words ever. *(M5)* |
+| 6.2 | The Stats screen shows a player's long-term numbers and the group leaderboard; no words ever. *(M5, M7)* |
 
 ### UC-7 Configure a game
 

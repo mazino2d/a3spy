@@ -1,6 +1,6 @@
 # M6 Remote play with voice
 
-Status: ready   ·   Serves: UC-1 – UC-5, UC-9   ·   Roadmap: Now   ·   Implementation: [M6](../../implementations/M6-remote-voice.md)
+Status: shipped 2026-10-17   ·   Serves: UC-1 – UC-5, UC-9   ·   Roadmap: Shipped   ·   Implementation: [M6](../../implementations/M6-remote-voice.md)
 
 ## Problem
 
