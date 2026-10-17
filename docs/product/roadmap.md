@@ -32,7 +32,7 @@ Each milestone has a spec in [specs/](specs/), and large ones an implementation 
 
 | ID | Item | Serves | I | C | E | Score | Notes |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| M6 | Remote play: a voice call built into each room, for friends playing from different places | UC-1 – UC-4 (remote table) | 3 | 0.8 | 5 | 0.48 | Scores *proposed*. Impact 3: without voice the remote group cannot play at all. Confidence 0.8: WebRTC on mobile networks (CGNAT, TURN) is the main risk. Effort 5: signaling over the room's WebSocket, TURN/SFU on Cloudflare Realtime free allowance, Telegram players joining voice through the web app. Strategy change: dropped the "remote play" non-goal (see [strategy](strategy.md)). Spec: to be written. |
+| M6 | Remote play: a voice call built into each room, for friends playing from different places | UC-9 | 3 | 0.8 | 5 | 0.48 | Scores *proposed*. Impact 3: without voice the remote group cannot play at all. Confidence 0.8: WebRTC on mobile networks (CGNAT, TURN) is the main risk. Effort 5: signaling over the room's WebSocket, TURN/SFU on Cloudflare Realtime free allowance, Telegram players joining voice through the web app. Strategy change: dropped the "remote play" non-goal (see [strategy](strategy.md)). Spec: [M6](specs/M6-remote-voice.md). |
 
 ## Next
 

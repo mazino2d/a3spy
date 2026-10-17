@@ -26,3 +26,4 @@ issues in the matching milestone.
 | [M3 Web app (PWA)](specs/M3-web-app.md) | Shipped | Anyone joins by QR and a name and plays the same game as Telegram players; installable. Live at [a3spy.mazino2d.workers.dev](https://a3spy.mazino2d.workers.dev/). [Implementation](../implementations/M3-web-app.md). |
 | [M4 Optional timers](specs/M4-timers.md) | Shipped | Discussion and vote timers that remind the table; the host still decides. [Implementation](../implementations/M4-timers.md). |
 | [M5 Long-term stats](specs/M5-long-term-stats.md) | Shipped | Personal numbers and a group leaderboard: `/stats` on Telegram, Stats on the web. [Implementation](../implementations/M5-long-term-stats.md). |
+| [M6 Remote play with voice](specs/M6-remote-voice.md) | Draft | Online rooms get a built-in voice call, so friends who live apart can play together. |

@@ -41,6 +41,7 @@ Before a game, in the lobby, the host can change (Telegram buttons or the web lo
 - **Spies**: 1–5. **Mr. White**: on or off (at most one).
 - **Themes**: any non-empty set of word packs; all of them by default.
 - **Timers** (see below): discussion off/2/3/5 minutes, vote off/1/2 minutes; both off by default.
+- **Chơi online** (see [Voice](#voice)): on or off; off by default.
 - Counts follow the table above as players join or leave, until the host changes spies or Mr. White; from then on they stay as set, until the host taps **Tự động** to follow the table again.
 - Start is refused unless civilians > spies + Mr. White; the host sees why.
 - Settings belong to the room: they survive play again and a change of host, and cannot change while a game is running.
@@ -66,6 +67,16 @@ Timers only remind; the host still opens and closes the vote.
 - A **discussion** timer starts when a round starts. If the vote is still not open when it ends, every player is told time is up and the host gets the Open vote button.
 - A **vote** timer starts when a vote or revote opens. If that vote is still open when it ends, every player is told time is up and the host gets the Close vote button.
 - If the phase moves on before the end, there is no reminder. A reminder never opens or closes a vote or eliminates anyone.
+
+## Voice
+
+An online room (host setting **Chơi online**) has one audio-only voice call.
+
+- Everyone in the room may join it: living, eliminated and waiting-list players. Nobody outside the room can join or listen.
+- Web players join from the room screen; Telegram players get a **Vào voice** button that opens a voice-only page for their own seat. Words, roles and votes stay where they are.
+- Microphones are open: each player mutes and unmutes themselves; A3 Spy never mutes anyone.
+- The game never waits for voice: dealing, voting and results behave the same whether or not anyone is in the call.
+- Audio is never recorded, stored or transcribed.
 
 ## End of game
 
