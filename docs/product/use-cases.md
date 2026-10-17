@@ -5,7 +5,7 @@ Supporting use cases must work correctly but are optimised only when it costs th
 nothing.
 
 Criteria marked *(M2)* came with host settings ([spec](specs/M2-host-settings.md)), and
-*(M3)* with the web app ([spec](specs/M3-web-app.md)), applying to web players. "Any client" means Telegram and the web app.
+*(M3)* with the web app ([spec](specs/M3-web-app.md)), applying to web players, and *(M6)* with remote play ([spec](specs/M6-remote-voice.md)), applying to online rooms. "Any client" means Telegram and the web app.
 
 ## Core
 
@@ -55,6 +55,17 @@ Criteria marked *(M2)* came with host settings ([spec](specs/M2-host-settings.md
 | 4.1 | At the end, everyone sees the winning side, every role and both words. |
 | 4.2 | Play again keeps players and settings, adds the waiting list, and draws a pair not played in the room in the last 24 hours. |
 | 4.3 | The host can end a game early; no win is counted. |
+
+### UC-9 Play from different places
+
+> As a group of friends who live apart, we play an evening together as if we sat at one table.
+
+| # | Success criterion |
+| --- | --- |
+| 9.1 | The host turns a room into an online room in one tap; café rooms never ask for the microphone. *(M6)* |
+| 9.2 | From joining an online room to hearing everyone: < 30 s, on any client. *(M6)* |
+| 9.3 | Everyone hears everyone with < 500 ms delay; every screen shows who is talking. *(M6)* |
+| 9.4 | A dropped call reconnects on its own and never blocks the game. *(M6)* |
 
 ## Supporting
 
