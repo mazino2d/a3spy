@@ -30,5 +30,9 @@ export const msg = {
   announceCancelled: "Đã huỷ.",
   announceStale: "Bản xem trước này cũ rồi, không gửi.",
   announceBusy: "Đang gửi một thông báo khác, đợi xong đã.",
+  resetConfirm: (count: number) => `🧹 Xoá thống kê của ${count} người? Bảng xếp hạng sẽ về 0, không lấy lại được.`,
+  resetEmpty: "Bảng xếp hạng đang trống rồi.",
+  btnResetConfirm: "🧹 Xoá hết",
+  resetDone: (count: number) => `Đã xoá thống kê của ${count} người.`,
   announceDone: (sent: number, failed: number) => `📣 Đã gửi tới ${sent} người, lỗi ${failed}.`,
 };

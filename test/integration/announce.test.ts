@@ -130,3 +130,33 @@ describe("B1 owner announcements", () => {
     expect(tg.messages().some((m) => m.text === "Bản một" || m.text === "Bản hai")).toBe(false);
   });
 });
+
+describe("owner resets the leaderboard", () => {
+  const record = () =>
+    env.LEADERBOARD.getByName("group").record([
+      { id: -11, name: "Test A", role: "civilian", won: true, guessed: false },
+      { id: -12, name: "Test B", role: "spy", won: false, guessed: false },
+    ]);
+  const board = () => env.LEADERBOARD.getByName("group").read(-11);
+
+  it("asks first, then deletes every player's stats", async () => {
+    await record();
+    await text(OWNER, "/resetstats");
+    expect(tg.last(OWNER)?.text).toMatch(/Xoá thống kê của \d+ người/);
+    expect((await board()).board.length).toBeGreaterThan(0);
+    await press(OWNER, previewButton("Xoá hết"));
+    expect(tg.answers().at(-1)?.text).toMatch(/Đã xoá thống kê của \d+ người/);
+    expect(await board()).toEqual({ me: null, board: [] });
+  });
+
+  it("cancel keeps the stats, and nobody else can reset", async () => {
+    await record();
+    await text(OWNER, "/resetstats");
+    await press(OWNER, previewButton("Huỷ"));
+    expect((await board()).board.length).toBeGreaterThan(0);
+    await text(3901, "/resetstats");
+    expect(tg.last(3901)?.text).toContain("A3 Spy");
+    await press(3901, "rs|go");
+    expect((await board()).board.length).toBeGreaterThan(0);
+  });
+});
