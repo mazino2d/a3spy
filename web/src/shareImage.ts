@@ -87,7 +87,7 @@ export async function drawResult(card: ShareCard, appHost: string): Promise<Blob
 
   // The red stamp: the odd one out.
   ctx.save();
-  ctx.translate(right - 110, y + 10);
+  ctx.translate(right - 110, y - 6);
   ctx.rotate(-0.12);
   ctx.strokeStyle = C.stamp;
   ctx.lineWidth = 6;
@@ -99,7 +99,7 @@ export async function drawResult(card: ShareCard, appHost: string): Promise<Blob
   ctx.restore();
 
   // Winner and the viewer's own result.
-  y += 190;
+  y += 205;
   ctx.textAlign = "left";
   ctx.fillStyle = C.ink;
   const headline = t.winnerShort[card.winner] ?? "";
@@ -161,7 +161,11 @@ export async function drawResult(card: ShareCard, appHost: string): Promise<Blob
   ctx.textAlign = "center";
   ctx.fillStyle = C.soft;
   ctx.font = `400 30px ${TYPE}`;
-  ctx.fillText(t.shareFooter(appHost), W / 2, H - 110);
+  // Two lines, the link sized to fit: a long domain must never leave the sheet.
+  ctx.fillText(t.shareFooter, W / 2, H - 146);
+  ctx.fillStyle = C.ink;
+  fitSize(ctx, appHost, (px) => `600 ${px}px ${TYPE}`, 34, 20, right - left);
+  ctx.fillText(appHost, W / 2, H - 100);
 
   return new Promise((resolve, reject) =>
     canvas.toBlob((blob) => (blob ? resolve(blob) : reject(new Error("no image"))), "image/png"),
