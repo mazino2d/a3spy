@@ -4,33 +4,35 @@ Guidance for AI coding agents (Claude Code, Codex, …) and human contributors w
 this repo.
 
 A3 Spy is the **game master** for *Who is Spy* (Undercover rules) while a group of friends
-plays **in person** at a café. People describe and argue out loud; A3 Spy deals secret
-words, calls the speaking order, runs the vote, eliminates, reveals and keeps score. Players use
-the Telegram bot or the web app (PWA) at https://a3spy.mazino2d.workers.dev/; both join the
-same rooms ([M3](docs/product/specs/M3-web-app.md)). Audience: one friend group, < 30 users.
+plays at one café table or apart on the room's voice call. People describe and argue out
+loud; A3 Spy deals secret words, calls the speaking order, runs the vote, eliminates, reveals
+and keeps score. The game runs only in the web app (PWA) at
+https://a3spy.mazino2d.workers.dev/; the Telegram bot is a signpost and an announcement
+channel ([M7](docs/product/specs/M7-web-only.md)). Audience: one friend group, < 30 users.
 Product context: [docs/product/](docs/product/index.md).
 
 ## Language policy
 
 **Write everything in English**: code, comments, docs, issues, commit messages and PR
-descriptions. Only what players see is Vietnamese, and it lives in `src/bot/messages.ts`
-(Telegram) or `web/src/messages.ts` (web app).
+descriptions. Only what players see is Vietnamese, and it lives in `web/src/messages.ts`
+(web app) or `src/bot/messages.ts` (the bot's signpost and announcements).
 
 ## Critical rules
 
 1. **`src/game` stays pure.** Deterministic functions over plain data; randomness is
-   injected (`rng` parameter) so tests are reproducible. Telegram and storage code call
+   injected (`rng` parameter) so tests are reproducible. Web and storage code call
    into it, never the reverse.
 2. **All state lives in Durable Objects.** No module-level mutable state in the Worker;
    isolates are recycled at any time.
 3. **Secrets never in code or git.** Bot token and webhook secret come from `env`. The
    legacy bot leaked its token in this public repo; do not repeat that.
-4. **Words and roles are secret.** Send them only to their owner (DM or a `show_alert`
-   popup). Never log them, never put them in `callback_data`, URLs or broadcasts.
-5. **Every button press is answered** (`answerCallbackQuery`) and checked against the
-   current phase and round; stale buttons from an earlier round are ignored.
-6. **User-facing text is Vietnamese** and lives in one messages file per client:
-   `src/bot/messages.ts` (Telegram) and `web/src/messages.ts` (web app).
+4. **Words and roles are secret.** Only `src/game/view.ts` decides what reaches a player's
+   screen. Never log them, never put them in URLs, broadcasts or anything the bot sends.
+5. **Every command is checked** against the current phase and round; stale actions from an
+   earlier round are refused and the client gets a fresh state. Every bot button press is
+   answered (`answerCallbackQuery`).
+6. **User-facing text is Vietnamese** and lives in `web/src/messages.ts` (web app) and
+   `src/bot/messages.ts` (the bot).
 7. **Infra is not configured here.** Branch protection, repo settings, the Cloudflare
    deploy token and GitHub secrets are managed in `mazino2d/everything-as-code`
    (`terraform/github`, `terraform/cloudflare`). Change them there by PR.
@@ -76,42 +78,39 @@ the matching `SKILL.md` before starting the task.
 
 ## Architecture
 
-TypeScript on **Cloudflare Workers** (free plan), **grammY** for the Telegram Bot API,
-**Durable Objects** (SQLite-backed) for state, **Vitest** + `@cloudflare/vitest-plugin`
-for tests, **Biome** for lint and format. Telegram talks to the Worker by **webhook**;
-there is no long-running process.
+TypeScript on **Cloudflare Workers** (free plan), **Durable Objects** (SQLite-backed) for
+state, **Preact** + **Vite** for the web app, **grammY** for the bot, **Vitest** +
+`@cloudflare/vitest-plugin` for tests, **Biome** for lint and format. There is no
+long-running process.
 
 ```text
-Telegram ──webhook──▶ Worker (src/index.ts)
-                       │  verify X-Telegram-Bot-Api-Secret-Token
-                       ▼
-                  grammY handlers (src/bot)
-                       │
-           ┌───────────┴────────────┐
-           ▼                        ▼
-   RoomDO "<code>"           PlayerDO "<telegram id>"
-   room + game state,        which room the player is in
-   idle alarm, broadcasts    (one room per player)
-           │
-           ▼
-   src/game — pure rules: deal, turn order, vote tally, win check
+Browser ──/api/*, WebSocket──▶ Worker (src/index.ts) ──▶ GameRoomDO "<code>"
+        ◀── web/dist ─────────┘   │                       room + game state, voice roster,
+                                  │                       one alarm (timer, voice sweep, idle close)
+                                  │                           │
+                                  │                           ▼
+                                  │                       src/game — pure rules
+                                  ├──▶ GuestDO "<guest id>"  name, session hash, current room
+                                  └──▶ LeaderboardDO "group" long-term stats (no words)
+Telegram ──webhook──▶ Worker ──▶ bot (src/bot): signpost, old invite links, /announce
+                                  └──▶ AudienceDO "bot"      Telegram ids for announcements
 ```
 
-The web app (`web/`, served by the same Worker as static assets) talks to `/api/*` and
-connects to the same RoomDO over WebSockets; see the
-[M3 implementation plan](docs/implementations/M3-web-app.md).
+Voice goes through Cloudflare Realtime SFU; only `GameRoomDO` calls its API, and the room's
+WebSocket carries the signaling ([M6 plan](docs/implementations/M6-remote-voice.md)).
 
 ## Layout
 
 ```text
 src/
-  index.ts        Worker entry: webhook auth, builds the bot, exports DOs
-  bot/            grammY handlers, inline keyboards, callback routing, render plan
-  bot/messages.ts Every user-facing string (Vietnamese)
+  index.ts        Worker entry: webhook auth, web API routing, exports DOs
+  bot/            grammY bot: signpost, old invite links, /announce; bot strings (Vietnamese)
+  audience/       AudienceDO "bot": who gets announcements, batched sending
   game/           Pure game logic. No grammY, no Cloudflare imports.
-  room/           RoomDO: persists a room, applies commands from any client, broadcasts
-  player/         PlayerDO: player → current room; web guest name and token hash
-  stats/          StatsDO "group": long-term stats per player (no words)
+  room/           GameRoomDO: persists a room, applies commands, pushes state, voice signaling
+  player/         GuestDO: web guest name, token hash, current room
+  stats/          LeaderboardDO "group": long-term stats per player (no words)
+  voice/          Voice roster (pure) and the Realtime SFU API client
   web/            Web API (/api/*), guest sessions, socket protocol shared with the client
 words/            Word-pair packs (JSON), one file per theme
 web/              Web app (PWA): Preact + Vite, served by the Worker as static assets
@@ -120,7 +119,7 @@ web/              Web app (PWA): Preact + Vite, served by the Worker as static a
 telegram/         Bot profile as code: profile.json, avatar.svg → avatar.jpg
 scripts/          Node scripts: render the avatar and web icons, sync the profile to Telegram
 docs/             Product docs, implementation plans, game rules
-test/unit/        Pure tests for src/game
+test/unit/        Pure tests for src/game, the voice roster and protocol parsing
 test/integration/ Worker + DO tests in the workers runtime
 ```
 

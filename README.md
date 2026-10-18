@@ -1,20 +1,20 @@
 # A3 Spy
 
-A game master for *Who is Spy* (Undercover rules) for friends playing in person, on Telegram or in the browser. Everyone talks out loud; A3 Spy deals secret words to each phone, calls the speaking order, runs the vote, eliminates, reveals and keeps score.
+A game master for *Who is Spy* (Undercover rules) for friends, at one café table or apart on the room's voice call. Everyone talks out loud; A3 Spy deals secret words to each phone, calls the speaking order, runs the vote, eliminates, reveals and keeps score.
 
-Play it: [t.me/a3spy_bot](https://t.me/a3spy_bot), or in the browser at [a3spy.mazino2d.workers.dev](https://a3spy.mazino2d.workers.dev/) — the web app (installable as a PWA) joins the same rooms, so friends without Telegram can sit in.
+Play it in the browser at [a3spy.mazino2d.workers.dev](https://a3spy.mazino2d.workers.dev/) (installable as a PWA). The Telegram bot [t.me/a3spy_bot](https://t.me/a3spy_bot) introduces the game, links to the web app and sends update announcements; it runs no games ([M7](docs/product/specs/M7-web-only.md)).
 
 ## How a game goes
 
-1. The host sends `/newgame` to the bot and shares the invite link.
-2. Everyone taps the link to join; the lobby updates in each player's DM.
+1. The host taps **Mở phòng mới** and shares the room link or QR code.
+2. Everyone opens the link and types a name; the lobby updates live on every phone.
 3. The host taps **Bắt đầu**. Each player privately gets a word (spies get a similar word and don't know they're spies; Mr. White gets none).
-4. The bot announces the speaking order; people describe their word out loud.
-5. The host taps **Mở vote**; everyone taps the player they suspect. The bot closes the vote, eliminates the top suspect and reveals their role. Ties get one revote.
+4. Every phone shows the speaking order; people describe their word out loud.
+5. The host taps **Mở vote**; everyone taps the player they suspect. The vote closes, the top suspect is eliminated and their role revealed. Ties get one revote.
 6. An eliminated Mr. White may guess the civilians' word to win alone.
-7. Rounds repeat until civilians catch every spy, or spies equal the civilians. The bot reveals every role and both words; **Chơi lại** deals a new game.
+7. Rounds repeat until civilians catch every spy, or spies equal the civilians. Every role and both words are revealed; **Chơi lại** deals a new game.
 
-Commands: `/newgame`, `/join <code>`, `/leave`, `/score`, `/end` (host), `/help`. Full rules: [docs/rules.md](docs/rules.md).
+Playing apart? The host turns on **Chơi online** and everyone taps **Vào voice**. Full rules: [docs/rules.md](docs/rules.md).
 
 ## Docs
 
@@ -29,12 +29,12 @@ Commands: `/newgame`, `/join <code>`, `/leave`, `/score`, `/end` (host), `/help`
 
 ## Architecture
 
-TypeScript on **Cloudflare Workers** (free plan) with **grammY**. Telegram calls the Worker by webhook; the same Worker serves the web app (Preact, in `web/`) as static assets and its API. Each room is a **Durable Object** that holds the game state, sends Telegram messages and pushes live state to web players over WebSockets; a small Durable Object per player remembers which room they're in. Game rules are a pure state machine in `src/game`, tested without Telegram or Cloudflare.
+TypeScript on **Cloudflare Workers** (free plan). The Worker serves the web app (Preact, in `web/`) as static assets and its API. Each room is a **Durable Object** that holds the game state and pushes it to players over WebSockets; voice goes through Cloudflare Realtime SFU, signalled over the same socket. A small Durable Object per web guest holds their session and current room. Game rules are a pure state machine in `src/game`, tested without Cloudflare. Telegram calls the Worker by webhook only for the bot (**grammY**): a signpost and the owner's announcements.
 
 ```text
-Telegram ──webhook──▶ Worker ──▶ RoomDO (per room) ──▶ src/game (rules)
-Browser ──/api, ws──▶   │          PlayerDO (per player)
-        ◀─web/dist──────┘
+Browser ──/api, ws──▶ Worker ──▶ GameRoomDO (per room) ──▶ src/game (rules)
+        ◀─web/dist─────┘   │      GuestDO (per guest) · LeaderboardDO
+Telegram ──webhook─────────┘──▶ bot: signpost, /announce ──▶ AudienceDO
 ```
 
 ## Development

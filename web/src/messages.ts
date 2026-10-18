@@ -43,7 +43,6 @@ export const t = {
   readyToStart: "Đủ người rồi, bấm Bắt đầu khi cả bàn sẵn sàng.",
   waitHost: "Chờ host bắt đầu nhé.",
   leave: "🚪 Rời phòng",
-  telegramToo: "Bạn nào dùng Telegram thì vào bằng link này:",
 
   // Host settings
   settings: "⚙️ Cài đặt ván",
@@ -83,12 +82,6 @@ export const t = {
   voiceListenOnly: "🎧 Đang nghe (chưa có micro)",
   voiceDenied: "Chưa có quyền micro: bật micro cho trang này trong cài đặt trình duyệt rồi vào lại. Bạn vẫn nghe được.",
   voiceTip: "🎧 Nên đeo tai nghe để không bị vọng tiếng.",
-  voicePageTitle: (code: string) => `🎙 Voice · Phòng ${code}`,
-  voiceOffHere: "Phòng chưa bật Chơi online. Nhờ host bật trong Telegram nhé.",
-  voiceEmpty: "Chưa ai trong voice. Bấm Vào voice để mở đầu.",
-  voiceTelegramHint: "Xem từ và vote trong Telegram nhé, trang này chỉ để nói chuyện.",
-  voiceLinkExpired: "Link hết hạn. Bấm lại nút 🎙 Vào voice trong Telegram nhé.",
-  voiceNotInRoom: "Bạn không còn trong phòng này, hoặc phòng đã đóng.",
   timeLeft: (text: string) => `⏱ Còn ${text}`,
   timeUp: { discussion: "⏰ Hết giờ thảo luận!", vote: "⏰ Hết giờ vote!" } as Record<string, string>,
 

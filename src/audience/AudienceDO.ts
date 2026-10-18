@@ -6,7 +6,7 @@ import type { Env } from "../env";
 /**
  * Everyone who has used the bot, and the owner's announcements to them (M7 B1). One
  * instance, named "bot". Holds Telegram user ids and the announcement being sent; no game
- * data, so it is the one thing kept when the game moves to the web.
+ * data. It was filled before the game moved to the web and kept through that cutover.
  */
 
 /** Messages per alarm: under the free plan's 50 subrequests and Telegram's ~30 messages/s. */
@@ -37,13 +37,6 @@ export class AudienceDO extends DurableObject<Env> {
   /** Adds a Telegram user who started or messaged the bot; once per user. */
   add(id: number): void {
     if (this.ctx.storage.kv.get(`u:${id}`) === undefined) this.ctx.storage.kv.put(`u:${id}`, 1);
-  }
-
-  /** Adds everyone in `ids` the first time it is called; later calls do nothing. */
-  seedOnce(ids: number[]): void {
-    if (this.ctx.storage.kv.get("seeded")) return;
-    for (const id of ids) this.add(id);
-    this.ctx.storage.kv.put("seeded", true);
   }
 
   count(): number {

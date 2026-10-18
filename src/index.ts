@@ -5,9 +5,9 @@ import type { Env } from "./env";
 import { handleApi } from "./web/api";
 
 export { AudienceDO } from "./audience/AudienceDO";
-export { PlayerDO } from "./player/PlayerDO";
-export { RoomDO } from "./room/RoomDO";
-export { StatsDO } from "./stats/StatsDO";
+export { GuestDO } from "./player/GuestDO";
+export { GameRoomDO } from "./room/GameRoomDO";
+export { LeaderboardDO } from "./stats/LeaderboardDO";
 
 const SECRET_HEADER = "x-telegram-bot-api-secret-token";
 

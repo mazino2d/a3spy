@@ -2,7 +2,7 @@ import type { Env } from "../env";
 
 /**
  * Web guest sessions. The browser holds `<id>.<token>` in an HttpOnly cookie;
- * the guest's PlayerDO holds only the token's SHA-256. No accounts, no secret.
+ * the guest's GuestDO holds only the token's SHA-256. No accounts, no secret.
  */
 
 export const COOKIE = "a3spy_session";
@@ -49,7 +49,7 @@ function readCookie(request: Request): { id: number; token: string } | null {
 export async function guestOf(request: Request, env: Env): Promise<Guest | null> {
   const c = readCookie(request);
   if (!c || c.id >= 0) return null;
-  const name = await env.PLAYER.getByName(String(c.id)).verify(await hashToken(c.token));
+  const name = await env.GUEST.getByName(String(c.id)).verify(await hashToken(c.token));
   return name === null ? null : { id: c.id, name };
 }
 
@@ -57,7 +57,7 @@ export async function createGuest(env: Env, name: string): Promise<{ guest: Gues
   for (let attempt = 0; attempt < 5; attempt++) {
     const id = newGuestId();
     const token = newToken();
-    if (await env.PLAYER.getByName(String(id)).createGuest(name, await hashToken(token))) {
+    if (await env.GUEST.getByName(String(id)).createGuest(name, await hashToken(token))) {
       return { guest: { id, name }, token };
     }
   }

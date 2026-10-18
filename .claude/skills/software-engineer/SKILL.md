@@ -29,7 +29,7 @@ Never change acceptance criteria in a plan; if a decision forces one to change, 
 ## Build inside-out
 
 1. **`src/game` first, test-first.** Model the change as pure data + functions: `(state, command, rng) → { state, events }`. Events (`PlayerEliminated`, `VoteOpened`, …) describe what happened; the bot layer turns them into messages. Write unit tests in `test/unit` before or with the code.
-2. **Durable Object next.** `RoomDO` loads state, applies the game function, persists, then broadcasts events. Persist before sending messages so a crash cannot double-apply.
+2. **Durable Object next.** `GameRoomDO` loads state, applies the game function, persists, then pushes the new view to every socket. Persist before pushing so a crash cannot double-apply.
 3. **Bot layer last.** Parse the update, route to the right DO, render events with strings from `src/bot/messages.ts`.
 
 ## Cloudflare Workers + Durable Objects
@@ -41,7 +41,7 @@ Never change acceptance criteria in a plan; if a decision forces one to change, 
 - New DO classes need a `migrations` entry in `wrangler.jsonc` (`new_sqlite_classes`). Never rename or delete a class without a migration.
 - No module-level mutable state. Env and bindings come from `env`; secrets: `TELEGRAM_BOT_TOKEN`, `TELEGRAM_WEBHOOK_SECRET`.
 - Free plan limits worth remembering: 100k requests/day, 10 ms CPU per request, **50 subrequests per invocation** (each Telegram call counts). A 12-player broadcast is ~12–25 calls; never add a per-player loop on top of one.
-- Rendering is planned, not performed: `plan()` in `src/bot/render.ts` turns engine events into `Op`s, and `RoomDO.execute` runs them (per chat in order, chats in parallel) and records message ids for in-place edits.
+- What a player sees is decided only by `viewFor` in `src/game/view.ts`; the room pushes it over the socket. Since M7 the bot runs no game and never touches a room.
 
 ## Telegram (grammY)
 

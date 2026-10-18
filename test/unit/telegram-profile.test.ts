@@ -8,8 +8,10 @@ describe("telegram/profile.json", () => {
     expect(() => loadProfile(raw)).not.toThrow();
   });
 
-  it("advertises only commands the bot documents in /help", () => {
-    for (const { command } of loadProfile(raw).commands) expect(msg.help).toContain(`/${command}`);
+  it("B2 AC10 advertises only /start and /help, and points to the web app", () => {
+    expect(loadProfile(raw).commands.map((c) => c.command)).toEqual(["start", "help"]);
+    expect(raw.description).toContain("https://a3spy.mazino2d.workers.dev");
+    expect(msg.signpost).not.toContain("/newgame");
   });
 
   it("rejects names and commands Telegram would refuse", () => {
