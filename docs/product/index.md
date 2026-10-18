@@ -27,4 +27,4 @@ issues in the matching milestone.
 | [M4 Optional timers](specs/M4-timers.md) | Shipped | Discussion and vote timers that remind the table; the host still decides. [Implementation](../implementations/M4-timers.md). |
 | [M5 Long-term stats](specs/M5-long-term-stats.md) | Shipped | Personal numbers and a group leaderboard: `/stats` on Telegram, Stats on the web. [Implementation](../implementations/M5-long-term-stats.md). |
 | [M6 Remote play with voice](specs/M6-remote-voice.md) | Shipped | Online rooms get a built-in voice call, so friends who live apart can play together. [Implementation](../implementations/M6-remote-voice.md). |
-| [M7 Web only](specs/M7-web-only.md) | Draft | The game runs only in the web app; the Telegram bot introduces A3 Spy, links to the web and sends announcements. Old data is deleted. [Implementation](../implementations/M7-web-only.md). |
+| [M7 Web only](specs/M7-web-only.md) | Shipped | The game runs only in the web app; the Telegram bot introduces A3 Spy, links to the web and sends announcements. Old data is deleted. [Implementation](../implementations/M7-web-only.md). |

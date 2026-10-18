@@ -1,6 +1,6 @@
 # M7 Web only
 
-Status: in progress   ·   Serves: UC-1, UC-6, UC-9   ·   Roadmap: Now   ·   Implementation: [M7](../../implementations/M7-web-only.md)
+Status: shipped 2026-10-18   ·   Serves: UC-1, UC-6, UC-9   ·   Roadmap: Shipped   ·   Implementation: [M7](../../implementations/M7-web-only.md)
 
 ## Problem
 
