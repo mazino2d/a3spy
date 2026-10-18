@@ -3,6 +3,7 @@ import type { InlineKeyboardMarkup } from "grammy/types";
 import { audienceOf, TEXT_MAX } from "../audience/AudienceDO";
 import type { Env } from "../env";
 import { CODE } from "../room/codes";
+import { statsOf } from "../stats/LeaderboardDO";
 import { webLink } from "../web/protocol";
 import { msg } from "./messages";
 
@@ -55,7 +56,31 @@ export function createBot(env: Env, config: BotConfig<Context> | undefined, webO
     });
   });
 
+  // Owner only: wipe the leaderboard (e.g. test games), after confirming. Anyone else gets the signpost.
+  dm.command("resetstats", async (ctx) => {
+    if (!isOwner(ctx.from.id)) return signpost(ctx);
+    const count = await statsOf(env).count();
+    if (!count) return ctx.reply(msg.resetEmpty);
+    await ctx.reply(msg.resetConfirm(count), {
+      reply_markup: {
+        inline_keyboard: [
+          [
+            { text: msg.btnResetConfirm, callback_data: "rs|go" },
+            { text: msg.btnAnnounceCancel, callback_data: "rs|no" },
+          ],
+        ],
+      },
+    });
+  });
+
   bot.on("callback_query:data", async (ctx) => {
+    const reset = /^rs\|(go|no)$/.exec(ctx.callbackQuery.data);
+    if (reset && isOwner(ctx.from.id)) {
+      const text = reset[1] === "go" ? msg.resetDone(await statsOf(env).reset()) : msg.announceCancelled;
+      await ctx.answerCallbackQuery({ text });
+      await ctx.editMessageReplyMarkup({ reply_markup: { inline_keyboard: [] } }).catch(() => {});
+      return;
+    }
     const announce = /^an\|([0-9a-f]{8})\|(send|cancel)$/.exec(ctx.callbackQuery.data);
     // A button from an old game message: the game is on the web now (X1 AC9).
     if (!announce || !isOwner(ctx.from.id)) return ctx.answerCallbackQuery({ text: msg.moved, show_alert: true });

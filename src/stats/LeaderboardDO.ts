@@ -13,6 +13,18 @@ export class LeaderboardDO extends DurableObject<Env> {
       this.ctx.storage.kv.put(`p:${r.id}`, addResult(this.get(r.id) ?? emptyStats(r.id, r.name), r));
   }
 
+  /** How many players have stats. */
+  count(): number {
+    return [...this.ctx.storage.kv.list({ prefix: "p:" })].length;
+  }
+
+  /** Deletes every player's stats (owner's /resetstats). Returns how many were deleted. */
+  reset(): number {
+    const keys = [...this.ctx.storage.kv.list({ prefix: "p:" })].map(([key]) => key);
+    for (const key of keys) this.ctx.storage.kv.delete(key);
+    return keys.length;
+  }
+
   /** The player's stats (null before their first finished game) and the group leaderboard. */
   read(id: number): { me: PlayerStats | null; board: PlayerStats[] } {
     const all = [...this.ctx.storage.kv.list<PlayerStats>({ prefix: "p:" })].map(([, s]) => s);
