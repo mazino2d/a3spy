@@ -48,7 +48,7 @@ Before a game, in the lobby, the host can change:
 
 ## A round
 
-1. **Describe** — every player sees a suggested speaking order of living players to everyone: random in round 1, then the previous order rotated by one (eliminated players removed), so a different person opens each round. Mr. White is never first. People talk freely, out loud or on the call; the order only says who opens, and nobody waits for a turn.
+1. **Describe** — every player sees a suggested speaking order of living players: random in round 1, then the previous order rotated by one (eliminated players removed), so a different person opens each round. Mr. White is never first. People talk freely, out loud or on the call; the order only says who opens, and nobody waits for a turn.
 2. **Discuss** — free talk; A3 Spy does nothing.
 3. **Vote** — the host opens the vote. Each living player gets buttons with the other living players' names, votes once, may change their vote until it closes. Nobody sees who voted for whom; the host sees the count (`5/7`).
 4. **Close** — when every living player has voted, or the host presses close.
