@@ -1,6 +1,7 @@
 import { useMemo, useState } from "preact/hooks";
 import { renderSVG } from "uqr";
 import { t } from "../messages";
+import { go } from "../route";
 import type { RoomProps } from "./Room";
 import { Settings } from "./Settings";
 
@@ -37,9 +38,14 @@ export function Lobby({ view, links, online, send, mark }: RoomProps) {
     <main class="screen">
       <header class="row between">
         <h1>{t.lobbyTitle}</h1>
-        <button type="button" class="link small" onClick={() => send({ type: "command", action: "leave" })}>
-          {t.leave}
-        </button>
+        <span class="row">
+          <button type="button" class="link small" onClick={() => go({ name: "rules" })}>
+            {t.rulesLink}
+          </button>
+          <button type="button" class="link small" onClick={() => send({ type: "command", action: "leave" })}>
+            {t.leave}
+          </button>
+        </span>
       </header>
 
       {/* Share first: most rooms are online, so a link or the code beats a QR code (M8 U1). */}

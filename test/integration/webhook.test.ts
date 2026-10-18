@@ -95,3 +95,14 @@ describe("routing", () => {
     expect(res.status).toBe(404);
   });
 });
+
+describe("U8 rules page", () => {
+  it("U8 AC16 /luat is public and has its own title and link preview", async () => {
+    const res = await SELF.fetch("https://a3spy.test/luat");
+    expect(res.status).toBe(200);
+    const html = await res.text();
+    expect(html).toContain("<title>Luật chơi Who is Spy · A3 Spy</title>");
+    expect(html).toContain('property="og:title"');
+    expect(html).toContain('content="https://a3spy.test/luat"');
+  });
+});

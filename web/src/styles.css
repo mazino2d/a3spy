@@ -14,6 +14,7 @@
   --stamp: #b3261e; /* the odd one out: spy, alerts, timer, chosen */
   --radius: 6px;
   --type: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --text: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
   --display: "Oswald", "Arial Narrow", "Roboto Condensed", sans-serif;
   color-scheme: light;
 }
@@ -38,7 +39,7 @@ body {
     7px 7px,
     11px 11px;
   color: var(--ink);
-  font: 16px / 1.5 var(--type);
+  font: 16px / 1.55 var(--text);
   -webkit-tap-highlight-color: transparent;
 }
 
@@ -668,4 +669,92 @@ button:focus-visible {
   color: var(--ink);
   font-size: 1.1rem;
   margin: 0;
+}
+
+/* M8: typed elements keep the typewriter; body text is Plex Sans. */
+.word-card,
+input.code,
+.room-code,
+.timer {
+  font-family: var(--type);
+}
+
+/* M8: rules page, Home links, loading skeleton. */
+.rules {
+  gap: 10px;
+  font-size: 0.93rem;
+  line-height: 1.4;
+}
+
+.rules .card {
+  padding: 10px 14px;
+  gap: 4px;
+}
+
+.rules h2 {
+  margin-bottom: 2px;
+}
+
+.rules .plain li,
+.rules .players li {
+  padding: 1px 0;
+}
+
+.rules .players {
+  gap: 2px;
+}
+
+.rules .actions {
+  flex-direction: row;
+  gap: 8px;
+}
+
+.rules .actions button {
+  flex: 1;
+  min-height: 48px;
+}
+
+.links {
+  justify-content: center;
+  gap: 16px;
+}
+
+.loading {
+  align-items: center;
+  gap: 16px;
+}
+
+.loading .logo {
+  border-radius: 50%;
+  margin-top: 15vh;
+}
+
+.skeleton {
+  width: 100%;
+  height: 56px;
+  border-radius: var(--radius);
+  background: var(--paper);
+  border: 1px dashed var(--rule);
+  opacity: 0.6;
+  animation: pulse 1.4s ease-in-out infinite;
+}
+
+.skeleton.tall {
+  height: 140px;
+}
+
+.skeleton.short {
+  width: 60%;
+}
+
+@keyframes pulse {
+  50% {
+    opacity: 0.3;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton {
+    animation: none;
+  }
 }

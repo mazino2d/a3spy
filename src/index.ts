@@ -21,6 +21,34 @@ function hasValidSecret(request: Request, expected: string): boolean {
   return given.byteLength === want.byteLength && crypto.subtle.timingSafeEqual(given, want);
 }
 
+const RULES_TITLE = "Luật chơi Who is Spy · A3 Spy";
+const RULES_DESCRIPTION = "Luật Who is Spy trong 1 phút: Dân, Spy, Mr. White, vote và cách thắng. Chơi ngay trên web.";
+
+async function rulesPage(env: Env, url: URL): Promise<Response> {
+  const page = await env.ASSETS.fetch(new Request(new URL("/", url)));
+  const set = (attr: string) => ({
+    element: (el: Element) => {
+      el.setAttribute("content", attr);
+    },
+  });
+  return new HTMLRewriter()
+    .on("title", {
+      element: (el) => {
+        el.setInnerContent(RULES_TITLE);
+      },
+    })
+    .on('meta[name="description"]', set(RULES_DESCRIPTION))
+    .on("head", {
+      element: (el) => {
+        el.append(
+          `<meta property="og:title" content="${RULES_TITLE}" /><meta property="og:description" content="${RULES_DESCRIPTION}" /><meta property="og:url" content="${url.origin}/luat" />`,
+          { html: true },
+        );
+      },
+    })
+    .transform(page);
+}
+
 export default {
   async fetch(request, env): Promise<Response> {
     const url = new URL(request.url);
@@ -28,6 +56,9 @@ export default {
     if (url.pathname === "/healthz") return new Response("ok");
 
     if (url.pathname.startsWith("/api/")) return handleApi(request, env);
+
+    // The rules page is sent to friends: give link previews its own title (crawlers run no JS).
+    if (url.pathname === "/luat") return rulesPage(env, url);
 
     if (url.pathname === "/webhook" && request.method === "POST") {
       // Check before building the bot: grammY would otherwise call getMe for forged requests.

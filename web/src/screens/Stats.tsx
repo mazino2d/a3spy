@@ -64,7 +64,6 @@ export function StatsScreen({ me }: { me: Me }) {
               <p class="muted">{t.statsBoardEmpty}</p>
             )}
           </section>
-          <p class="muted small center-text">{t.statsWebNote}</p>
         </>
       )}
     </main>

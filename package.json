@@ -20,6 +20,7 @@
   },
   "dependencies": {
     "@fontsource/ibm-plex-mono": "5.2.7",
+    "@fontsource/ibm-plex-sans": "5.2.8",
     "@fontsource/oswald": "5.2.8",
     "grammy": "1.46.0",
     "preact": "10.29.8",

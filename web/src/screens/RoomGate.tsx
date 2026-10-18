@@ -2,6 +2,7 @@ import { useEffect, useState } from "preact/hooks";
 import { ApiError, joinRoom, leaveRoom, type Me } from "../api";
 import { t } from "../messages";
 import { go } from "../route";
+import { Loading } from "./Loading";
 import { Room } from "./Room";
 
 type Gate = { kind: "joining" } | { kind: "in" } | { kind: "other"; room: string } | { kind: "error"; text: string };
@@ -40,7 +41,7 @@ export function RoomGate({ code, me, onMe }: { code: string; me: Me; onMe(me: Me
         />
       );
     case "joining":
-      return <main class="screen center muted">{t.connecting}</main>;
+      return <Loading />;
     case "other":
       return (
         <main class="screen center stack">

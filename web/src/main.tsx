@@ -1,6 +1,8 @@
 import { render } from "preact";
 import { App } from "./app";
 // Self-hosted fonts (Vietnamese included), so the installed app needs no third party.
+import "@fontsource/ibm-plex-sans/400.css";
+import "@fontsource/ibm-plex-sans/600.css";
 import "@fontsource/ibm-plex-mono/400.css";
 import "@fontsource/ibm-plex-mono/600.css";
 import "@fontsource/oswald/600.css";

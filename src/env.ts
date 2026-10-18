@@ -16,4 +16,6 @@ export interface Env {
   GUEST: DurableObjectNamespace<GuestDO>;
   LEADERBOARD: DurableObjectNamespace<LeaderboardDO>;
   AUDIENCE: DurableObjectNamespace<AudienceDO>;
+  /** The built web app (web/dist). */
+  ASSETS: Fetcher;
 }
