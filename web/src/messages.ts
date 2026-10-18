@@ -190,7 +190,7 @@ export const t = {
   shareFailed: "Không tạo được ảnh, thử lại nhé.",
   shareGame: (id: number) => `Ván #${id}`,
   shareMine: (won: boolean, role: string) => `Mình là ${role} · ${won ? "thắng 🎉" : "thua 😵"}`,
-  shareFooter: (host: string) => `Chơi Who is Spy cùng hội bạn: ${host}`,
+  shareFooter: "Chơi Who is Spy cùng hội bạn",
   shareResultText: (origin: string) => `Ván Who is Spy vừa rồi trên A3 Spy 🕵️ Chơi cùng: ${origin}`,
   reveal: "Lật bài",
   civilianWord: "Từ của dân",
