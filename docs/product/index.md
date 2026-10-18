@@ -28,3 +28,4 @@ issues in the matching milestone.
 | [M5 Long-term stats](specs/M5-long-term-stats.md) | Shipped | Personal numbers and a group leaderboard: `/stats` on Telegram, Stats on the web. [Implementation](../implementations/M5-long-term-stats.md). |
 | [M6 Remote play with voice](specs/M6-remote-voice.md) | Shipped | Online rooms get a built-in voice call, so friends who live apart can play together. [Implementation](../implementations/M6-remote-voice.md). |
 | [M7 Web only](specs/M7-web-only.md) | Shipped | The game runs only in the web app; the Telegram bot introduces A3 Spy, links to the web and sends announcements. Old data is deleted. [Implementation](../implementations/M7-web-only.md). |
+| [M8 UX polish](specs/M8-ux-polish.md) | Ready | Online by default, share-first lobby, one-line voice bar, personal result and a shareable image, a public rules page. [Implementation](../implementations/M8-ux-polish.md). |

@@ -34,6 +34,7 @@ Each milestone has a spec in [specs/](specs/), and large ones an implementation 
 
 | ID | Item | Serves | I | C | E | Score | Notes |
 | --- | --- | --- | --- | --- | --- | --- | --- |
+| M8 | UX polish: online by default, share-first lobby with pinned Start, one-line voice bar, personal result with a reason and a shareable image, a public rules page | UC-1, UC-3, UC-4, UC-7, UC-9 | 2 | 0.8 | 3 | 0.53 | Scores *proposed*. From the UI review of 2026-10-18; the owner accepted every finding but turn-taking (rejected: free talk as at a café). Spec: [M8](specs/M8-ux-polish.md). Implementation: [M8](../implementations/M8-ux-polish.md). |
 
 ## Next
 
@@ -53,5 +54,6 @@ Ideas that were triaged and declined, kept so they are not re-litigated.
 | --- | --- | --- | --- | --- |
 | — | Group chat mode (bot in a Telegram group) | Rejected | Words would need DMs anyway; a group chat mixes game noise with the friends' chat. "Private screen per player" covers it. | 2026-10-13 |
 | — | Remote play (describe and vote over chat or voice) | Rejected, then reopened as M6 (voice only) on 2026-10-17 | Non-goal at the time: the game is played out loud at the table. Reopened when a part of the group living apart wanted to play daily. Text play stays rejected. | 2026-10-13 |
+| — | Turn pointer or "next speaker" button | Rejected | Everyone talks freely, as at a café (UI review). | 2026-10-18 |
 | — | Native iOS/Android apps | Parked | The PWA covers install and full screen at no store cost. Revisit only if a needed feature is impossible on the web. | 2026-10-13 |
 | — | Custom word lists typed in chat (legacy `/config`) | Rejected | It let anyone replace everyone's words; packs come by PR and are reviewed. | 2026-10-13 |

@@ -42,8 +42,11 @@ once, in either setting.
 
 | Setting | Picture |
 | --- | --- |
-| **Café table** | 5–10 people around one table, each with a phone, on patchy 4G or café Wi-Fi, playing 3–8 games over 1–2 hours. |
-| **Remote table** | 4–10 friends in different places, playing most evenings for 30–60 minutes, each on a phone or laptop over home Wi-Fi or 4G, talking on the room's voice call. |
+| **Remote table** (the usual case) | 4–10 friends in different places, playing most evenings for 30–60 minutes, each on a phone or laptop over home Wi-Fi or 4G, talking on the room's voice call. |
+| **Café table** (now and then) | 5–10 people around one table, each with a phone, on patchy 4G or café Wi-Fi, playing 3–8 games over 1–2 hours. |
+
+*Changed 2026-10-18 (M8):* the remote table became the usual case; new rooms are online by
+default and the host turns voice off for a café table.
 
 | Persona | Who | Needs |
 | --- | --- | --- |
