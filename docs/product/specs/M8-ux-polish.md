@@ -18,7 +18,7 @@ to share before a QR code to scan, and a result worth posting.
 
 | Topic | Decision |
 | --- | --- |
-| Turns | **No turn-taking.** Everyone talks freely, as at a café; no current-speaker pointer, no "next" button. The speaking order stays as a suggestion of who opens each round. *Proposed; see open questions.* |
+| Turns | **No turn-taking.** Everyone talks freely, as at a café; no current-speaker pointer, no "next" button. The speaking order stays as a suggestion of who opens each round (decided 2026-10-18). |
 | Default setting | **"Chơi online" is on in a new room.** The café table is the occasional case; the host turns it off. Changes M6 AC1. |
 | Lobby | Share first: room code, **Chia sẻ link** and **Copy mã** at the top; the QR code is folded behind "Hiện mã QR" (open by default only when "Chơi online" is off). The host's **Bắt đầu** is pinned to the bottom of the screen. |
 | Voice bar | One line: `🎙 N · [mute] [Rời]`. The headphones tip shows once per device and hides after 8 s or a tap. |
@@ -111,4 +111,4 @@ Story IDs use the new epic letter `U` (UX). Each becomes a GitHub issue in miles
 
 ## Open questions
 
-- **Speaking order:** keep the per-round order as a suggestion of who opens (default), or remove it entirely so the round has no order at all? Removing it changes `docs/rules.md` (A round, step 1) and UC-3.1.
+None.
