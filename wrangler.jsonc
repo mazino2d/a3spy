@@ -9,8 +9,9 @@
   // The web app (web/, built to web/dist). The Worker runs first only for its own routes.
   "assets": {
     "directory": "./web/dist",
+    "binding": "ASSETS",
     "not_found_handling": "single-page-application",
-    "run_worker_first": ["/api/*", "/webhook", "/healthz"]
+    "run_worker_first": ["/api/*", "/webhook", "/healthz", "/luat"]
   },
   "vars": { "REALTIME_APP_ID": "2578aff8745a85e8333679f34f814cb9" },
   // Secrets (set by CD, never committed): TELEGRAM_BOT_TOKEN, TELEGRAM_WEBHOOK_SECRET, REALTIME_APP_TOKEN, OWNER_TELEGRAM_ID

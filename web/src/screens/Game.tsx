@@ -25,9 +25,14 @@ export function Game(props: GameProps) {
     <main class="screen">
       <header class="row between">
         <h1 class="small-title">{t.gameRound(game.id, game.round)}</h1>
-        <button type="button" class="link small" onClick={props.onScore}>
-          {t.score}
-        </button>
+        <span class="row">
+          <button type="button" class="link small" onClick={() => go({ name: "rules" })}>
+            {t.rulesLink}
+          </button>
+          <button type="button" class="link small" onClick={props.onScore}>
+            {t.score}
+          </button>
+        </span>
       </header>
 
       {game.hand ? <WordCard word={game.hand.word} gameId={game.id} /> : <p class="card">{t.waitingNext}</p>}
@@ -324,9 +329,14 @@ export function GameOver(props: GameProps) {
     <main class="screen">
       <header class="row between">
         <h1 class="small-title">{t.gameOverTitle(game.id)}</h1>
-        <button type="button" class="link small" onClick={props.onScore}>
-          {t.score}
-        </button>
+        <span class="row">
+          <button type="button" class="link small" onClick={() => go({ name: "rules" })}>
+            {t.rulesLink}
+          </button>
+          <button type="button" class="link small" onClick={props.onScore}>
+            {t.score}
+          </button>
+        </span>
       </header>
       {props.outcome.length > 0 && <Outcome view={view} events={props.outcome} />}
       <section class={mine?.won ? "card center result won" : "card center result"}>

@@ -34,6 +34,17 @@ export function Home({ me }: { me: Me }) {
     if (!clean) return setError(t.roomNotFound);
     go({ name: "room", code: clean });
   };
+  // Four valid characters are a whole code: join without another tap (M8 AC19).
+  const type = (raw: string) => {
+    const value = raw
+      .toUpperCase()
+      .replace(/[^A-Z0-9]/g, "")
+      .slice(0, 4);
+    setCode(value);
+    setError(null);
+    const clean = cleanCode(value);
+    if (clean && value.length === 4) go({ name: "room", code: clean });
+  };
 
   return (
     <main class="screen">
@@ -58,7 +69,7 @@ export function Home({ me }: { me: Me }) {
             enterKeyHint="go"
             maxLength={4}
             value={code}
-            onInput={(e) => setCode(e.currentTarget.value.toUpperCase())}
+            onInput={(e) => type(e.currentTarget.value)}
           />
           <button type="submit" class="secondary">
             {t.join}
@@ -69,9 +80,14 @@ export function Home({ me }: { me: Me }) {
             {error}
           </p>
         )}
-        <button type="button" class="secondary" onClick={() => go({ name: "stats" })}>
-          {t.stats}
-        </button>
+        <nav class="row links">
+          <button type="button" class="link small" onClick={() => go({ name: "rules" })}>
+            {t.rulesLink}
+          </button>
+          <button type="button" class="link small" onClick={() => go({ name: "stats" })}>
+            {t.stats}
+          </button>
+        </nav>
       </div>
       {hint && (
         <aside class="hint row between">

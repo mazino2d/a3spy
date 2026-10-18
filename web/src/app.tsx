@@ -3,8 +3,10 @@ import { getMe, type Me } from "./api";
 import { t } from "./messages";
 import { go, parseRoute, type Route } from "./route";
 import { Home } from "./screens/Home";
+import { Loading } from "./screens/Loading";
 import { NameScreen } from "./screens/NameScreen";
 import { RoomGate } from "./screens/RoomGate";
+import { Rules } from "./screens/Rules";
 import { StatsScreen } from "./screens/Stats";
 
 export function App() {
@@ -32,6 +34,8 @@ export function App() {
     if (route.name === "home" && me?.room) go({ name: "room", code: me.room }, true);
   }, [route.name, me?.room]);
 
+  // The rules page is public: no name, no room (M8 AC16).
+  if (route.name === "rules") return <Rules />;
   if (failed)
     return (
       <main class="screen center">
@@ -41,7 +45,7 @@ export function App() {
         </button>
       </main>
     );
-  if (me === undefined) return <main class="screen center muted">{t.connecting}</main>;
+  if (me === undefined) return <Loading />;
   const renaming = route.name === "home" && new URLSearchParams(location.search).has("name");
   if (me === null || renaming)
     return (

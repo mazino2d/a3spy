@@ -7,6 +7,7 @@ import { nextOutcome } from "../outcome";
 import { go } from "../route";
 import { useVoice } from "../useVoice";
 import { Game, GameOver, Scoreboard } from "./Game";
+import { Loading } from "./Loading";
 import { Lobby } from "./Lobby";
 import { VoiceBar } from "./VoiceBar";
 
@@ -80,7 +81,7 @@ export function Room({ code, onLeft }: { code: string; onLeft(): void }) {
       </main>
     );
 
-  if (!state) return <main class="screen center muted">{t.connecting}</main>;
+  if (!state) return <Loading />;
 
   const online = status === "open";
   const props: RoomProps = {

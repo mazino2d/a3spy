@@ -141,6 +141,33 @@ export const t = {
     white: "🏆 Mr. White thắng một mình!",
   } as Record<string, string>,
   endedEarly: "⏹ Ván đã kết thúc sớm, không tính điểm.",
+  // M8: the rules page (/luat), meant to be sent to friends
+  rulesLink: "❓ Luật",
+  rulesTitle: "Luật chơi",
+  rulesTitleTag: "Luật chơi Who is Spy · A3 Spy",
+  rulesIntro: "Cả nhóm chung một từ bí mật, trừ vài kẻ gian. Tả khéo để lôi kẻ gian ra, mà đừng lộ từ của mình.",
+  rulesRolesTitle: "🎭 Vai",
+  rulesRoles: [
+    "🙂 Dân: chung một từ, ví dụ Phở.",
+    "🕵️ Spy: từ na ná, ví dụ Bún, và không biết mình là spy.",
+    "👻 Mr. White: không có từ, phải chém theo người khác.",
+  ],
+  rulesRoundTitle: "🔁 Một vòng",
+  rulesRound: [
+    "Mỗi người xem từ của mình, nhớ che màn hình.",
+    "Cả bàn nói thoải mái: tả từ của mình một câu, đừng nói thẳng.",
+    "Host mở vote: người nhiều phiếu nhất bị loại và lộ vai.",
+  ],
+  rulesWinTitle: "🏆 Thắng khi",
+  rulesWin: [
+    "Dân thắng khi loại hết spy và Mr. White.",
+    "Spy thắng khi phe spy đông bằng số dân còn lại.",
+    "Mr. White bị loại vẫn được đoán từ của dân: trúng là thắng một mình.",
+  ],
+  rulesVoice: "🎙 Chơi xa nhau? Phòng có sẵn voice call, bấm Vào voice là nói.",
+  playNow: "🎮 Chơi ngay",
+  rulesShare: "📤 Gửi luật",
+  rulesShareText: "Luật Who is Spy trong 1 phút, vào chơi cùng tụi mình nhé!",
   // M8: the end of a game
   gameOverTitle: (id: number) => `Hết ván #${id}`,
   youWon: "🎉 Bạn thắng!",
@@ -183,8 +210,7 @@ export const t = {
   statsBoard: "🏆 Bảng xếp hạng cả nhóm",
   statsBoardEmpty: "Chưa có ván nào kết thúc.",
   statsBoardLine: (wins: number, games: number, rate: number) => `${wins} thắng / ${games} ván (${rate}%)`,
-  statsWebNote: "Thống kê trên web tính riêng với Telegram.",
-  longTermStats: "📈 Xem thống kê dài hạn",
+  longTermStats: "🏅 Xem thống kê dài hạn",
   back: "← Quay lại",
 
   // Score

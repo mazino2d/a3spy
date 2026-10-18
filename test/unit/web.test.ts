@@ -145,3 +145,10 @@ describe("M8 end of game", () => {
     expect(shareCard(ended(null))).toBeNull();
   });
 });
+
+describe("U8 routes", () => {
+  it("U8 AC16 /luat is the rules page", () => {
+    expect(parseRoute("/luat")).toEqual({ name: "rules" });
+    expect(parseRoute("/luat/")).toEqual({ name: "rules" });
+  });
+});
