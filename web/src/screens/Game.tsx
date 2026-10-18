@@ -156,7 +156,7 @@ function Describing({ view, game, isHost, online, send, mark }: PhaseProps) {
   return (
     <>
       <section>
-        <h2>🗣 {t.speakingOrder}</h2>
+        <h2>📋 {t.speakingOrder}</h2>
         <ol class="players">
           {game.order.map((id) => (
             <li key={id} class={id === view.me ? "me" : undefined}>
@@ -213,7 +213,7 @@ function EndButton({ game, online, send }: Pick<PhaseProps, "game" | "online" | 
   );
 }
 
-function Voting({ view, game, isHost, online, send, mark }: PhaseProps) {
+function Voting({ view, game, isHost, online, send }: PhaseProps) {
   const canVote = game.canVoteFor.length > 0;
   return (
     <>
@@ -240,7 +240,6 @@ function Voting({ view, game, isHost, online, send, mark }: PhaseProps) {
                 >
                   {id === game.myVote ? "✅ " : ""}
                   {nameOf(view, id)}
-                  {mark(id)}
                 </button>
               ))}
             </div>

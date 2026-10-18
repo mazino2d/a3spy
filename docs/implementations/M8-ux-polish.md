@@ -1,6 +1,6 @@
 # M8 UX polish — implementation plan
 
-Status: planned   ·   Spec: [M8 UX polish](../product/specs/M8-ux-polish.md)   ·   Written 2026-10-18
+Status: in progress   ·   Spec: [M8 UX polish](../product/specs/M8-ux-polish.md)   ·   Written 2026-10-18
 
 Mostly web-only changes in `web/`; one engine default and one rule line change.
 
@@ -20,7 +20,7 @@ Mostly web-only changes in `web/`; one engine default and one rule line change.
 
 | Phase | Scope | Stories · ACs | Effort | PR | Status |
 | --- | --- | --- | --- | --- | --- |
-| P1 | Online default; lobby share-first and QR fold; pinned Start; one-line voice bar and tip timeout; marks and icons; grouped settings with one toggle style | U1–U5 · AC1–AC10 | 1 | | Planned |
+| P1 | Online default; lobby share-first and QR fold; pinned Start; one-line voice bar and tip timeout; marks and icons; grouped settings with one toggle style | U1–U5 · AC1–AC10 | 1 | #86 | In review |
 | P2 | Personal result and reason; clearer reveal; share image | U6, U7 · AC11–AC15 | 1 | | Planned |
 | P3 | Rules page `/luat` and ❓ entries; Home hierarchy and code auto-join; loading skeleton; Plex Sans body | U8–U11 · AC16–AC21 | 1 | | Planned |
 

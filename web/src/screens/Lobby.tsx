@@ -5,39 +5,63 @@ import type { RoomProps } from "./Room";
 import { Settings } from "./Settings";
 
 export function Lobby({ view, links, online, send, mark }: RoomProps) {
-  const [copied, setCopied] = useState(false);
+  const [copied, setCopied] = useState<"link" | "code" | null>(null);
   const qr = useMemo(() => renderSVG(links.web, { border: 2, whiteColor: "#fff", blackColor: "#2B241A" }), [links.web]);
   const isHost = view.me === view.hostId;
   const enough = view.players.length + view.waiting.length >= 3;
 
+  const flash = (what: "link" | "code") => {
+    setCopied(what);
+    setTimeout(() => setCopied(null), 2000);
+  };
   const share = async () => {
     const data = { title: t.shareTitle, text: t.shareText(view.code), url: links.web };
     try {
       if (navigator.share) return await navigator.share(data);
       await navigator.clipboard.writeText(links.web);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
+      flash("link");
     } catch {
       // The player closed the share sheet.
+    }
+  };
+  const copyCode = async () => {
+    try {
+      await navigator.clipboard.writeText(view.code);
+      flash("code");
+    } catch {
+      // Clipboard blocked: the code is on screen to copy by hand.
     }
   };
 
   return (
     <main class="screen">
       <header class="row between">
-        <h1>{t.room(view.code)}</h1>
+        <h1>{t.lobbyTitle}</h1>
         <button type="button" class="link small" onClick={() => send({ type: "command", action: "leave" })}>
           {t.leave}
         </button>
       </header>
 
-      <section class="card center">
-        {/* Generated locally from the room link; no user content inside. */}
-        <div class="qr" role="img" aria-label={t.scanToJoin} dangerouslySetInnerHTML={{ __html: qr }} />
-        <p class="muted small">{t.scanToJoin}</p>
+      {/* Share first: most rooms are online, so a link or the code beats a QR code (M8 U1). */}
+      <section class="card">
+        <div class="row between">
+          <div>
+            <p class="muted small">{t.roomCode}</p>
+            <p class="room-code">{view.code}</p>
+          </div>
+          <button type="button" class="secondary" onClick={copyCode}>
+            {copied === "code" ? t.codeCopied : t.copyCode}
+          </button>
+        </div>
         <button type="button" class="secondary" onClick={share}>
-          {copied ? t.copied : t.share}
+          {copied === "link" ? t.copied : t.share}
         </button>
+        <details class="qr-fold" open={!view.settings.voice}>
+          <summary class="qr-toggle">{t.showQr}</summary>
+          {/* Generated locally from the room link; no user content inside. */}
+          <div class="qr" role="img" aria-label={t.scanToJoin} dangerouslySetInnerHTML={{ __html: qr }} />
+          <p class="muted small">{t.scanToJoin}</p>
+        </details>
       </section>
 
       <section>
@@ -77,7 +101,7 @@ export function Lobby({ view, links, online, send, mark }: RoomProps) {
         <Settings view={view} online={online} />
       )}
 
-      <footer class="actions">
+      <footer class={isHost ? "actions pinned" : "actions"}>
         {isHost ? (
           <>
             <p class="muted small center-text">{enough ? t.readyToStart : t.needMore}</p>

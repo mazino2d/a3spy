@@ -4,6 +4,8 @@ import { recall, remember } from "../storage";
 import type { VoiceState } from "../voice";
 
 const TIP_KEY = "a3spy.voiceTip";
+/** How long a one-off hint stays under the bar (M8 AC6). */
+const HINT_MS = 8000;
 
 interface Props {
   call: VoiceState;
@@ -15,60 +17,76 @@ interface Props {
   onLeave(): void;
 }
 
-/** The room's voice call, at the top of every room screen while "Chơi online" is on. */
+/** The room's voice call: one line at the top of every room screen while "Chơi online" is on. */
 export function VoiceBar({ call, count, online, onJoin, onMute, onLeave }: Props) {
-  const [tip, setTip] = useState(false);
+  const [hint, setHint] = useState<string | null>(null);
+  const inCall = call.status === "in" || call.status === "reconnecting";
 
-  // The headphones tip shows during the first call on this device only (AC16).
+  // One-off hints under the bar: headphones on the first call on this device, or how to
+  // allow the microphone. Each hides after a few seconds or a tap.
   useEffect(() => {
-    if (call.status !== "in" || recall(TIP_KEY)) return;
-    remember(TIP_KEY, "1");
-    setTip(true);
-  }, [call.status]);
+    if (call.status !== "in") return;
+    if (call.listenOnly) setHint(t.voiceDenied);
+    else if (!recall(TIP_KEY)) {
+      remember(TIP_KEY, "1");
+      setHint(t.voiceTip);
+    }
+  }, [call.status, call.listenOnly]);
+  useEffect(() => {
+    if (!hint) return;
+    const timer = setTimeout(() => setHint(null), HINT_MS);
+    return () => clearTimeout(timer);
+  }, [hint]);
 
   return (
     <section class="voicebar" aria-label={t.voice}>
-      {call.status === "in" || call.status === "reconnecting" ? (
-        <>
-          <span class="small">
-            {call.status === "reconnecting"
-              ? t.voiceReconnecting
-              : call.listenOnly
-                ? t.voiceListenOnly
-                : t.voiceInCall(count)}
-          </span>
+      <div class="row between">
+        <span class="small">
+          {call.status === "reconnecting"
+            ? t.voiceReconnecting
+            : call.status === "connecting"
+              ? t.voiceConnecting
+              : call.status === "failed"
+                ? t.voiceFailed
+                : inCall
+                  ? call.listenOnly
+                    ? t.voiceListenOnly
+                    : t.voiceInCall(count)
+                  : t.voiceCount(count)}
+        </span>
+        {inCall ? (
           <span class="row">
             {!call.listenOnly && call.status === "in" && (
               <button
                 type="button"
-                class={call.muted ? "chip on" : "chip"}
+                class={call.muted ? "chip compact on" : "chip compact"}
                 aria-pressed={call.muted}
+                aria-label={call.muted ? t.voiceUnmute : t.voiceMute}
                 onClick={() => onMute(!call.muted)}
               >
-                {call.muted ? t.voiceUnmute : t.voiceMute}
+                {call.muted ? "🔇" : "🎙"} {call.muted ? t.voiceUnmute : t.voiceMute}
               </button>
             )}
-            <button type="button" class="link small" onClick={onLeave}>
+            <button type="button" class="link small compact" onClick={onLeave}>
               {t.voiceLeave}
             </button>
           </span>
-        </>
-      ) : (
-        <>
-          <span class="small">
-            {call.status === "connecting"
-              ? t.voiceConnecting
-              : call.status === "failed"
-                ? t.voiceFailed
-                : t.voiceCount(count)}
-          </span>
-          <button type="button" class="primary" disabled={!online || call.status === "connecting"} onClick={onJoin}>
+        ) : (
+          <button
+            type="button"
+            class="primary compact"
+            disabled={!online || call.status === "connecting"}
+            onClick={onJoin}
+          >
             {t.voiceJoin}
           </button>
-        </>
+        )}
+      </div>
+      {hint && (
+        <button type="button" class="hint small muted" onClick={() => setHint(null)}>
+          {hint}
+        </button>
       )}
-      {call.status === "in" && call.listenOnly && <p class="small muted full">{t.voiceDenied}</p>}
-      {tip && <p class="small muted full">{t.voiceTip}</p>}
     </section>
   );
 }
