@@ -1,8 +1,9 @@
 import { describe, expect, it } from "vitest";
-import type { PublicEvent } from "../../src/game/view";
+import type { PublicEvent, RoomView } from "../../src/game/view";
 import { cleanName, parseClientMessage } from "../../src/web/protocol";
 import { nextOutcome } from "../../web/src/outcome";
 import { cleanCode, parseRoute } from "../../web/src/parse";
+import { endReason, personal, shareCard } from "../../web/src/result";
 
 describe("web input", () => {
   it("W1 AC2 names are trimmed, spaces collapsed, 1–24 characters", () => {
@@ -70,5 +71,77 @@ describe("vote outcome on screen", () => {
       { type: "vote_opened", candidates: [1, 2], voters: [1, 2, 3], revote: true },
     ];
     expect(nextOutcome([], tie).map((e) => e.type)).toEqual(["vote_closed", "tie"]);
+  });
+});
+
+describe("M8 end of game", () => {
+  const ended = (winner: "civilians" | "spies" | "white" | null, me = 1): RoomView =>
+    ({
+      code: "AB12",
+      me,
+      hostId: 1,
+      players: [],
+      waiting: [],
+      scores: [],
+      settings: {} as RoomView["settings"],
+      game: {
+        id: 3,
+        round: 2,
+        phase: "ended",
+        order: [],
+        alive: [1, 2],
+        dealt: [
+          { id: 1, name: "Khôi" },
+          { id: 2, name: "Lan" },
+          { id: 3, name: "Minh" },
+          { id: 4, name: "Vy" },
+        ],
+        hand: null,
+        canVoteFor: [],
+        myVote: null,
+        votes: { count: 0, total: 0 },
+        revote: false,
+        roles: { 1: "civilian", 2: "spy", 3: "white", 4: "civilian" },
+        guesser: null,
+        words: winner ? { civilian: "Phở", spy: "Bún" } : null,
+        winner,
+        timer: null,
+      },
+    }) as RoomView;
+
+  it("U6 AC12 says why the game ended", () => {
+    expect(endReason(ended("civilians"))).toBe("civilians");
+    expect(endReason(ended("spies"))).toBe("spies");
+    expect(endReason(ended("white"))).toBe("white");
+    expect(endReason(ended(null))).toBe("ended");
+  });
+
+  it("U6 AC11 each player sees their own result; Mr. White wins with the spies or alone", () => {
+    expect(personal(ended("civilians", 1))).toEqual({ won: true, role: "civilian" });
+    expect(personal(ended("civilians", 2))).toEqual({ won: false, role: "spy" });
+    expect(personal(ended("spies", 3))).toEqual({ won: true, role: "white" });
+    expect(personal(ended("white", 2))).toEqual({ won: false, role: "spy" });
+    expect(personal(ended("white", 3))).toEqual({ won: true, role: "white" });
+    // Not dealt in (waiting list) or no winner: no personal result.
+    expect(personal(ended("spies", 99))).toBeNull();
+    expect(personal(ended(null, 1))).toBeNull();
+  });
+
+  it("U7 AC14 AC15 the share card carries only the ended game's public result", () => {
+    const card = shareCard(ended("spies", 4));
+    expect(card).toEqual({
+      winner: "spies",
+      words: { civilian: "Phở", spy: "Bún" },
+      players: [
+        { name: "Khôi", role: "civilian", out: false, me: false },
+        { name: "Lan", role: "spy", out: false, me: false },
+        { name: "Minh", role: "white", out: true, me: false },
+        { name: "Vy", role: "civilian", out: true, me: true },
+      ],
+      mine: { won: false, role: "civilian" },
+      code: "AB12",
+      gameId: 3,
+    });
+    expect(shareCard(ended(null))).toBeNull();
   });
 });
