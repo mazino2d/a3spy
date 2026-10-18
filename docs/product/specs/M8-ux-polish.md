@@ -1,6 +1,6 @@
 # M8 UX polish
 
-Status: ready   ·   Serves: UC-1, UC-3, UC-4, UC-7, UC-9   ·   Roadmap: Now   ·   Implementation: [M8](../../implementations/M8-ux-polish.md)
+Status: shipped 2026-10-18   ·   Serves: UC-1, UC-3, UC-4, UC-7, UC-9   ·   Roadmap: Shipped   ·   Implementation: [M8](../../implementations/M8-ux-polish.md)
 
 ## Problem
 
