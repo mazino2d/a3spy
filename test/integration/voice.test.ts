@@ -22,19 +22,19 @@ async function onlineRoom(names: [string, string]) {
   const code = await createRoom(a);
   await joinRoom(b, code);
   const [sa, sb] = [await connect(a, code), await connect(b, code)];
-  await sa.next("voice");
-  toggleVoice(sa);
   await sa.next("voice", (m) => m.on);
   await sb.next("voice", (m) => m.on);
   return { a, b, code, sa, sb };
 }
 
 describe("V1 V2 voice call on the web", () => {
-  it("V1 AC1 a new room sends voice off and refuses to join a call", async () => {
+  it("U1 AC1 a new room is online; once the host turns it off, joining the call is refused", async () => {
     const a = await guest("Vy");
     const code = await createRoom(a);
     const sa = await connect(a, code);
-    expect(await sa.next("voice")).toEqual({ type: "voice", on: false, members: [] });
+    expect(await sa.next("voice")).toEqual({ type: "voice", on: true, members: [] });
+    toggleVoice(sa);
+    await sa.next("voice", (m) => !m.on);
     join(sa);
     expect(await sa.next("voiceError")).toEqual({ type: "voiceError", code: "voice_off" });
     expect(rt.calls).toEqual([]);

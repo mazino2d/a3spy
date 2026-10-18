@@ -17,7 +17,11 @@ import { parseMessage } from "../../src/web/protocol";
 import { expectOk, lobby } from "../helpers/game";
 
 const THEMES = PACKS.map((p) => p.id);
-const voiceOn = (room: Room) => expectOk(configure(room, room.hostId, { kind: "voice" }, THEMES)).room;
+/** New rooms are online by default (M8). */
+const voiceOn = (room: Room) => {
+  expect(room.settings.voice).toBe(true);
+  return room;
+};
 const seat = (n: number, extra = {}) => ({
   sessionId: `s${n}`,
   track: `p${n}-x`,

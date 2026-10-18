@@ -43,6 +43,7 @@ export function Settings({ view, online, change }: Props) {
   return (
     <section class="card stack">
       <h2>{t.settings}</h2>
+      <p class="group">{t.groupRoles}</p>
       <div class="row between">
         <span>{t.spies}</span>
         <div class="row stepper">
@@ -69,15 +70,7 @@ export function Settings({ view, online, change }: Props) {
       </div>
       <div class="row between">
         <span>{t.mrWhite}</span>
-        <button
-          type="button"
-          class={s.white ? "chip on" : "chip"}
-          aria-pressed={Boolean(s.white)}
-          disabled={disabled}
-          onClick={() => change({ kind: "white" })}
-        >
-          {s.white ? `✅ ${t.on}` : `⬜ ${t.off}`}
-        </button>
+        <Toggle on={Boolean(s.white)} label={t.mrWhite} disabled={disabled} onClick={() => change({ kind: "white" })} />
       </div>
       <div class="row between">
         <span class="muted small">{s.auto ? t.autoCounts : ""}</span>
@@ -93,6 +86,7 @@ export function Settings({ view, online, change }: Props) {
         </p>
       )}
       <div>
+        <p class="group">{t.groupPace}</p>
         <p class="muted small">{t.timers}</p>
         <div class="chips">
           {(["discussion", "vote"] as const).map((timer) => (
@@ -110,19 +104,11 @@ export function Settings({ view, online, change }: Props) {
       </div>
       <div class="row between">
         <span>
-          {t.voice}
+          <span class="group">{t.voice}</span>
           <br />
           <span class="muted small">{t.voiceHint}</span>
         </span>
-        <button
-          type="button"
-          class={s.voice ? "chip on" : "chip"}
-          aria-pressed={s.voice}
-          disabled={disabled}
-          onClick={() => change({ kind: "voice" })}
-        >
-          {s.voice ? `✅ ${t.on}` : `⬜ ${t.off}`}
-        </button>
+        <Toggle on={s.voice} label={t.voice} disabled={disabled} onClick={() => change({ kind: "voice" })} />
       </div>
       <details class="themes">
         <summary>
@@ -158,5 +144,23 @@ export function Settings({ view, online, change }: Props) {
         </div>
       </details>
     </section>
+  );
+}
+
+/** The one on/off control in the settings (M8 U5): a switch that also says Có / Không. */
+function Toggle({ on, label, disabled, onClick }: { on: boolean; label: string; disabled: boolean; onClick(): void }) {
+  return (
+    <button
+      type="button"
+      role="switch"
+      aria-checked={on}
+      aria-label={label}
+      class={on ? "toggle on" : "toggle"}
+      disabled={disabled}
+      onClick={onClick}
+    >
+      <span class="knob" aria-hidden="true" />
+      {on ? t.on : t.off}
+    </button>
   );
 }

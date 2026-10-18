@@ -41,14 +41,14 @@ Before a game, in the lobby, the host can change:
 - **Spies**: 1–5. **Mr. White**: on or off (at most one).
 - **Themes**: any non-empty set of word packs; all of them by default.
 - **Timers** (see below): discussion off/2/3/5 minutes, vote off/1/2 minutes; both off by default.
-- **Chơi online** (see [Voice](#voice)): on or off; off by default.
+- **Chơi online** (see [Voice](#voice)): on or off; on by default (M8).
 - Counts follow the table above as players join or leave, until the host changes spies or Mr. White; from then on they stay as set, until the host taps **Tự động** to follow the table again.
 - Start is refused unless civilians > spies + Mr. White; the host sees why.
 - Settings belong to the room: they survive play again and a change of host, and cannot change while a game is running.
 
 ## A round
 
-1. **Describe** — every player sees the speaking order of living players to everyone: random in round 1, then the previous order rotated by one (eliminated players removed), so a different person opens each round. Mr. White is never first. People speak out loud.
+1. **Describe** — every player sees a suggested speaking order of living players to everyone: random in round 1, then the previous order rotated by one (eliminated players removed), so a different person opens each round. Mr. White is never first. People talk freely, out loud or on the call; the order only says who opens, and nobody waits for a turn.
 2. **Discuss** — free talk; A3 Spy does nothing.
 3. **Vote** — the host opens the vote. Each living player gets buttons with the other living players' names, votes once, may change their vote until it closes. Nobody sees who voted for whom; the host sees the count (`5/7`).
 4. **Close** — when every living player has voted, or the host presses close.

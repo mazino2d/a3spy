@@ -56,7 +56,7 @@ export interface Settings {
   counts: RoleCounts | null;
   /** Reminder timers in minutes; 0 is off (docs/rules.md#timers). */
   timers: { discussion: number; vote: number };
-  /** "Chơi online": the room has a voice call (docs/rules.md#voice). */
+  /** "Chơi online": the room has a voice call (docs/rules.md#voice); on by default (M8). */
   voice: boolean;
 }
 
@@ -66,7 +66,7 @@ export const DEFAULT_SETTINGS: Settings = {
   themes: [],
   counts: null,
   timers: { discussion: 0, vote: 0 },
-  voice: false,
+  voice: true,
 };
 
 /** One host tap in the settings. */

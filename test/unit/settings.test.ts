@@ -142,17 +142,17 @@ describe("L4 host settings", () => {
 });
 
 describe("V1 Chơi online", () => {
-  it("V1 AC1 a new room has voice off", () => {
-    expect(settingsView(lobby(4)).voice).toBe(false);
+  it("U1 AC1 a new room is online (voice on)", () => {
+    expect(settingsView(lobby(4)).voice).toBe(true);
   });
 
   it("V1 AC2 only the host turns voice on and off, and every change is announced", () => {
     const room = lobby(4);
     expect(configure(room, 2, { kind: "voice" }, THEMES)).toEqual({ ok: false, error: "not_host" });
-    const on = expectOk(configure(room, 1, { kind: "voice" }, THEMES));
-    expect(on.events).toEqual([{ type: "settings_changed", settings: on.room.settings }]);
-    expect(settingsView(on.room).voice).toBe(true);
-    expect(settingsView(set(on.room, { kind: "voice" })).voice).toBe(false);
+    const off = expectOk(configure(room, 1, { kind: "voice" }, THEMES));
+    expect(off.events).toEqual([{ type: "settings_changed", settings: off.room.settings }]);
+    expect(settingsView(off.room).voice).toBe(false);
+    expect(settingsView(set(off.room, { kind: "voice" })).voice).toBe(true);
   });
 
   it("V1 AC3 voice cannot change while a game is running", () => {
@@ -165,9 +165,9 @@ describe("V1 Chơi online", () => {
     room = expectOk(start(room, 1, opts())).room;
     room = expectOk(end(room, 1)).room;
     room = expectOk(start(room, 1, opts(2))).room;
-    expect(room.settings.voice).toBe(true);
+    expect(room.settings.voice).toBe(false);
     room = expectOk(end(room, 1)).room;
-    expect(expectOk(leave(room, 1)).room.settings.voice).toBe(true);
+    expect(expectOk(leave(room, 1)).room.settings.voice).toBe(false);
   });
 
   it("V1 the web sends the voice toggle as a settings change", () => {
