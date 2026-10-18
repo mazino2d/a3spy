@@ -1,8 +1,10 @@
 # A3 Spy
 
-A game master for *Who is Spy* (Undercover rules) for friends, at one café table or apart on the room's voice call. Everyone talks out loud; A3 Spy deals secret words to each phone, calls the speaking order, runs the vote, eliminates, reveals and keeps score.
+A game master for *Who is Spy* (Undercover rules) for friends, apart on the room's voice call or around one café table. Everyone talks freely; A3 Spy deals secret words to each phone, suggests who opens, runs the vote, eliminates, reveals, keeps score and makes a result image to share.
 
-Play it in the browser at [a3spy.mazino2d.workers.dev](https://a3spy.mazino2d.workers.dev/) (installable as a PWA). The Telegram bot [t.me/a3spy_bot](https://t.me/a3spy_bot) introduces the game, links to the web app and sends update announcements; it runs no games ([M7](docs/product/specs/M7-web-only.md)).
+**Play:** [a3spy.mazino2d.workers.dev](https://a3spy.mazino2d.workers.dev/), in any phone browser, nothing to install (add it to the home screen to open it like an app). New to the game? Send friends the one-screen rules: [/luat](https://a3spy.mazino2d.workers.dev/luat).
+
+On Telegram, [@a3spy_bot](https://t.me/a3spy_bot) gives the quick rules and the link to play, and posts news when new features or word packs arrive.
 
 ## How a game goes
 
@@ -44,7 +46,7 @@ Requires Node 24 (npm 11).
 ```bash
 npm ci
 npm run check   # lint + typecheck + tests
-npm run dev     # local Worker + web app; copy .dev.vars.example to .dev.vars and use a test bot
+npm run dev     # local Worker + web app; copy .dev.vars.example to .dev.vars (a test bot token only matters for bot work)
 npm run dev:web # web app with hot reload, talking to `npm run dev`
 ```
 
@@ -54,5 +56,5 @@ Add word pairs in `words/*.json` (pairs of similar words, one theme per file); t
 
 - `main` is protected: changes land through PRs, and the `ci / gate` check must pass.
 - Merging to `main` deploys to Cloudflare and points the Telegram webhook at the Worker (`.github/workflows/cd.yml`).
-- The bot's name, descriptions, `/` command menu and avatar are configured in `telegram/` and synced on merge (`.github/workflows/telegram-profile.yml`).
+- The bot's name, descriptions, `/start` and `/help` menu and avatar are configured in `telegram/` and synced on merge (`.github/workflows/telegram-profile.yml`).
 - Repo settings, the Cloudflare deploy token and secrets are managed as code in [everything-as-code](https://github.com/mazino2d/everything-as-code) (`terraform/github`, `terraform/cloudflare`).
