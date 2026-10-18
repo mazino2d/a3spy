@@ -1,7 +1,9 @@
 import { useEffect, useState } from "preact/hooks";
 import type { GameView, PublicEvent, RoomView } from "../../../src/game/view";
 import { t } from "../messages";
+import { endReason, personal, shareCard } from "../result";
 import { go } from "../route";
+import { shareResult } from "../shareImage";
 import type { RoomProps } from "./Room";
 
 const nameOf = (view: RoomView, id: number) =>
@@ -297,22 +299,45 @@ function WhiteGuess({ view, game, online, send }: PhaseProps) {
   );
 }
 
-/** The reveal: who won, both words, every role. The host deals again from here. */
+/** The end of a game: your result, why it ended, both words, every role, and a result to share. */
 export function GameOver(props: GameProps) {
   const { view, online, send } = props;
   const game = view.game as GameView;
   const isHost = view.me === view.hostId;
+  const mine = personal(view);
+  const reason = endReason(view);
+  const card = shareCard(view);
+  const [sharing, setSharing] = useState<string | null>(null);
+
+  const share = async () => {
+    if (!card) return;
+    setSharing(t.shareMaking);
+    try {
+      const outcome = await shareResult(card);
+      setSharing(outcome === "downloaded" ? t.shareDownloaded : null);
+    } catch {
+      setSharing(t.shareFailed);
+    }
+  };
+
   return (
     <main class="screen">
       <header class="row between">
-        <h1 class="small-title">{t.gameRound(game.id, game.round)}</h1>
+        <h1 class="small-title">{t.gameOverTitle(game.id)}</h1>
         <button type="button" class="link small" onClick={props.onScore}>
           {t.score}
         </button>
       </header>
       {props.outcome.length > 0 && <Outcome view={view} events={props.outcome} />}
-      <section class="card center">
-        <h1>{game.winner ? t.winner[game.winner] : t.endedEarly}</h1>
+      <section class={mine?.won ? "card center result won" : "card center result"}>
+        {mine && (
+          <>
+            <p class="headline">{mine.won ? t.youWon : t.youLost}</p>
+            <p>{t.youWere(t.roles[mine.role] ?? "")}</p>
+          </>
+        )}
+        <h2 class="winner">{game.winner ? t.winner[game.winner] : t.endedEarly}</h2>
+        {reason && reason !== "ended" && <p class="muted">{t.reasons[reason]}</p>}
         {game.words && (
           <div class="words">
             <p>
@@ -323,18 +348,29 @@ export function GameOver(props: GameProps) {
             </p>
           </div>
         )}
+        {card && (
+          <button type="button" class="secondary" onClick={share} disabled={sharing === t.shareMaking}>
+            {sharing === t.shareMaking ? t.shareMaking : t.shareResult}
+          </button>
+        )}
+        {sharing && sharing !== t.shareMaking && <p class="muted small">{sharing}</p>}
       </section>
       <section>
         <h2>🃏 {t.reveal}</h2>
         <ul class="plain">
-          {game.dealt.map((p) => (
-            <li key={p.id} class={`row between${p.id === view.me ? " me" : ""}`}>
-              <span>
-                {game.alive.includes(p.id) ? "•" : "✝"} {p.name}
-              </span>
-              <span class={game.roles[p.id] === "civilian" ? "muted" : "odd"}>{t.roles[game.roles[p.id] ?? ""]}</span>
-            </li>
-          ))}
+          {game.dealt.map((p) => {
+            const out = !game.alive.includes(p.id);
+            return (
+              <li key={p.id} class={`row between${p.id === view.me ? " me" : ""}`}>
+                <span>
+                  {out && <span title={t.out}>❌ </span>}
+                  {p.name}
+                  {p.id === view.me && <span class="muted"> ({t.you})</span>}
+                </span>
+                <span class={game.roles[p.id] === "civilian" ? "muted" : "odd"}>{t.roles[game.roles[p.id] ?? ""]}</span>
+              </li>
+            );
+          })}
         </ul>
       </section>
       <footer class="actions">
