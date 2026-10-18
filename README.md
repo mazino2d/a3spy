@@ -4,7 +4,7 @@ A game master for *Who is Spy* (Undercover rules) for friends, apart on the room
 
 **Play:** [a3spy.mazino2d.workers.dev](https://a3spy.mazino2d.workers.dev/), in any phone browser, nothing to install (add it to the home screen to open it like an app). New to the game? Send friends the one-screen rules: [/luat](https://a3spy.mazino2d.workers.dev/luat).
 
-The game runs only in the browser. The Telegram bot [@a3spy_bot](https://t.me/a3spy_bot) is not a way to play: it links to the web app and posts update announcements ([M7](docs/product/specs/M7-web-only.md)).
+On Telegram, [@a3spy_bot](https://t.me/a3spy_bot) gives the quick rules and the link to play, and posts news when new features or word packs arrive.
 
 ## How a game goes
 
