@@ -1,8 +1,8 @@
 {
   "$comment": "Bot profile shown in Telegram. Synced by .github/workflows/telegram-profile.yml on merge to main.",
   "name": "A3 Spy",
-  "short_description": "Quản trò Who is Spy cho hội bạn. Giờ chơi trên web: a3spy.mazino2d.workers.dev",
-  "description": "🕵️ A3 Spy làm quản trò Who is Spy cho hội bạn: chia từ bí mật, gọi lượt, đếm phiếu, lật bài, có cả voice call cho hội ở xa.\n\nGame giờ chơi trên web: https://a3spy.mazino2d.workers.dev\nBấm Start để lấy link, và nhận tin khi có tính năng mới.",
+  "short_description": "Quản trò Who is Spy cho hội bạn. Giờ chơi trên web: a3spy.pages.dev",
+  "description": "🕵️ A3 Spy làm quản trò Who is Spy cho hội bạn: chia từ bí mật, gọi lượt, đếm phiếu, lật bài, có cả voice call cho hội ở xa.\n\nGame giờ chơi trên web: https://a3spy.pages.dev\nBấm Start để lấy link, và nhận tin khi có tính năng mới.",
   "commands": [
     { "command": "start", "description": "Giới thiệu và link chơi trên web" },
     { "command": "help", "description": "Luật chơi nhanh" }

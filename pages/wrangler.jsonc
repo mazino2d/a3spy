@@ -1,0 +1,11 @@
+{
+  "$schema": "../node_modules/wrangler/config-schema.json",
+  // a3spy.pages.dev, the short link. The Pages project itself is created in
+  // mazino2d/everything-as-code (terraform/cloudflare/workers.tf); this file is its
+  // configuration, applied on each `wrangler pages deploy` run from this folder.
+  "name": "a3spy",
+  "pages_build_output_dir": "./public",
+  "compatibility_date": "2026-10-01",
+  // public/_worker.js hands every request to the a3spy Worker (../wrangler.jsonc).
+  "services": [{ "binding": "APP", "service": "a3spy" }]
+}
