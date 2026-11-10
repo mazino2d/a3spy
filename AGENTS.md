@@ -6,8 +6,9 @@ this repo.
 A3 Spy is the **game master** for *Who is Spy* (Undercover rules) while a group of friends
 plays at one café table or apart on the room's voice call. People describe and argue out
 loud; A3 Spy deals secret words, calls the speaking order, runs the vote, eliminates, reveals
-and keeps score. The game runs only in the web app (PWA) at
-https://a3spy.mazino2d.workers.dev/; the Telegram bot is a signpost and an announcement
+and keeps score. The game runs only in the web app (PWA) at https://a3spy.pages.dev/ (a
+Pages project that hands every request to the Worker; https://a3spy.mazino2d.workers.dev/
+still works for phones that installed it); the Telegram bot is a signpost and an announcement
 channel ([M7](docs/product/specs/M7-web-only.md)). Audience: one friend group, < 30 users.
 Product context: [docs/product/](docs/product/index.md).
 
@@ -92,6 +93,7 @@ Browser ──/api/*, WebSocket──▶ Worker (src/index.ts) ──▶ GameRoo
                                   │                       src/game — pure rules
                                   ├──▶ GuestDO "<guest id>"  name, session hash, current room
                                   └──▶ LeaderboardDO "group" long-term stats (no words)
+a3spy.pages.dev ── pages/_worker.js ──service binding──▶ the same Worker (short link)
 Telegram ──webhook──▶ Worker ──▶ bot (src/bot): signpost, old invite links, /announce
                                   └──▶ AudienceDO "bot"      Telegram ids for announcements
 ```
@@ -117,6 +119,7 @@ web/              Web app (PWA): Preact + Vite, served by the Worker as static a
   src/messages.ts Every web string (Vietnamese)
   public/         manifest, service worker (never caches /api), icons rendered from the avatar
 telegram/         Bot profile as code: profile.json, avatar.svg → avatar.jpg
+pages/            _worker.js for a3spy.pages.dev: forwards everything to the Worker
 scripts/          Node scripts: render the avatar and web icons, sync the profile to Telegram
 docs/             Product docs, implementation plans, game rules
 test/unit/        Pure tests for src/game, the voice roster and protocol parsing

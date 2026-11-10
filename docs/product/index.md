@@ -23,7 +23,7 @@ issues in the matching milestone.
 | --- | --- | --- |
 | [M1 Telegram game master](specs/M1-telegram-game-master.md) | Shipped | The bot runs the whole game over DM: rooms, dealing, rounds, vote, reveal, play again, score. [Implementation](../implementations/M1-telegram-game-master.md). |
 | [M2 Host settings and playtest fixes](specs/M2-host-settings.md) | Shipped | The host picks themes, spy count and Mr. White; fixes from the first café session. |
-| [M3 Web app (PWA)](specs/M3-web-app.md) | Shipped | Anyone joins by QR and a name and plays the same game as Telegram players; installable. Live at [a3spy.mazino2d.workers.dev](https://a3spy.mazino2d.workers.dev/). [Implementation](../implementations/M3-web-app.md). |
+| [M3 Web app (PWA)](specs/M3-web-app.md) | Shipped | Anyone joins by QR and a name and plays the same game as Telegram players; installable. Live at [a3spy.pages.dev](https://a3spy.pages.dev/). [Implementation](../implementations/M3-web-app.md). |
 | [M4 Optional timers](specs/M4-timers.md) | Shipped | Discussion and vote timers that remind the table; the host still decides. [Implementation](../implementations/M4-timers.md). |
 | [M5 Long-term stats](specs/M5-long-term-stats.md) | Shipped | Personal numbers and a group leaderboard: `/stats` on Telegram, Stats on the web. [Implementation](../implementations/M5-long-term-stats.md). |
 | [M6 Remote play with voice](specs/M6-remote-voice.md) | Shipped | Online rooms get a built-in voice call, so friends who live apart can play together. [Implementation](../implementations/M6-remote-voice.md). |

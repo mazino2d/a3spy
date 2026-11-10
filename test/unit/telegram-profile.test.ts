@@ -10,7 +10,7 @@ describe("telegram/profile.json", () => {
 
   it("B2 AC10 advertises only /start and /help, and points to the web app", () => {
     expect(loadProfile(raw).commands.map((c) => c.command)).toEqual(["start", "help"]);
-    expect(raw.description).toContain("https://a3spy.mazino2d.workers.dev");
+    expect(raw.description).toContain("https://a3spy.pages.dev");
     expect(msg.signpost).not.toContain("/newgame");
   });
 

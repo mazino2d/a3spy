@@ -2,7 +2,7 @@
 
 A game master for *Who is Spy* (Undercover rules) for friends, apart on the room's voice call or around one café table. Everyone talks freely; A3 Spy deals secret words to each phone, suggests who opens, runs the vote, eliminates, reveals, keeps score and makes a result image to share.
 
-**Play:** [a3spy.mazino2d.workers.dev](https://a3spy.mazino2d.workers.dev/), in any phone browser, nothing to install (add it to the home screen to open it like an app). New to the game? Send friends the one-screen rules: [/luat](https://a3spy.mazino2d.workers.dev/luat).
+**Play:** [a3spy.pages.dev](https://a3spy.pages.dev/), in any phone browser, nothing to install (add it to the home screen to open it like an app). New to the game? Send friends the one-screen rules: [/luat](https://a3spy.pages.dev/luat).
 
 On Telegram, [@a3spy_bot](https://t.me/a3spy_bot) gives the quick rules and the link to play, and posts news when new features or word packs arrive.
 

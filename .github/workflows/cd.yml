@@ -7,6 +7,7 @@ on:
       - "src/**"
       - "web/**"
       - "words/**"
+      - "pages/**"
       - "package.json"
       - "package-lock.json"
       - "wrangler.jsonc"
@@ -27,7 +28,7 @@ jobs:
     timeout-minutes: 10
     environment:
       name: production
-      url: ${{ steps.deploy.outputs.url }}
+      url: https://a3spy.pages.dev
     env:
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
       CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
@@ -35,6 +36,7 @@ jobs:
       TELEGRAM_WEBHOOK_SECRET: ${{ secrets.TELEGRAM_WEBHOOK_SECRET }}
       REALTIME_APP_TOKEN: ${{ secrets.REALTIME_APP_TOKEN }}
       OWNER_TELEGRAM_ID: ${{ secrets.OWNER_TELEGRAM_ID }}
+      SHORT_URL: https://a3spy.pages.dev
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
@@ -69,10 +71,21 @@ jobs:
       - name: Smoke test
         run: curl -fsS --retry 5 --retry-all-errors "${{ steps.deploy.outputs.url }}/healthz"
 
-      - name: Point Telegram webhook at the Worker
+      # a3spy.pages.dev, the short link friends share: pages/public/_worker.js forwards
+      # every request to the Worker above through the service binding in
+      # pages/wrangler.jsonc. The Pages project is created in everything-as-code.
+      - name: Deploy short link (Pages)
+        working-directory: pages
+        run: npx wrangler pages deploy --branch main --commit-dirty=true
+
+      - name: Smoke test short link
+        run: curl -fsS --retry 5 --retry-all-errors "$SHORT_URL/healthz"
+
+      # Through the short link, so the links the bot sends are short too.
+      - name: Point Telegram webhook at the short link
         run: |
           curl -fsS "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/setWebhook" \
-            --data-urlencode "url=${{ steps.deploy.outputs.url }}/webhook" \
+            --data-urlencode "url=$SHORT_URL/webhook" \
             --data-urlencode "secret_token=${TELEGRAM_WEBHOOK_SECRET}" \
             --data-urlencode 'allowed_updates=["message","callback_query"]' \
             -o /dev/null
