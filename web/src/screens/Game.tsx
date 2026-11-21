@@ -385,14 +385,25 @@ export function GameOver(props: GameProps) {
       </section>
       <footer class="actions">
         {isHost ? (
-          <button
-            type="button"
-            class="primary big"
-            disabled={!online}
-            onClick={() => send({ type: "command", action: "again", gameId: game.id, round: game.round })}
-          >
-            {t.playAgain}
-          </button>
+          <>
+            <button
+              type="button"
+              class="primary big"
+              disabled={!online}
+              onClick={() => send({ type: "command", action: "again", gameId: game.id, round: game.round })}
+            >
+              {t.playAgain}
+            </button>
+            {/* Settings only change in the lobby, so the end screen stays simple (U12). */}
+            <button
+              type="button"
+              class="secondary"
+              disabled={!online}
+              onClick={() => send({ type: "command", action: "lobby", gameId: game.id })}
+            >
+              {t.backToLobby}
+            </button>
+          </>
         ) : (
           <p class="muted center-text">{t.waitAgain}</p>
         )}

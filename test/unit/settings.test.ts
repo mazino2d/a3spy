@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  backToLobby,
   configure,
   createRoom,
   end,
@@ -175,5 +176,58 @@ describe("V1 Chơi online", () => {
       action: "configure",
       change: { kind: "voice" },
     });
+  });
+});
+
+describe("U12 change settings between games", () => {
+  const ended = (room: Room) => expectOk(end(expectOk(start(room, 1, opts())).room, 1)).room;
+
+  it("U12 AC1 after a game the host goes back to the lobby; players, scores and settings stay", () => {
+    const before = { ...ended(set(lobby(5), { kind: "white" })), scores: { 2: 3 } };
+    const r = expectOk(backToLobby(before, 1));
+    expect(r.events).toEqual([{ type: "back_to_lobby" }]);
+    expect(r.room.game).toBeNull();
+    expect(r.room.players.map((p) => p.id)).toEqual([1, 2, 3, 4, 5]);
+    expect(r.room.scores).toEqual({ 2: 3 });
+    expect(r.room.gamesPlayed).toBe(1);
+    expect(r.room.settings).toEqual(before.settings);
+  });
+
+  it("U12 AC2 settings changed in the lobby apply to the next game", () => {
+    let room = expectOk(backToLobby(ended(lobby(6)), 1)).room;
+    room = set(room, { kind: "white" }, { kind: "spies", delta: 1 });
+    const next = expectOk(start(room, 1, opts(2))).room;
+    expect(next.game?.id).toBe(2);
+    expect(next.game?.hands.filter((h) => h.role === "spy")).toHaveLength(2);
+    expect(next.game?.hands.filter((h) => h.role === "white")).toHaveLength(0);
+  });
+
+  it("U12 AC3 only the host goes back to the lobby", () => {
+    expect(backToLobby(ended(lobby(4)), 2)).toEqual({ ok: false, error: "not_host" });
+  });
+
+  it("U12 AC5 not while a game is running, nor without a game", () => {
+    expect(backToLobby(expectOk(start(lobby(4), 1, opts())).room, 1)).toEqual({ ok: false, error: "game_running" });
+    expect(backToLobby(lobby(4), 1)).toEqual({ ok: false, error: "no_game" });
+  });
+
+  it("U12 the waiting list joins the players in the lobby", () => {
+    let room = expectOk(start(lobby(4), 1, opts())).room;
+    room = expectOk(join(room, player(9))).room;
+    room = expectOk(backToLobby(expectOk(end(room, 1)).room, 1)).room;
+    expect(room.players.map((p) => p.id)).toEqual([1, 2, 3, 4, 9]);
+    expect(room.waiting).toEqual([]);
+  });
+
+  it("U12 a lobby command from an earlier game is stale; the web sends it with the game id", () => {
+    const deps = { rng: seededRng(1), pairs: () => PAIRS, themes: THEMES, now: 0 };
+    const room = ended(lobby(4));
+    expect(decide(room, 1, { action: "lobby", gameId: 7 }, deps)).toEqual({ ok: false, error: "stale" });
+    expect(decide(room, 1, { action: "lobby", gameId: 1 }, deps).ok).toBe(true);
+    expect(parseClientMessage('{"type":"command","action":"lobby","gameId":1}')).toEqual({
+      action: "lobby",
+      gameId: 1,
+    });
+    expect(parseClientMessage('{"type":"command","action":"lobby"}')).toBeNull();
   });
 });

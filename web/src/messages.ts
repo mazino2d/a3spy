@@ -196,7 +196,8 @@ export const t = {
   civilianWord: "Từ của dân",
   spyWord: "Từ của spy",
   playAgain: "🔁 Chơi lại",
-  waitAgain: "Chờ host bấm Chơi lại nhé.",
+  waitAgain: "Chờ host bấm Chơi lại hoặc đổi cài đặt nhé.",
+  backToLobby: "⚙️ Về phòng chờ để đổi cài đặt",
 
   // Long-term stats
   stats: "🏅 Thống kê",

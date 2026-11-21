@@ -36,7 +36,7 @@ Civilians and spies get the **same message format** ("Từ của bạn: X") so a
 
 ### Host settings
 
-Before a game, in the lobby, the host can change:
+Before a game, in the lobby, the host can change (after a game, **Về phòng chờ** brings the room back to the lobby first):
 
 - **Spies**: 1–5. **Mr. White**: on or off (at most one).
 - **Themes**: any non-empty set of word packs; all of them by default.
@@ -82,6 +82,7 @@ An online room (host setting **Chơi online**) has one audio-only voice call.
 
 - Everyone sees every role and both words.
 - **Play again** keeps players and settings, adds the waiting list, and draws a pair not used in this room in the last 24 hours.
+- **Về phòng chờ** (host only) takes everyone back to the lobby instead, so the host can change settings before starting the next game. Players, scores and settings stay; the waiting list joins the players.
 - **Kết thúc ván** (host only) ends the game early with a full reveal; it does not count as a win for anyone.
 
 ## Score

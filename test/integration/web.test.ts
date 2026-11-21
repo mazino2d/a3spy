@@ -264,6 +264,28 @@ describe("a game over sockets", () => {
     expect(sa.messages.at(-1)).toEqual({ type: "closed", reason: "replaced" });
   });
 
+  it("U12 AC1 AC3 the host takes the room back to the lobby after a game; everyone sees it", async () => {
+    const { socks, host } = await webRoom(3);
+    const sa = socks[1] as Socket;
+    host.send({ type: "command", action: "start" });
+    const { view } = await host.next("state", (m) => m.view.game !== null);
+    host.send({ type: "command", action: "end", gameId: view.game?.id });
+    await sa.next("state", (m) => m.view.game?.phase === "ended");
+
+    sa.send({ type: "command", action: "lobby", gameId: view.game?.id });
+    expect(await sa.next("error")).toEqual({ type: "error", code: "not_host" });
+
+    host.send({ type: "command", action: "lobby", gameId: view.game?.id });
+    const lobby = await sa.next("state", (m) => m.view.game === null);
+    expect(lobby.view.players).toHaveLength(3);
+
+    host.send({ type: "command", action: "configure", change: { kind: "theme", theme: "food" } });
+    await sa.next("state", (m) => m.view.settings.themes.some((t) => !t.on));
+    host.send({ type: "command", action: "start" });
+    const next = await sa.next("state", (m) => m.view.game !== null);
+    expect(next.view.game?.id).toBe(2);
+  });
+
   it("W5 leaving over the socket closes it and tells the others", async () => {
     const { players, socks, host } = await webRoom(3);
     const leaver = (players[1] as WebPlayer).id;

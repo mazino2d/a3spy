@@ -12,6 +12,7 @@ export type Command =
   | { action: "again" | "openVote" | "closeVote"; gameId: number; round: number }
   /** gameId is absent for `/end`, which always targets the current game. */
   | { action: "end"; gameId?: number }
+  | { action: "lobby"; gameId: number }
   | { action: "vote"; gameId: number; round: number; target: number }
   | { action: "guess"; text: string }
   | { action: "configure"; change: engine.SettingsChange };
@@ -49,6 +50,9 @@ export function decide(room: engine.Room, playerId: number, cmd: Command, deps: 
     case "end":
       if (cmd.gameId !== undefined && room.game?.id !== cmd.gameId) return fail("stale");
       return engine.end(room, playerId);
+    case "lobby":
+      if (room.game?.id !== cmd.gameId) return fail("stale");
+      return engine.backToLobby(room, playerId);
     case "guess":
       return engine.guess(room, playerId, cmd.text);
   }
