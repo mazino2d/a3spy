@@ -114,7 +114,8 @@ export type GameEvent =
   | { type: "no_elimination"; reason: "tie" | "no_votes" }
   | { type: "white_guessing"; playerId: number }
   | { type: "white_guessed"; playerId: number; guess: string; correct: boolean }
-  | { type: "game_ended"; winner: Side | null; game: Game };
+  | { type: "game_ended"; winner: Side | null; game: Game }
+  | { type: "back_to_lobby" };
 
 export type GameError =
   | "already_in_room"
@@ -555,6 +556,20 @@ export function end(room: Room, by: number): Result {
   const game = room.game;
   if (!game || game.phase === "ended") return fail("no_game");
   return okFrom(endGame(room, game, null, []));
+}
+
+/**
+ * After a game has ended, the host takes the room back to the lobby to change settings
+ * before the next game (docs/rules.md#end-of-game). Players, scores and settings stay;
+ * the waiting list joins the players.
+ */
+export function backToLobby(room: Room, by: number): Result {
+  if (by !== room.hostId) return fail("not_host");
+  if (!room.game) return fail("no_game");
+  if (room.game.phase !== "ended") return fail("game_running");
+  return ok({ ...room, players: [...room.players, ...room.waiting], waiting: [], game: null }, [
+    { type: "back_to_lobby" },
+  ]);
 }
 
 function endGame(

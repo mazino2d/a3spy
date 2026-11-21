@@ -143,7 +143,8 @@ function parseCommand(m: Record<string, unknown>): Command | null {
     case "closeVote":
       return int(m.gameId) && int(m.round) ? { action: m.action, gameId: m.gameId, round: m.round } : null;
     case "end":
-      return int(m.gameId) ? { action: "end", gameId: m.gameId } : null;
+    case "lobby":
+      return int(m.gameId) ? { action: m.action, gameId: m.gameId } : null;
     case "vote":
       return int(m.gameId) && int(m.round) && int(m.target)
         ? { action: "vote", gameId: m.gameId, round: m.round, target: m.target }
